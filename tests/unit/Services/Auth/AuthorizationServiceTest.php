@@ -2,7 +2,7 @@
 
 use App\Repositories\Contracts\Auth\UserRepositoryInterface;
 use App\Services\Auth\AuthorizationService;
-use CodeIgniter\Exceptions\PageForbiddenException;
+use CodeIgniter\Security\Exceptions\SecurityException;
 use CodeIgniter\Test\CIUnitTestCase;
 
 /**
@@ -43,8 +43,7 @@ final class AuthorizationServiceTest extends CIUnitTestCase
 
         $service = new AuthorizationService($users);
 
-        $this->expectException(PageForbiddenException::class);
+        $this->expectException(SecurityException::class);
         $service->assertGroupAccess(7, ['admin']);
     }
 }
-

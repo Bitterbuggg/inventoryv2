@@ -3,7 +3,7 @@
 namespace App\Services\Auth;
 
 use App\Repositories\Contracts\Auth\UserRepositoryInterface;
-use CodeIgniter\Exceptions\PageForbiddenException;
+use CodeIgniter\Security\Exceptions\SecurityException;
 
 class AuthorizationService
 {
@@ -27,7 +27,6 @@ class AuthorizationService
             }
         }
 
-        throw PageForbiddenException::forPageForbidden('Insufficient role privileges.');
+        throw SecurityException::forDisallowedAction();
     }
 }
-

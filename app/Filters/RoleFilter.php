@@ -2,7 +2,6 @@
 
 namespace App\Filters;
 
-use CodeIgniter\Exceptions\PageForbiddenException;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -37,7 +36,7 @@ class RoleFilter implements FilterInterface
             }
         }
 
-        throw PageForbiddenException::forPageForbidden('You do not have access to this resource.');
+        return service('response')->setStatusCode(403, 'Forbidden');
     }
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
@@ -45,4 +44,3 @@ class RoleFilter implements FilterInterface
         return null;
     }
 }
-

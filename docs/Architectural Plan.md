@@ -18,6 +18,7 @@
 - ✅ Core workflow documented from purchase request to issuance
 - ✅ Service and repository layering planned for lean controllers
 - ✅ Unit and integration testing strategy documented
+- ✅ **Phase 1 implemented**: runnable CI4 baseline with Shield auth/RBAC, admin route guards, and passing unit/integration tests
 
 ## Implementation Strategy
 
@@ -266,11 +267,11 @@ Each module has its own detailed architectural plan and implementation guide:
 ### Phase A: Foundation Setup
 **Timeline:** 1-2 weeks  
 **Scope:** Core system
-- [ ] Set up migrations and seeds for auth + baseline lookups
-- [ ] Implement login/signup and session security controls
-- [ ] Configure role and permission middleware/filters
-- [ ] Implement repository contracts and base service classes
-- [ ] Create admin routes and dashboard skeleton
+- [x] Set up migrations and seeds for auth + baseline lookups
+- [x] Implement login/signup and session security controls
+- [x] Configure role and permission middleware/filters
+- [x] Implement repository contracts and base service classes
+- [x] Create admin routes and dashboard skeleton
 
 ### Phase B: Procurement Module Implementation  
 **Timeline:** 2-4 weeks  
@@ -452,5 +453,11 @@ Procurement Module -> Approved PO Request -> Receiving Module -> Inventory Quant
 
 ### Dependencies
 - ✅ **Current Baseline**: CodeIgniter 4 architecture and module plan documented
-- 🔄 **To Install**: Auth/RBAC package, optional PDF package, static analysis tools
+- ✅ **Installed**: `codeigniter4/shield` for auth/RBAC implementation
+- 🔄 **Optional Next**: PDF package and static analysis tooling hardening
 - 📋 **To Plan**: Detailed module docs and full schema document for implementation handoff
+
+### Phase 1 Notes
+- Auth implementation uses **CodeIgniter Shield** (session authenticator).
+- Internal technical role key is **`it_staff`** with display label **“IT dev/staff”**.
+- Admin route policy is enforced with `auth` + custom `role:admin` filter wrappers.

@@ -9,40 +9,38 @@ use RuntimeException;
 
 class UserRepository implements UserRepositoryInterface
 {
-    public function __construct(private readonly UserModel $userModel = new UserModel())
-    {
-    }
-
     public function findByIdentifier(string $identifier): ?object
     {
+        $userModel  = $this->newUserModel();
         $identifier = trim($identifier);
         if ($identifier === '') {
             return null;
         }
 
         if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
-            return $this->userModel->findByCredentials(['email' => strtolower($identifier)]);
+            return $userModel->findByCredentials(['email' => strtolower($identifier)]);
         }
 
-        return $this->userModel->findByCredentials(['username' => $identifier]);
+        return $userModel->findByCredentials(['username' => $identifier]);
     }
 
     public function createUser(array $data): int
     {
-        $user = $this->userModel->createNewUser([
+        $userModel = $this->newUserModel();
+        $user      = $userModel->createNewUser([
             'username' => $data['username'],
             'email'    => strtolower($data['email']),
             'password' => $data['password'],
             'active'   => 1,
         ]);
 
-        $this->userModel->save($user);
+        $userId = $userModel->insert($user, true);
 
-        if ($user->id === null) {
+        if (! is_int($userId) && ! ctype_digit((string) $userId)) {
             throw new RuntimeException('Failed to persist user record.');
         }
 
-        return (int) $user->id;
+        return (int) $userId;
     }
 
     public function assignGroup(int $userId, string $group): void
@@ -56,7 +54,7 @@ class UserRepository implements UserRepositoryInterface
 
     public function userInGroup(int $userId, string $group): bool
     {
-        $user = $this->userModel->withGroups()->findById($userId);
+        $user = $this->newUserModel()->withGroups()->findById($userId);
 
         if (! $user instanceof User) {
             return false;
@@ -67,12 +65,17 @@ class UserRepository implements UserRepositoryInterface
 
     private function getUserOrFail(int $userId): User
     {
-        $user = $this->userModel->withGroups()->findById($userId);
+        $user = $this->newUserModel()->withGroups()->findById($userId);
 
         if (! $user instanceof User) {
             throw new RuntimeException("User {$userId} not found.");
         }
 
         return $user;
+    }
+
+    private function newUserModel(): UserModel
+    {
+        return new UserModel();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Services\Auth;
 
 use App\Repositories\Contracts\Auth\UserRepositoryInterface;
 use CodeIgniter\Shield\Authentication\AuthenticatorInterface;
+use CodeIgniter\Shield\Auth;
 use DomainException;
 use InvalidArgumentException;
 use function auth;
@@ -11,9 +12,12 @@ use function auth;
 class AuthenticationService
 {
     private ?string $lastError = null;
-    private readonly AuthenticatorInterface $authenticator;
+    private readonly Auth|AuthenticatorInterface $authenticator;
 
-    public function __construct(private readonly UserRepositoryInterface $users, ?AuthenticatorInterface $authenticator = null)
+    public function __construct(
+        private readonly UserRepositoryInterface $users,
+        Auth|AuthenticatorInterface|null $authenticator = null,
+    )
     {
         $this->authenticator = $authenticator ?? auth('session');
     }

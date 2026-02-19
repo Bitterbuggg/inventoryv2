@@ -47,7 +47,7 @@ final class AdminRouteGuardTest extends CIUnitTestCase
 
     private function findUserByEmail(string $email): User
     {
-        $user = model(UserModel::class)->withGroups()->findByCredentials(['email' => $email]);
+        $user = model(UserModel::class)->findByCredentials(['email' => $email]);
 
         if (! $user instanceof User) {
             throw new \RuntimeException("User {$email} not found in test setup.");
