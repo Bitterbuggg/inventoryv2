@@ -1,6 +1,7 @@
 <?php
 
 use App\Database\Seeds\AuthRbacSeeder;
+use CodeIgniter\Security\Exceptions\SecurityException;
 use CodeIgniter\Shield\Models\UserModel;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\DatabaseTestTrait;
@@ -46,6 +47,16 @@ final class LoginFlowTest extends CIUnitTestCase
 
         $response = $this->withSession(session()->get())->post('/login', $payload);
         $response->assertRedirect();
+    }
+
+    public function testLoginWithoutCsrfTokenIsRejected(): void
+    {
+        $this->expectException(SecurityException::class);
+
+        $this->post('/login', [
+            'identifier' => 'admin@local.test',
+            'password'   => 'Admin@1234',
+        ]);
     }
 
     public function testPasswordIsStoredHashed(): void
