@@ -16,6 +16,38 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?php
+$rows = $stocks ?? [];
+$totalRows = count($rows);
+$totalOnHand = array_sum(array_map(static fn (array $row): float => (float) ($row['on_hand_qty'] ?? 0), $rows));
+$totalAvailable = array_sum(array_map(static fn (array $row): float => (float) ($row['available_qty'] ?? 0), $rows));
+$zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (float) ($row['available_qty'] ?? 0) <= 0));
+?>
+<section class="card stack-md">
+    <div class="kpi-grid">
+        <article class="kpi-card">
+            <p class="kpi-label">Visible SKUs</p>
+            <p class="kpi-value"><?= esc((string) $totalRows) ?></p>
+            <p class="kpi-note">Rows in current inventory view.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Total On Hand</p>
+            <p class="kpi-value"><?= esc(number_format($totalOnHand, 2)) ?></p>
+            <p class="kpi-note">Current physical quantity total.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Total Available</p>
+            <p class="kpi-value"><?= esc(number_format($totalAvailable, 2)) ?></p>
+            <p class="kpi-note">On hand minus reserved quantities.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Zero/Negative Available</p>
+            <p class="kpi-value"><?= esc((string) $zeroAvailable) ?></p>
+            <p class="kpi-note">Needs restocking review.</p>
+        </article>
+    </div>
+</section>
+
 <section class="card stack-md">
     <form class="inline-form" method="get" action="<?= site_url('inventory/quantities') ?>">
         <input type="text" name="q" placeholder="Search item name" value="<?= esc((string) ($keyword ?? '')) ?>">

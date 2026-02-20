@@ -18,6 +18,38 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?php
+$rows = $issuances ?? [];
+$totalIssuances = count($rows);
+$draftIssuances = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'draft'));
+$submittedIssuances = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'submitted'));
+$releasedIssuances = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'released'));
+?>
+<section class="card stack-md">
+    <div class="kpi-grid">
+        <article class="kpi-card">
+            <p class="kpi-label">Visible Issuances</p>
+            <p class="kpi-value"><?= esc((string) $totalIssuances) ?></p>
+            <p class="kpi-note">Records in current list view.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Draft</p>
+            <p class="kpi-value"><?= esc((string) $draftIssuances) ?></p>
+            <p class="kpi-note">Still editable by requestor.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Submitted</p>
+            <p class="kpi-value"><?= esc((string) $submittedIssuances) ?></p>
+            <p class="kpi-note">Pending approval decision.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Released</p>
+            <p class="kpi-value"><?= esc((string) $releasedIssuances) ?></p>
+            <p class="kpi-note">Stock already deducted.</p>
+        </article>
+    </div>
+</section>
+
 <section class="card stack-md">
     <form class="inline-form" method="get" action="<?= site_url('inventory/issuance') ?>">
         <label for="status">Filter status</label>
