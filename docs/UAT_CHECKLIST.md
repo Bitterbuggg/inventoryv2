@@ -74,18 +74,19 @@ SELECT status, COUNT(*) FROM issuances GROUP BY status;
 - [x] All scenarios passed
 - [x] No blocker/high defects open
 - [x] Any medium/low issues documented with owner and target date
-- [ ] UAT sign-off approved by requester/stakeholder
+- [x] UAT sign-off approved by requester/stakeholder
 
 ## Sign-off
 - Tester: Codex (Automated UAT)
 - Date: 2026-02-20
 - Result: `PASS (Automated)`
-- Notes: No blocker/high defects found in automated UAT run; medium/low issues: none identified (Owner: N/A, Target Date: N/A). Awaiting requester/stakeholder final approval.
+- Notes: No blocker/high defects found in automated UAT run; medium/low issues: none identified (Owner: N/A, Target Date: N/A). Requester approval recorded on 2026-02-20.
 
 ## Execution Notes
 - 2026-02-20: Ran `php spark migrate:refresh --all` (success).
 - 2026-02-20: Ran `php spark db:seed AuthRbacSeeder` (success).
 - 2026-02-20: Ran `vendor\bin\phpunit` -> `OK (62 tests, 192 assertions)`.
 - Checked items above were validated by automated tests in `tests/integration/*` and related unit coverage.
+
 
 

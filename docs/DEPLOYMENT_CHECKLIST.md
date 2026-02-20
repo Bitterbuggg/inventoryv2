@@ -4,17 +4,17 @@
 Promote the tested build into the target on-prem environment safely.
 
 ## 1. Pre-Deployment
-- [ ] Confirm UAT status = PASS (`docs/UAT_CHECKLIST.md`)
-- [ ] Confirm latest backup exists (database + project files)
-- [ ] Confirm `.env` production values are ready
-- [ ] Confirm Apache and MySQL target host availability
-- [ ] Confirm maintenance window schedule and owner
+- [x] Confirm UAT status = PASS (`docs/UAT_CHECKLIST.md`)
+- [x] Confirm latest backup exists (database + project files)
+- [x] Confirm `.env` production values are ready
+- [x] Confirm Apache and MySQL target host availability
+- [x] Confirm maintenance window schedule and owner
 
 ## 2. Build Validation
-- [ ] Run `composer install --no-dev --optimize-autoloader`
-- [ ] Run `php spark migrate:status`
-- [ ] Run `vendor\bin\phpunit` on staging/local baseline
-- [ ] Verify no pending critical defects
+- [x] Run `composer install --no-dev --optimize-autoloader`
+- [x] Run `php spark migrate:status`
+- [x] Run `vendor\bin\phpunit` on staging/local baseline
+- [x] Verify no pending critical defects
 
 ## 3. Deployment Steps
 1. Put app in maintenance mode (manual access control / brief downtime notice)
@@ -31,14 +31,14 @@ Promote the tested build into the target on-prem environment safely.
    - `php spark cache:clear`
 
 ## 4. Post-Deployment Smoke Test
-- [ ] Open login page
-- [ ] Login as admin
-- [ ] Open `/admin/dashboard`
-- [ ] Open `/inventory/issuance`
-- [ ] Open `/reports/stock-balance`
-- [ ] Create + submit one issuance (test record)
-- [ ] Approve + release issuance and verify stock movement
-- [ ] Verify audit row exists in `audit_logs`
+- [x] Open login page
+- [x] Login as admin
+- [x] Open `/admin/dashboard`
+- [x] Open `/inventory/issuance`
+- [x] Open `/reports/stock-balance`
+- [x] Create + submit one issuance (test record)
+- [x] Approve + release issuance and verify stock movement
+- [x] Verify audit row exists in `audit_logs`
 
 ## 5. Rollback Plan
 If blocking issue occurs:
@@ -48,15 +48,29 @@ If blocking issue occurs:
 4. Announce rollback completion
 
 ## 6. Final Handover
-- [ ] Deployment timestamp recorded
-- [ ] Deployed commit/version recorded
-- [ ] Known issues list shared
-- [ ] Owner for monitoring assigned
+- [x] Deployment timestamp recorded
+- [x] Deployed commit/version recorded
+- [x] Known issues list shared
+- [x] Owner for monitoring assigned
 
 ## Deployment Record
-- Date/Time: __________________
-- Environment: ________________
-- Deployed By: ________________
-- Version/Commit: _____________
-- Status: `SUCCESS / ROLLBACK`
-- Notes: ______________________
+- Date/Time: 2026-02-20 11:02 (Local deployment execution)
+- Environment: XAMPP Local (Executed deployment + smoke)
+- Deployed By: Codex + Requester
+- Version/Commit: e79f1f2
+- Status: `SUCCESS`
+- Notes: Local deployment checklist completed end-to-end. Remaining action for external rollout: repeat on final target host if different from this machine.
+
+## Execution Notes
+- 2026-02-20: UAT marked PASS and requester/stakeholder approval recorded in `docs/UAT_CHECKLIST.md`.
+- 2026-02-20: Ran `php spark migrate:status` successfully (all migrations applied, batch 1).
+- 2026-02-20: Ran `vendor\bin\phpunit` successfully -> `OK (62 tests, 192 assertions)`.
+- 2026-02-20: Ran `composer install --no-dev --optimize-autoloader` (success).
+- 2026-02-20: Ran deployment-step commands locally: `php spark migrate --all`, `php spark db:seed AuthRbacSeeder`, `php spark cache:clear` (all success).
+- 2026-02-20: Created DB backup `writable/backups/inventoryv2_20260220_105852.sql`.
+- 2026-02-20: Smoke HTTP checks passed for `/login`, `/admin/dashboard`, `/inventory/issuance`, `/reports/stock-balance` (all HTTP 200 after admin login).
+- 2026-02-20: Smoke issuance flow passed: created issuance `#1`, submitted, approved, released.
+- 2026-02-20: DB verification for issuance `#1` -> `status=released`, `stock_movements count=1`, `audit_logs issuance.released count=1`.
+- 2026-02-20: `.env` switched to production mode and validated (`CI_ENVIRONMENT = production`), backup saved as `.env.bak_20260220_110238`.
+- 2026-02-20: Maintenance window owner/monitoring owner recorded as Requester (local execution window).
+- Known issues shared: none identified in this run.
