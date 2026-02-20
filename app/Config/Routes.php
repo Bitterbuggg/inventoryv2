@@ -17,3 +17,39 @@ $routes->group('admin', ['filter' => 'auth'], static function (RouteCollection $
     $routes->get('users', 'Admin\UserController::index', ['filter' => 'role:admin']);
     $routes->post('users/(:num)/role', 'Admin\UserController::assignRole/$1', ['filter' => 'role:admin']);
 });
+
+$routes->group('procurement', ['filter' => 'auth'], static function (RouteCollection $routes): void {
+    $routes->get('purchase-requests', 'Procurement\PurchaseRequestController::index', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->get('purchase-requests/create', 'Procurement\PurchaseRequestController::create', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->post('purchase-requests', 'Procurement\PurchaseRequestController::store', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->post('purchase-requests/(:num)/submit', 'Procurement\PurchaseRequestController::submit/$1', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->post('purchase-requests/(:num)/cancel', 'Procurement\PurchaseRequestController::cancel/$1', ['filter' => 'role:admin,employee,it_staff']);
+
+    $routes->get('approvals/pending', 'Procurement\PurchaseApprovalController::pending', ['filter' => 'role:admin,it_staff']);
+    $routes->post('approvals/(:num)/approve', 'Procurement\PurchaseApprovalController::approve/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('approvals/(:num)/reject', 'Procurement\PurchaseApprovalController::reject/$1', ['filter' => 'role:admin,it_staff']);
+
+    $routes->get('purchase-orders', 'Procurement\PurchaseOrderController::index', ['filter' => 'role:admin,it_staff']);
+    $routes->post('purchase-orders/from-pr/(:num)', 'Procurement\PurchaseOrderController::createFromPr/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('purchase-orders/(:num)/issue', 'Procurement\PurchaseOrderController::issue/$1', ['filter' => 'role:admin,it_staff']);
+
+    $routes->get('po-requests', 'Procurement\PoRequestController::index', ['filter' => 'role:admin,it_staff']);
+    $routes->post('po-requests/from-po/(:num)', 'Procurement\PoRequestController::createFromPo/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('po-requests/(:num)/approve', 'Procurement\PoRequestController::approve/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('po-requests/(:num)/reject', 'Procurement\PoRequestController::reject/$1', ['filter' => 'role:admin,it_staff']);
+});
+
+$routes->group('receiving', ['filter' => 'auth'], static function (RouteCollection $routes): void {
+    $routes->get('/', 'Receiving\ReceivingController::index', ['filter' => 'role:admin,it_staff']);
+    $routes->get('create/from-po-request/(:num)', 'Receiving\ReceivingController::createFromPoRequest/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('/', 'Receiving\ReceivingController::store', ['filter' => 'role:admin,it_staff']);
+    $routes->get('(:num)', 'Receiving\ReceivingController::show/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('(:num)/post', 'Receiving\ReceivingController::post/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('(:num)/void', 'Receiving\ReceivingController::void/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('(:num)/validate', 'Receiving\ReceivingValidationController::validateDraft/$1', ['filter' => 'role:admin,it_staff']);
+});
+
+$routes->group('inventory', ['filter' => 'auth'], static function (RouteCollection $routes): void {
+    $routes->get('quantities', 'Receiving\InventoryQuantityController::index', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->get('quantities/(:num)', 'Receiving\InventoryQuantityController::show/$1', ['filter' => 'role:admin,employee,it_staff']);
+});

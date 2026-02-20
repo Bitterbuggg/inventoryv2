@@ -19,14 +19,16 @@
 - ✅ Service and repository layering planned for lean controllers
 - ✅ Unit and integration testing strategy documented
 - ✅ **Phase 1 implemented**: runnable CI4 baseline with Shield auth/RBAC, admin route guards, and passing unit/integration tests
+- ✅ **Phase 2 implemented**: Procurement PR -> Approval -> PO -> PO Request workflow with repositories/services/controllers/views and passing tests
+- ✅ **Phase 3 implemented**: Receiving conversion, quantity validation, stock posting, and inventory movement logging with passing tests
 
 ## Implementation Strategy
 
 **Modular Development Approach:**
 1. **Phase 1:** Foundation + Auth/RBAC Module - *Priority Implementation*
-2. **Phase 2:** Procurement Module (PR, Approval, PO, PO Request) - *Planned*
-3. **Phase 3:** Receiving + Inventory Quantity Module - *Planned*
-4. **Phase 4:** Issuance + Reports Module - *Future*
+2. **Phase 2:** Procurement Module (PR, Approval, PO, PO Request) - *Implemented*
+3. **Phase 3:** Receiving + Inventory Quantity Module - *Implemented*
+4. **Phase 4:** Issuance + Reports Module - *Planned*
 
 **Core Architectural Principles:**
 1. **Clean Architecture**: Service and repository patterns for maintainable backend
@@ -149,9 +151,9 @@ app/Views/
 
 Each module has its own detailed architectural plan and implementation guide:
 
-### 📋 [Foundation + Auth/RBAC Module](AUTH_RBAC_MODULE_ARCHITECTURE.md) - **Priority Implementation**
-**Status:** Ready for development  
-**Timeline:** 1-2 weeks  
+### 📋 [Foundation + Auth/RBAC Module](AUTH_RBAC_MODULE_ARCHITECTURE.md) - **Implemented**
+**Status:** Implemented (Phase 1 complete)  
+**Timeline:** Completed in previous implementation cycle  
 **Core Features:**
 - Signup, login, logout, and secure session lifecycle
 - Role assignment and role-protected route access
@@ -159,9 +161,9 @@ Each module has its own detailed architectural plan and implementation guide:
 - Validation and CSRF defaults enabled
 - Baseline tests for auth and middleware
 
-### ⏰ [Procurement Module](PROCUREMENT_MODULE_ARCHITECTURE.md) - **Planned**
-**Status:** Architecture planning  
-**Timeline:** 2-4 weeks after Foundation  
+### ⏰ [Procurement Module](PROCUREMENT_MODULE_ARCHITECTURE.md) - **Implemented Baseline**
+**Status:** Baseline implemented (Phase 2 complete)  
+**Timeline:** Completed in current implementation cycle  
 **Core Features:**
 - Purchase request creation and itemization
 - Approval workflow with status transitions
@@ -169,9 +171,9 @@ Each module has its own detailed architectural plan and implementation guide:
 - PO request tracking and lifecycle enforcement
 - Supplier linkage and procurement history
 
-### 📦 [Receiving + Inventory Quantity Module](RECEIVING_INVENTORY_MODULE_ARCHITECTURE.md) - **Planned**
-**Status:** Architecture planning  
-**Timeline:** 2-3 weeks after Procurement  
+### 📦 [Receiving + Inventory Quantity Module](RECEIVING_INVENTORY_MODULE_ARCHITECTURE.md) - **Implemented Baseline**
+**Status:** Baseline implemented (Phase 3 complete)  
+**Timeline:** Completed in current implementation cycle  
 **Core Features:**
 - Receiving conversion from PO requests
 - Received quantity validation and posting
@@ -179,7 +181,7 @@ Each module has its own detailed architectural plan and implementation guide:
 - Batch and expiry support readiness
 - Stock reconciliation utilities
 
-### 🚚 [Issuance + Reporting Module](ISSUANCE_REPORTING_MODULE_ARCHITECTURE.md) - **Future**
+### 🚚 [Issuance + Reporting Module](ISSUANCE_REPORTING_MODULE_ARCHITECTURE.md) - **Planned**
 **Status:** Planned  
 **Timeline:** 2-3 weeks after Receiving  
 **Core Features:**
@@ -265,7 +267,7 @@ Each module has its own detailed architectural plan and implementation guide:
 ## System-Wide Implementation Phases
 
 ### Phase A: Foundation Setup
-**Timeline:** 1-2 weeks  
+**Timeline:** Completed in previous implementation cycle  
 **Scope:** Core system
 - [x] Set up migrations and seeds for auth + baseline lookups
 - [x] Implement login/signup and session security controls
@@ -276,20 +278,20 @@ Each module has its own detailed architectural plan and implementation guide:
 ### Phase B: Procurement Module Implementation  
 **Timeline:** 2-4 weeks  
 **Scope:** PR to PO request workflow
-- [ ] Implement purchase request and item entry flows
-- [ ] Add approval lifecycle and transition guards
-- [ ] Generate purchase orders from approved requests
-- [ ] Add PO request tracking and state validation
-- [ ] Add procurement unit/integration tests
+- [x] Implement purchase request and item entry flows
+- [x] Add approval lifecycle and transition guards
+- [x] Generate purchase orders from approved requests
+- [x] Add PO request tracking and state validation
+- [x] Add procurement unit/integration tests
 
 ### Phase C: Receiving + Inventory Quantity Implementation
 **Timeline:** 2-3 weeks  
 **Scope:** Stock intake and balance updates
-- [ ] Implement receiving conversion from PO request
-- [ ] Add quantity validation and posting logic
-- [ ] Record stock movement history entries
-- [ ] Add reconciliation and mismatch handling paths
-- [ ] Add receiving/inventory tests
+- [x] Implement receiving conversion from PO request
+- [x] Add quantity validation and posting logic
+- [x] Record stock movement history entries
+- [x] Add reconciliation and mismatch handling paths
+- [x] Add receiving/inventory tests
 
 ### Phase D: Issuance + Reporting Implementation
 **Timeline:** 2-3 weeks  
@@ -428,7 +430,7 @@ Procurement Module -> Approved PO Request -> Receiving Module -> Inventory Quant
 ## Getting Started
 
 ### Current Status
-✅ **Architecture Ready**: Workflow, module plan, and layering strategy documented
+✅ **Foundation + Procurement + Receiving Ready**: Phases 1 to 3 are implemented and verified
 
 ### Next Steps
 1. **Review Documentation**:  
@@ -440,9 +442,9 @@ Procurement Module -> Approved PO Request -> Receiving Module -> Inventory Quant
    - [Receiving + Inventory Quantity Module](RECEIVING_INVENTORY_MODULE_ARCHITECTURE.md) - stock intake
    - [Issuance + Reporting Module](ISSUANCE_REPORTING_MODULE_ARCHITECTURE.md) - stock release and analytics
 
-2. **Begin Implementation**: Start with Phase A (Foundation Setup)
+2. **Begin Implementation**: Start with Phase D (Issuance + Reporting)
 
-3. **Development Priority**: Foundation/Auth -> Procurement -> Receiving/Inventory -> Issuance/Reports
+3. **Development Priority**: Issuance/Reports
 
 ### Total Timeline Estimate
 - **Foundation Setup**: 1-2 weeks
@@ -452,12 +454,26 @@ Procurement Module -> Approved PO Request -> Receiving Module -> Inventory Quant
 - **Total**: ~2-3 months for core end-to-end workflow
 
 ### Dependencies
-- ✅ **Current Baseline**: CodeIgniter 4 architecture and module plan documented
+- ✅ **Current Baseline**: CodeIgniter 4 app with Foundation/Auth + Procurement + Receiving/Inventory modules implemented
 - ✅ **Installed**: `codeigniter4/shield` for auth/RBAC implementation
 - 🔄 **Optional Next**: PDF package and static analysis tooling hardening
-- 📋 **To Plan**: Detailed module docs and full schema document for implementation handoff
+- 📋 **To Plan**: Phase D issuance workflows, approvals, and reporting layer
 
 ### Phase 1 Notes
 - Auth implementation uses **CodeIgniter Shield** (session authenticator).
 - Internal technical role key is **`it_staff`** with display label **“IT dev/staff”**.
 - Admin route policy is enforced with `auth` + custom `role:admin` filter wrappers.
+
+
+### Phase 2 Notes
+- Procurement routes are implemented under `/procurement/*` with role guards.
+- Workflow transitions are enforced in service layer (PR -> Approval -> PO -> PO Request).
+- Added procurement unit and integration tests with full lifecycle coverage.
+
+
+
+### Phase 3 Notes
+- Receiving routes are implemented under `/receiving/*` with role guards.
+- Inventory quantity views are available under `/inventory/quantities` and `/inventory/quantities/{id}`.
+- Posting enforces quantity validation and writes `inventory_stocks` + `stock_movements` atomically.
+

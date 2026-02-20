@@ -1,6 +1,6 @@
 # InventoryV2 - Local Setup and Browser Run Guide
 
-This guide shows exactly how to set up and run the current Phase 1 project on your browser.
+This guide shows exactly how to set up and run the current Phase 3 baseline project on your browser.
 
 ## 1. Prerequisites
 
@@ -12,7 +12,7 @@ This guide shows exactly how to set up and run the current Phase 1 project on yo
 ## 2. Open the project folder
 
 ```powershell
-cd C:\Users\asphy\Desktop\nigga\inventoryv2
+cd C:\xampp\htdocs\inventoryv2
 ```
 
 ## 3. Install dependencies
@@ -142,3 +142,6 @@ php spark serve
 
 - DB connection error  
   Check `.env` DB host/user/password/port and ensure MySQL is running
+
+
+

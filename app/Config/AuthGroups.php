@@ -29,16 +29,8 @@ class AuthGroups extends ShieldAuthGroups
      * --------------------------------------------------------------------
      * Groups
      * --------------------------------------------------------------------
-     * An associative array of the available groups in the system, where the keys
-     * are the group names and the values are arrays of the group info.
-     *
-     * Whatever value you assign as the key will be used to refer to the group
-     * when using functions such as:
-     *      $user->addGroup('superadmin');
      *
      * @var array<string, array<string, string>>
-     *
-     * @see https://codeigniter4.github.io/shield/quick_start_guide/using_authorization/#change-available-groups for more info
      */
     public array $groups = [
         'admin' => [
@@ -59,29 +51,44 @@ class AuthGroups extends ShieldAuthGroups
      * --------------------------------------------------------------------
      * Permissions
      * --------------------------------------------------------------------
-     * The available permissions in the system.
-     *
-     * If a permission is not listed here it cannot be used.
      */
     public array $permissions = [
-        'dashboard.view_admin' => 'Can access admin dashboard',
-        'auth.manage_users'    => 'Can manage user roles and assignments',
+        'dashboard.view_admin'       => 'Can access admin dashboard',
+        'auth.manage_users'          => 'Can manage user roles and assignments',
+        'procurement.pr.create'      => 'Can create purchase requests',
+        'procurement.pr.approve'     => 'Can approve or reject purchase requests',
+        'procurement.po.create'      => 'Can generate purchase orders from approved requests',
+        'procurement.por.manage'     => 'Can manage PO request transitions',
+        'receiving.convert'          => 'Can convert approved PO requests to receiving records',
+        'inventory.quantity.update'  => 'Can post receiving quantities to inventory stocks',
     ];
 
     /**
      * --------------------------------------------------------------------
      * Permissions Matrix
      * --------------------------------------------------------------------
-     * Maps permissions to groups.
-     *
-     * This defines group-level permissions.
      */
     public array $matrix = [
         'admin' => [
             'dashboard.view_admin',
             'auth.manage_users',
+            'procurement.pr.create',
+            'procurement.pr.approve',
+            'procurement.po.create',
+            'procurement.por.manage',
+            'receiving.convert',
+            'inventory.quantity.update',
         ],
-        'employee' => [],
-        'it_staff' => [],
+        'employee' => [
+            'procurement.pr.create',
+        ],
+        'it_staff' => [
+            'procurement.pr.create',
+            'procurement.pr.approve',
+            'procurement.po.create',
+            'procurement.por.manage',
+            'receiving.convert',
+            'inventory.quantity.update',
+        ],
     ];
 }
