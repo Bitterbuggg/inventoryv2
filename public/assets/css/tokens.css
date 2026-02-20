@@ -2,24 +2,24 @@
     --font-sans: "Source Sans 3", "Trebuchet MS", "Segoe UI", sans-serif;
     --font-mono: "Consolas", "Courier New", monospace;
 
-    --color-bg: #f6faf9;
+    --color-bg: #f2f5fb;
     --color-surface: #ffffff;
-    --color-surface-alt: #ecf5f2;
-    --color-border: #ceddd8;
-    --color-border-strong: #9bb8b0;
+    --color-surface-alt: #eef3fb;
+    --color-border: #d3deef;
+    --color-border-strong: #a8bad6;
 
-    --color-text: #18302a;
-    --color-text-muted: #4f6861;
+    --color-text: #10203a;
+    --color-text-muted: #5f7090;
 
-    --color-brand-700: #0f5a55;
-    --color-brand-600: #12766e;
-    --color-brand-500: #169084;
-    --color-brand-100: #d6f2ec;
+    --color-brand-700: #1d4fa6;
+    --color-brand-600: #2562d4;
+    --color-brand-500: #2f7bf5;
+    --color-brand-100: #dbe9ff;
 
     --color-success-700: #166534;
     --color-success-100: #dcfce7;
 
-    --color-warning-700: #9a5500;
+    --color-warning-700: #9a5c00;
     --color-warning-100: #ffedd5;
 
     --color-danger-700: #9f1239;
@@ -27,6 +27,12 @@
 
     --color-info-700: #1d4ed8;
     --color-info-100: #dbeafe;
+
+    --color-sidebar-bg: #1f2a3e;
+    --color-sidebar-border: #2f3c56;
+    --color-sidebar-link: #d8e3f6;
+    --color-sidebar-link-active: #ffffff;
+    --color-sidebar-link-active-bg: #2d64c8;
 
     --radius-xs: 6px;
     --radius-sm: 10px;
@@ -39,10 +45,10 @@
     --space-5: 24px;
     --space-6: 32px;
 
-    --shadow-sm: 0 1px 2px rgba(10, 30, 26, 0.08);
-    --shadow-md: 0 10px 30px rgba(18, 118, 110, 0.12);
+    --shadow-sm: 0 2px 6px rgba(14, 31, 64, 0.08);
+    --shadow-md: 0 12px 30px rgba(23, 56, 112, 0.12);
 
-    --container-max: 1200px;
+    --container-max: 1240px;
 }
 
 * {
@@ -59,8 +65,8 @@ body {
     font-family: var(--font-sans);
     color: var(--color-text);
     background:
-        radial-gradient(circle at 10% 10%, rgba(22, 144, 132, 0.14), transparent 45%),
-        radial-gradient(circle at 95% 5%, rgba(19, 96, 90, 0.12), transparent 40%),
+        radial-gradient(circle at 14% 7%, rgba(47, 123, 245, 0.18), transparent 38%),
+        radial-gradient(circle at 98% 2%, rgba(30, 74, 146, 0.15), transparent 30%),
         var(--color-bg);
     min-height: 100vh;
     line-height: 1.45;
@@ -75,11 +81,11 @@ h4 {
 }
 
 h1 {
-    font-size: clamp(1.45rem, 1.3rem + 0.8vw, 2rem);
+    font-size: clamp(1.4rem, 1.25rem + 0.7vw, 1.9rem);
 }
 
 h2 {
-    font-size: clamp(1.1rem, 1rem + 0.5vw, 1.4rem);
+    font-size: clamp(1.02rem, 0.96rem + 0.5vw, 1.28rem);
 }
 
 p {
@@ -97,14 +103,14 @@ a:hover {
 }
 
 :focus-visible {
-    outline: 3px solid rgba(22, 144, 132, 0.45);
+    outline: 3px solid rgba(47, 123, 245, 0.45);
     outline-offset: 1px;
 }
 
 code {
     font-family: var(--font-mono);
-    background: #eef5f3;
-    border: 1px solid #d8e6e2;
+    background: #edf3fd;
+    border: 1px solid #d4e1f6;
     border-radius: var(--radius-xs);
     padding: 1px 5px;
 }

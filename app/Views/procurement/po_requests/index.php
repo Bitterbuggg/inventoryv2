@@ -18,6 +18,38 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?php
+$rows = $poRequests ?? [];
+$totalRequests = count($rows);
+$pendingRequests = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'pending'));
+$approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'approved'));
+$rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'rejected'));
+?>
+<section class="card stack-md">
+    <div class="kpi-grid">
+        <article class="kpi-card">
+            <p class="kpi-label">Visible PO Requests</p>
+            <p class="kpi-value"><?= esc((string) $totalRequests) ?></p>
+            <p class="kpi-note">Requests in the selected filter.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Pending</p>
+            <p class="kpi-value"><?= esc((string) $pendingRequests) ?></p>
+            <p class="kpi-note">Ready for approval action.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Approved</p>
+            <p class="kpi-value"><?= esc((string) $approvedRequests) ?></p>
+            <p class="kpi-note">Can proceed to receiving flow.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Rejected</p>
+            <p class="kpi-value"><?= esc((string) $rejectedRequests) ?></p>
+            <p class="kpi-note">Require correction and resubmission.</p>
+        </article>
+    </div>
+</section>
+
 <section class="card stack-md">
     <form class="inline-form" method="get" action="<?= site_url('procurement/po-requests') ?>">
         <label for="status">Filter status</label>

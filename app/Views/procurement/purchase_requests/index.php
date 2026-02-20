@@ -19,6 +19,38 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?php
+$rows = $requests ?? [];
+$totalRequests = count($rows);
+$draftRequests = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'draft'));
+$submittedRequests = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'submitted'));
+$approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'approved'));
+?>
+<section class="card stack-md">
+    <div class="kpi-grid">
+        <article class="kpi-card">
+            <p class="kpi-label">Visible Requests</p>
+            <p class="kpi-value"><?= esc((string) $totalRequests) ?></p>
+            <p class="kpi-note">Current list size after filter.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Draft</p>
+            <p class="kpi-value"><?= esc((string) $draftRequests) ?></p>
+            <p class="kpi-note">Ready for review and submit.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Submitted</p>
+            <p class="kpi-value"><?= esc((string) $submittedRequests) ?></p>
+            <p class="kpi-note">Awaiting approval actions.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Approved</p>
+            <p class="kpi-value"><?= esc((string) $approvedRequests) ?></p>
+            <p class="kpi-note">Eligible for PO generation.</p>
+        </article>
+    </div>
+</section>
+
 <section class="card stack-md">
     <form class="inline-form" method="get" action="<?= site_url('procurement/purchase-requests') ?>">
         <label for="status">Filter status</label>

@@ -18,6 +18,38 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?php
+$rows = $receivings ?? [];
+$totalReceivings = count($rows);
+$draftReceivings = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'draft'));
+$postedReceivings = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'posted'));
+$convertibleCount = count($convertiblePoRequests ?? []);
+?>
+<section class="card stack-md">
+    <div class="kpi-grid">
+        <article class="kpi-card">
+            <p class="kpi-label">Visible Receivings</p>
+            <p class="kpi-value"><?= esc((string) $totalReceivings) ?></p>
+            <p class="kpi-note">Records matching selected status.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Draft</p>
+            <p class="kpi-value"><?= esc((string) $draftReceivings) ?></p>
+            <p class="kpi-note">Pending validation or posting.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Posted</p>
+            <p class="kpi-value"><?= esc((string) $postedReceivings) ?></p>
+            <p class="kpi-note">Inventory already updated.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Ready to Convert</p>
+            <p class="kpi-value"><?= esc((string) $convertibleCount) ?></p>
+            <p class="kpi-note">Approved PO requests available.</p>
+        </article>
+    </div>
+</section>
+
 <section class="card stack-md">
     <form class="inline-form" method="get" action="<?= site_url('receiving') ?>">
         <label for="status">Filter status</label>
@@ -62,7 +94,7 @@ $crumbs = [
     </div>
 </section>
 
-<section class="card stack-md" style="margin-top: 16px;">
+<section class="card stack-md">
     <h2>Approved PO Requests Ready for Conversion</h2>
     <div class="table-wrap">
         <table class="table">

@@ -18,6 +18,38 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?php
+$rows = $purchaseOrders ?? [];
+$totalOrders = count($rows);
+$draftOrders = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'draft'));
+$issuedOrders = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'issued'));
+$receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_array((string) ($row['status'] ?? ''), ['partially_received', 'fully_received'], true)));
+?>
+<section class="card stack-md">
+    <div class="kpi-grid">
+        <article class="kpi-card">
+            <p class="kpi-label">Visible POs</p>
+            <p class="kpi-value"><?= esc((string) $totalOrders) ?></p>
+            <p class="kpi-note">Purchase orders in current view.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Draft</p>
+            <p class="kpi-value"><?= esc((string) $draftOrders) ?></p>
+            <p class="kpi-note">Pending PO issuance.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Issued</p>
+            <p class="kpi-value"><?= esc((string) $issuedOrders) ?></p>
+            <p class="kpi-note">Ready for PO request flow.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Received</p>
+            <p class="kpi-value"><?= esc((string) $receivedOrders) ?></p>
+            <p class="kpi-note">Partially or fully received.</p>
+        </article>
+    </div>
+</section>
+
 <section class="card stack-md">
     <form class="inline-form" method="get" action="<?= site_url('procurement/purchase-orders') ?>">
         <label for="status">Filter status</label>

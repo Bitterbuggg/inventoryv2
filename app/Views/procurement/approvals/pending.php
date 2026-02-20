@@ -18,6 +18,38 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?php
+$rows = $approvals ?? [];
+$totalPending = count($rows);
+$level1Pending = count(array_filter($rows, static fn (array $row): bool => (string) ($row['approval_level'] ?? '') === '1'));
+$prApprovals = count(array_filter($rows, static fn (array $row): bool => (string) ($row['reference_type'] ?? '') === 'purchase_request'));
+$issuanceApprovals = count(array_filter($rows, static fn (array $row): bool => (string) ($row['reference_type'] ?? '') === 'issuance'));
+?>
+<section class="card stack-md">
+    <div class="kpi-grid">
+        <article class="kpi-card">
+            <p class="kpi-label">Pending Queue</p>
+            <p class="kpi-value"><?= esc((string) $totalPending) ?></p>
+            <p class="kpi-note">Approvals requiring a decision.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Level 1</p>
+            <p class="kpi-value"><?= esc((string) $level1Pending) ?></p>
+            <p class="kpi-note">Initial approval-stage records.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">PR References</p>
+            <p class="kpi-value"><?= esc((string) $prApprovals) ?></p>
+            <p class="kpi-note">Linked to purchase requests.</p>
+        </article>
+        <article class="kpi-card">
+            <p class="kpi-label">Issuance References</p>
+            <p class="kpi-value"><?= esc((string) $issuanceApprovals) ?></p>
+            <p class="kpi-note">Linked to issuance records.</p>
+        </article>
+    </div>
+</section>
+
 <section class="card stack-md">
     <div class="table-wrap">
         <table class="table">
