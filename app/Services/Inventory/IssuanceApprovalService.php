@@ -4,12 +4,14 @@ namespace App\Services\Inventory;
 
 use App\Repositories\Contracts\Inventory\IssuanceRepositoryInterface;
 use App\Repositories\Contracts\Procurement\ApprovalRepositoryInterface;
+use App\Services\Shared\AuditService;
 
 class IssuanceApprovalService
 {
     public function __construct(
         private readonly IssuanceRepositoryInterface $issuances,
         private readonly ApprovalRepositoryInterface $approvals,
+        private readonly AuditService $audit,
     ) {
     }
 
@@ -48,6 +50,16 @@ class IssuanceApprovalService
             'rejected_at'      => null,
             'rejection_reason' => null,
         ]);
+
+        $this->safeAudit(
+            actorId: $approverId,
+            action: 'issuance.approved',
+            module: 'issuance',
+            referenceType: 'issuance',
+            referenceId: $issuanceId,
+            oldValues: ['status' => 'submitted'],
+            newValues: ['status' => 'approved', 'comments' => $this->nullableString($comments)],
+        );
     }
 
     public function reject(int $issuanceId, int $approverId, string $reason): void
@@ -89,6 +101,16 @@ class IssuanceApprovalService
             'rejected_at'      => $now,
             'rejection_reason' => $reason,
         ]);
+
+        $this->safeAudit(
+            actorId: $approverId,
+            action: 'issuance.rejected',
+            module: 'issuance',
+            referenceType: 'issuance',
+            referenceId: $issuanceId,
+            oldValues: ['status' => 'submitted'],
+            newValues: ['status' => 'rejected', 'reason' => $reason],
+        );
     }
 
     private function nullableString(?string $value): ?string
@@ -96,5 +118,25 @@ class IssuanceApprovalService
         $text = trim((string) $value);
 
         return $text === '' ? null : $text;
+    }
+
+    /**
+     * @param array<string, mixed>|null $oldValues
+     * @param array<string, mixed>|null $newValues
+     */
+    private function safeAudit(
+        ?int $actorId,
+        string $action,
+        string $module,
+        ?string $referenceType = null,
+        ?int $referenceId = null,
+        ?array $oldValues = null,
+        ?array $newValues = null,
+    ): void {
+        try {
+            $this->audit->log($actorId, $action, $module, $referenceType, $referenceId, $oldValues, $newValues);
+        } catch (\Throwable) {
+            // Audit logging should not block the primary workflow.
+        }
     }
 }

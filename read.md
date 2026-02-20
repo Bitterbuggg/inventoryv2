@@ -145,6 +145,20 @@ php spark serve
 - DB connection error  
   Check `.env` DB host/user/password/port and ensure MySQL is running
 
+## 13. Immediate Next Step (Proceed Now)
 
+After setup and passing tests, follow this sequence:
 
+1. Run UAT checklist: `docs/UAT_CHECKLIST.md`
+2. Fix any failed UAT items
+3. Run deployment checklist: `docs/DEPLOYMENT_CHECKLIST.md`
+4. Deploy to your target XAMPP/LAN machine
+
+Recommended command flow before UAT:
+
+```powershell
+php spark migrate:refresh --all
+php spark db:seed AuthRbacSeeder
+vendor\bin\phpunit
+```
 

@@ -5,6 +5,7 @@ namespace App\Services\Inventory;
 use App\Repositories\Contracts\Inventory\IssuanceItemRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceRepositoryInterface;
 use App\Repositories\Contracts\Procurement\ApprovalRepositoryInterface;
+use App\Services\Shared\AuditService;
 
 class IssuanceService
 {
@@ -12,6 +13,7 @@ class IssuanceService
         private readonly IssuanceRepositoryInterface $issuances,
         private readonly IssuanceItemRepositoryInterface $issuanceItems,
         private readonly ApprovalRepositoryInterface $approvals,
+        private readonly AuditService $audit,
     ) {
     }
 
@@ -87,10 +89,23 @@ class IssuanceService
 
         $this->issuanceItems->addItems($issuanceId, $items);
 
+        $this->safeAudit(
+            actorId: $requestorId,
+            action: 'issuance.draft_created',
+            module: 'issuance',
+            referenceType: 'issuance',
+            referenceId: $issuanceId,
+            newValues: [
+                'status'     => 'draft',
+                'item_count' => count($items),
+                'issue_date' => $issueDate,
+            ],
+        );
+
         return $issuanceId;
     }
 
-    public function submit(int $issuanceId): void
+    public function submit(int $issuanceId, ?int $actorId = null): void
     {
         $issuance = $this->issuances->find($issuanceId);
 
@@ -128,6 +143,16 @@ class IssuanceService
                 'comments'       => null,
             ]);
         }
+
+        $this->safeAudit(
+            actorId: $actorId,
+            action: 'issuance.submitted',
+            module: 'issuance',
+            referenceType: 'issuance',
+            referenceId: $issuanceId,
+            oldValues: ['status' => 'draft'],
+            newValues: ['status' => 'submitted', 'submitted_at' => $now],
+        );
     }
 
     public function cancel(int $issuanceId, int $actorId, ?string $reason = null): void
@@ -164,6 +189,16 @@ class IssuanceService
                 'comments'    => $cancelReason,
             ]);
         }
+
+        $this->safeAudit(
+            actorId: $actorId,
+            action: 'issuance.cancelled',
+            module: 'issuance',
+            referenceType: 'issuance',
+            referenceId: $issuanceId,
+            oldValues: ['status' => $status],
+            newValues: ['status' => 'cancelled', 'reason' => $cancelReason],
+        );
     }
 
     private function generateIssuanceNumber(): string
@@ -225,5 +260,25 @@ class IssuanceService
         $text = trim((string) $value);
 
         return $text === '' ? null : $text;
+    }
+
+    /**
+     * @param array<string, mixed>|null $oldValues
+     * @param array<string, mixed>|null $newValues
+     */
+    private function safeAudit(
+        ?int $actorId,
+        string $action,
+        string $module,
+        ?string $referenceType = null,
+        ?int $referenceId = null,
+        ?array $oldValues = null,
+        ?array $newValues = null,
+    ): void {
+        try {
+            $this->audit->log($actorId, $action, $module, $referenceType, $referenceId, $oldValues, $newValues);
+        } catch (\Throwable) {
+            // Audit logging should not block the primary workflow.
+        }
     }
 }

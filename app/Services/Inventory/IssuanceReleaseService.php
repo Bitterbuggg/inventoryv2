@@ -6,6 +6,7 @@ use App\Repositories\Contracts\Inventory\IssuanceItemRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceRepositoryInterface;
 use App\Repositories\Contracts\Inventory\InventoryStockRepositoryInterface;
 use App\Repositories\Contracts\Inventory\StockMovementRepositoryInterface;
+use App\Services\Shared\AuditService;
 use CodeIgniter\Database\BaseConnection;
 
 class IssuanceReleaseService
@@ -16,6 +17,7 @@ class IssuanceReleaseService
         private readonly InventoryStockRepositoryInterface $inventoryStocks,
         private readonly StockMovementRepositoryInterface $stockMovements,
         private readonly InventoryAvailabilityService $availability,
+        private readonly AuditService $audit,
         private readonly BaseConnection $db,
     ) {
     }
@@ -38,12 +40,18 @@ class IssuanceReleaseService
             throw new \DomainException('Issuance has no items to release.');
         }
 
+        $releasedSummary = [
+            'items_released' => 0,
+            'total_qty_out'  => 0.0,
+            'total_cost'     => 0.0,
+        ];
+
         $this->db->transBegin();
 
         try {
             foreach ($items as $item) {
-                $itemName    = (string) ($item['item_name'] ?? '');
-                $unit        = (string) ($item['unit'] ?? 'unit');
+                $itemName     = (string) ($item['item_name'] ?? '');
+                $unit         = (string) ($item['unit'] ?? 'unit');
                 $requestedQty = (float) ($item['requested_qty'] ?? 0);
 
                 if ($requestedQty <= 0) {
@@ -74,7 +82,7 @@ class IssuanceReleaseService
                         throw new \DomainException('Insufficient available quantity during issuance release.');
                     }
 
-                    $newOnHandQty   = $onHandQty - $qty;
+                    $newOnHandQty    = $onHandQty - $qty;
                     $newAvailableQty = max(0, $newOnHandQty - $reservedQty);
 
                     $this->inventoryStocks->update($stockId, [
@@ -84,20 +92,20 @@ class IssuanceReleaseService
                     ]);
 
                     $this->stockMovements->create([
-                        'movement_number'   => $this->generateMovementNumber(),
-                        'movement_type'     => 'issuance',
-                        'reference_type'    => 'issuance',
-                        'reference_id'      => $issuanceId,
-                        'item_name'         => $itemName,
+                        'movement_number'    => $this->generateMovementNumber(),
+                        'movement_type'      => 'issuance',
+                        'reference_type'     => 'issuance',
+                        'reference_id'       => $issuanceId,
+                        'item_name'          => $itemName,
                         'inventory_stock_id' => $stockId,
-                        'unit'              => $unit,
-                        'qty_in'            => 0,
-                        'qty_out'           => $qty,
-                        'balance_after'     => $newOnHandQty,
-                        'unit_cost'         => $unitCost,
-                        'performed_by'      => $actorId,
-                        'performed_at'      => date('Y-m-d H:i:s'),
-                        'remarks'           => 'Issuance release',
+                        'unit'               => $unit,
+                        'qty_in'             => 0,
+                        'qty_out'            => $qty,
+                        'balance_after'      => $newOnHandQty,
+                        'unit_cost'          => $unitCost,
+                        'performed_by'       => $actorId,
+                        'performed_at'       => date('Y-m-d H:i:s'),
+                        'remarks'            => 'Issuance release',
                     ]);
 
                     $issuedQty += $qty;
@@ -120,6 +128,10 @@ class IssuanceReleaseService
                     'unit_cost'          => round($averageLineCost, 2),
                     'line_total'         => round($totalCost, 2),
                 ]);
+
+                $releasedSummary['items_released']++;
+                $releasedSummary['total_qty_out'] += $issuedQty;
+                $releasedSummary['total_cost'] += $totalCost;
             }
 
             $this->issuances->update($issuanceId, [
@@ -129,6 +141,17 @@ class IssuanceReleaseService
             ]);
         } catch (\Throwable $exception) {
             $this->db->transRollback();
+
+            $this->safeAudit(
+                actorId: $actorId,
+                action: 'issuance.release_failed',
+                module: 'issuance',
+                referenceType: 'issuance',
+                referenceId: $issuanceId,
+                oldValues: ['status' => 'approved'],
+                newValues: ['error' => $exception->getMessage()],
+            );
+
             throw $exception;
         }
 
@@ -138,6 +161,21 @@ class IssuanceReleaseService
         }
 
         $this->db->transCommit();
+
+        $this->safeAudit(
+            actorId: $actorId,
+            action: 'issuance.released',
+            module: 'issuance',
+            referenceType: 'issuance',
+            referenceId: $issuanceId,
+            oldValues: ['status' => 'approved'],
+            newValues: [
+                'status'        => 'released',
+                'items_released' => $releasedSummary['items_released'],
+                'total_qty_out' => round((float) $releasedSummary['total_qty_out'], 3),
+                'total_cost'    => round((float) $releasedSummary['total_cost'], 2),
+            ],
+        );
     }
 
     private function generateMovementNumber(): string
@@ -147,5 +185,25 @@ class IssuanceReleaseService
         } while ($this->stockMovements->findByNumber($number) !== null);
 
         return $number;
+    }
+
+    /**
+     * @param array<string, mixed>|null $oldValues
+     * @param array<string, mixed>|null $newValues
+     */
+    private function safeAudit(
+        ?int $actorId,
+        string $action,
+        string $module,
+        ?string $referenceType = null,
+        ?int $referenceId = null,
+        ?array $oldValues = null,
+        ?array $newValues = null,
+    ): void {
+        try {
+            $this->audit->log($actorId, $action, $module, $referenceType, $referenceId, $oldValues, $newValues);
+        } catch (\Throwable) {
+            // Audit logging should not block the primary workflow.
+        }
     }
 }

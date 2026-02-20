@@ -442,9 +442,9 @@ Procurement Module -> Approved PO Request -> Receiving Module -> Inventory Quant
    - [Receiving + Inventory Quantity Module](RECEIVING_INVENTORY_MODULE_ARCHITECTURE.md) - stock intake
    - [Issuance + Reporting Module](ISSUANCE_REPORTING_MODULE_ARCHITECTURE.md) - stock release and analytics
 
-2. **Begin Implementation**: Start with Phase I4 hardening (performance, audit depth, and export enhancements)
+2. **Begin Implementation**: Run UAT, finalize deployment checklist, and harden operational monitoring
 
-3. **Development Priority**: Hardening and optimization
+3. **Development Priority**: UAT and deployment readiness
 
 ### Total Timeline Estimate
 - **Foundation Setup**: 1-2 weeks
@@ -457,7 +457,7 @@ Procurement Module -> Approved PO Request -> Receiving Module -> Inventory Quant
 - ✅ **Current Baseline**: CodeIgniter 4 app with Foundation/Auth + Procurement + Receiving/Inventory modules implemented
 - ✅ **Installed**: `codeigniter4/shield` for auth/RBAC implementation
 - 🔄 **Optional Next**: PDF package and static analysis tooling hardening
-- 📋 **To Plan**: Phase I4 hardening tasks (audit depth, performance tuning, exports)
+- 📋 **To Plan**: UAT scripts, deployment checklist, and optional report export endpoints
 
 ### Phase 1 Notes
 - Auth implementation uses **CodeIgniter Shield** (session authenticator).
@@ -477,5 +477,8 @@ Procurement Module -> Approved PO Request -> Receiving Module -> Inventory Quant
 - Inventory quantity views are available under `/inventory/quantities` and `/inventory/quantities/{id}`.
 - Posting enforces quantity validation and writes `inventory_stocks` + `stock_movements` atomically.
 
-
+### Phase 4 Notes
+- Issuance routes are implemented under `/inventory/issuance/*` with role guards for create/submit/cancel (admin/employee/it_staff) and approve/reject/release (admin/it_staff).
+- Reporting routes are implemented under `/reports/*` with role guards (admin/it_staff).
+- Phase I4 hardening is complete: audit logs are persisted for issuance lifecycle events, high-volume reporting checks are covered in integration tests, and report-focused indexes are applied via migration.
 

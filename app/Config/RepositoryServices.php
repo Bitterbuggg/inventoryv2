@@ -16,6 +16,7 @@ use App\Repositories\Contracts\Receiving\InventoryStockRepositoryInterface as Re
 use App\Repositories\Contracts\Receiving\ReceivingItemRepositoryInterface;
 use App\Repositories\Contracts\Receiving\ReceivingRepositoryInterface;
 use App\Repositories\Contracts\Receiving\StockMovementRepositoryInterface as ReceivingStockMovementRepositoryInterface;
+use App\Repositories\Contracts\Shared\AuditLogRepositoryInterface;
 use App\Repositories\EloquentLike\Auth\UserRepository;
 use App\Repositories\EloquentLike\Inventory\InventoryStockRepository as IssuanceInventoryStockRepository;
 use App\Repositories\EloquentLike\Inventory\IssuanceItemRepository;
@@ -30,6 +31,7 @@ use App\Repositories\EloquentLike\Receiving\InventoryStockRepository as Receivin
 use App\Repositories\EloquentLike\Receiving\ReceivingItemRepository;
 use App\Repositories\EloquentLike\Receiving\ReceivingRepository;
 use App\Repositories\EloquentLike\Receiving\StockMovementRepository as ReceivingStockMovementRepository;
+use App\Repositories\EloquentLike\Shared\AuditLogRepository;
 use App\Services\Auth\AuthenticationService;
 use App\Services\Auth\AuthorizationService;
 use App\Services\Inventory\InventoryAvailabilityService;
@@ -46,6 +48,7 @@ use App\Services\Receiving\InventoryQuantityService;
 use App\Services\Receiving\ReceivingService;
 use App\Services\Receiving\ReceivingValidationService;
 use App\Services\Receiving\StockMovementService;
+use App\Services\Shared\AuditService;
 
 class RepositoryServices
 {
@@ -67,6 +70,8 @@ class RepositoryServices
     private static ?IssuanceStockMovementRepositoryInterface $issuanceStockMovementRepository = null;
     private static ?ReportingRepositoryInterface $reportingRepository = null;
 
+    private static ?AuditLogRepositoryInterface $auditLogRepository = null;
+
     private static ?AuthenticationService $authenticationService = null;
     private static ?AuthorizationService $authorizationService = null;
 
@@ -86,6 +91,7 @@ class RepositoryServices
     private static ?IssuanceApprovalService $issuanceApprovalService = null;
     private static ?IssuanceReleaseService $issuanceReleaseService = null;
     private static ?ReportingService $reportingService = null;
+    private static ?AuditService $auditService = null;
 
     public static function userRepository(): UserRepositoryInterface
     {
@@ -221,6 +227,15 @@ class RepositoryServices
         }
 
         return self::$reportingRepository;
+    }
+
+    public static function auditLogRepository(): AuditLogRepositoryInterface
+    {
+        if (self::$auditLogRepository === null) {
+            self::$auditLogRepository = new AuditLogRepository();
+        }
+
+        return self::$auditLogRepository;
     }
 
     public static function authenticationService(): AuthenticationService
@@ -367,6 +382,7 @@ class RepositoryServices
                 self::issuanceRepository(),
                 self::issuanceItemRepository(),
                 self::approvalRepository(),
+                self::auditService(),
             );
         }
 
@@ -379,6 +395,7 @@ class RepositoryServices
             self::$issuanceApprovalService = new IssuanceApprovalService(
                 self::issuanceRepository(),
                 self::approvalRepository(),
+                self::auditService(),
             );
         }
 
@@ -394,6 +411,7 @@ class RepositoryServices
                 self::issuanceInventoryStockRepository(),
                 self::issuanceStockMovementRepository(),
                 self::inventoryAvailabilityService(),
+                self::auditService(),
                 db_connect(),
             );
         }
@@ -408,5 +426,14 @@ class RepositoryServices
         }
 
         return self::$reportingService;
+    }
+
+    public static function auditService(): AuditService
+    {
+        if (self::$auditService === null) {
+            self::$auditService = new AuditService(self::auditLogRepository());
+        }
+
+        return self::$auditService;
     }
 }

@@ -4,6 +4,7 @@ use App\Repositories\Contracts\Inventory\IssuanceItemRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceRepositoryInterface;
 use App\Repositories\Contracts\Procurement\ApprovalRepositoryInterface;
 use App\Services\Inventory\IssuanceService;
+use App\Services\Shared\AuditService;
 use CodeIgniter\Test\CIUnitTestCase;
 
 /**
@@ -16,6 +17,7 @@ final class IssuanceServiceTest extends CIUnitTestCase
         $issuances     = $this->createMock(IssuanceRepositoryInterface::class);
         $issuanceItems = $this->createMock(IssuanceItemRepositoryInterface::class);
         $approvals     = $this->createMock(ApprovalRepositoryInterface::class);
+        $audit         = $this->createMock(AuditService::class);
 
         $issuances->method('findByNumber')->willReturn(null);
 
@@ -28,7 +30,7 @@ final class IssuanceServiceTest extends CIUnitTestCase
             ->method('addItems')
             ->with(55, $this->callback(static fn (array $rows): bool => count($rows) === 1 && $rows[0]['item_name'] === 'Paracetamol 500mg'));
 
-        $service = new IssuanceService($issuances, $issuanceItems, $approvals);
+        $service = new IssuanceService($issuances, $issuanceItems, $approvals, $audit);
 
         $id = $service->createDraft([
             'requestor_id' => 10,
@@ -49,6 +51,7 @@ final class IssuanceServiceTest extends CIUnitTestCase
         $issuances     = $this->createMock(IssuanceRepositoryInterface::class);
         $issuanceItems = $this->createMock(IssuanceItemRepositoryInterface::class);
         $approvals     = $this->createMock(ApprovalRepositoryInterface::class);
+        $audit         = $this->createMock(AuditService::class);
 
         $issuances->method('find')->with(9)->willReturn([
             'id'     => 9,
@@ -72,8 +75,8 @@ final class IssuanceServiceTest extends CIUnitTestCase
             ->method('create')
             ->with($this->arrayHasKey('reference_type'));
 
-        $service = new IssuanceService($issuances, $issuanceItems, $approvals);
-        $service->submit(9);
+        $service = new IssuanceService($issuances, $issuanceItems, $approvals, $audit);
+        $service->submit(9, 1);
 
         $this->assertTrue(true);
     }
@@ -83,15 +86,16 @@ final class IssuanceServiceTest extends CIUnitTestCase
         $issuances     = $this->createMock(IssuanceRepositoryInterface::class);
         $issuanceItems = $this->createMock(IssuanceItemRepositoryInterface::class);
         $approvals     = $this->createMock(ApprovalRepositoryInterface::class);
+        $audit         = $this->createMock(AuditService::class);
 
         $issuances->method('find')->with(12)->willReturn([
             'id'     => 12,
             'status' => 'submitted',
         ]);
 
-        $service = new IssuanceService($issuances, $issuanceItems, $approvals);
+        $service = new IssuanceService($issuances, $issuanceItems, $approvals, $audit);
 
         $this->expectException(DomainException::class);
-        $service->submit(12);
+        $service->submit(12, 1);
     }
 }

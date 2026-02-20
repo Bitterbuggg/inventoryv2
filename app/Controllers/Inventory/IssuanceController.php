@@ -69,7 +69,7 @@ class IssuanceController extends BaseController
     public function submit(int $id): RedirectResponse
     {
         try {
-            RepositoryServices::issuanceService()->submit($id);
+            RepositoryServices::issuanceService()->submit($id, $this->currentUserId());
         } catch (\Throwable $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         }
@@ -134,3 +134,4 @@ class IssuanceController extends BaseController
         return $items;
     }
 }
+

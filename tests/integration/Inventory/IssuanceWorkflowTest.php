@@ -5,6 +5,7 @@ use App\Models\Inventory\InventoryStockModel;
 use App\Models\Inventory\IssuanceItemModel;
 use App\Models\Inventory\IssuanceModel;
 use App\Models\Inventory\StockMovementModel;
+use App\Models\Shared\AuditLogModel;
 use CodeIgniter\Shield\Entities\User;
 use CodeIgniter\Shield\Models\UserModel;
 use CodeIgniter\Test\CIUnitTestCase;
@@ -27,9 +28,9 @@ final class IssuanceWorkflowTest extends CIUnitTestCase
 
     public function testApprovedIssuanceCanBeReleasedAndDeductsStock(): void
     {
-        $stockId   = $this->seedStock('Paracetamol 500mg', 'box', 20, 10);
-        $employee  = $this->findUserByEmail('employee@local.test');
-        $admin     = $this->findUserByEmail('admin@local.test');
+        $stockId  = $this->seedStock('Paracetamol 500mg', 'box', 20, 10);
+        $employee = $this->findUserByEmail('employee@local.test');
+        $admin    = $this->findUserByEmail('admin@local.test');
 
         auth('session')->login($employee);
 
@@ -106,6 +107,21 @@ final class IssuanceWorkflowTest extends CIUnitTestCase
         $this->assertSame('issuance', $movement['movement_type']);
         $this->assertEqualsWithDelta(5.0, (float) $movement['qty_out'], 0.0001);
 
+        /** @var AuditLogModel $auditModel */
+        $auditModel = model(AuditLogModel::class);
+        $auditRows  = $auditModel
+            ->where('reference_type', 'issuance')
+            ->where('reference_id', $issuanceId)
+            ->orderBy('id', 'ASC')
+            ->findAll();
+
+        $actions = array_map(static fn (array $row): string => (string) ($row['action'] ?? ''), $auditRows);
+
+        $this->assertContains('issuance.draft_created', $actions);
+        $this->assertContains('issuance.submitted', $actions);
+        $this->assertContains('issuance.approved', $actions);
+        $this->assertContains('issuance.released', $actions);
+
         $reportResponse = $this->withSession(session()->get())->get('/reports/fast-moving');
         $reportResponse->assertOK();
         $reportResponse->assertSee('Paracetamol 500mg');
@@ -113,9 +129,9 @@ final class IssuanceWorkflowTest extends CIUnitTestCase
 
     public function testReleaseFailsWhenStockIsInsufficient(): void
     {
-        $stockId   = $this->seedStock('Amoxicillin 500mg', 'box', 2, 12);
-        $employee  = $this->findUserByEmail('employee@local.test');
-        $admin     = $this->findUserByEmail('admin@local.test');
+        $stockId  = $this->seedStock('Amoxicillin 500mg', 'box', 2, 12);
+        $employee = $this->findUserByEmail('employee@local.test');
+        $admin    = $this->findUserByEmail('admin@local.test');
 
         auth('session')->login($employee);
 
@@ -175,6 +191,16 @@ final class IssuanceWorkflowTest extends CIUnitTestCase
             ->findAll();
 
         $this->assertSame([], $movements);
+
+        /** @var AuditLogModel $auditModel */
+        $auditModel = model(AuditLogModel::class);
+        $failedLogs = $auditModel
+            ->where('reference_type', 'issuance')
+            ->where('reference_id', $issuanceId)
+            ->where('action', 'issuance.release_failed')
+            ->findAll();
+
+        $this->assertNotEmpty($failedLogs);
     }
 
     private function findUserByEmail(string $email): User
@@ -194,16 +220,16 @@ final class IssuanceWorkflowTest extends CIUnitTestCase
         $stockModel = model(InventoryStockModel::class);
 
         $id = $stockModel->insert([
-            'item_name'          => $itemName,
-            'unit'               => $unit,
-            'batch_no'           => 'BATCH-001',
-            'lot_no'             => 'LOT-001',
-            'expiry_date'        => '2027-12-31',
-            'on_hand_qty'        => $qty,
-            'reserved_qty'       => 0,
-            'available_qty'      => $qty,
-            'average_unit_cost'  => $unitCost,
-            'last_movement_at'   => date('Y-m-d H:i:s'),
+            'item_name'         => $itemName,
+            'unit'              => $unit,
+            'batch_no'          => 'BATCH-001',
+            'lot_no'            => 'LOT-001',
+            'expiry_date'       => '2027-12-31',
+            'on_hand_qty'       => $qty,
+            'reserved_qty'      => 0,
+            'available_qty'     => $qty,
+            'average_unit_cost' => $unitCost,
+            'last_movement_at'  => date('Y-m-d H:i:s'),
         ], true);
 
         if (! is_int($id) && ! ctype_digit((string) $id)) {
