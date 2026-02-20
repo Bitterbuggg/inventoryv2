@@ -14,22 +14,22 @@ $pageSubtitle = 'Register and wait for admin approval before first login.';
 
     <div class="field">
         <label for="username">Username</label>
-        <input id="username" name="username" value="<?= esc((string) old('username')) ?>" required>
+        <input id="username" name="username" autocomplete="username" placeholder="john.doe" value="<?= esc((string) old('username')) ?>" required>
     </div>
 
     <div class="field">
         <label for="email">Email</label>
-        <input id="email" type="email" name="email" value="<?= esc((string) old('email')) ?>" required>
+        <input id="email" type="email" name="email" autocomplete="email" placeholder="john@company.local" value="<?= esc((string) old('email')) ?>" required>
     </div>
 
     <div class="field">
         <label for="password">Password</label>
-        <input id="password" type="password" name="password" required>
+        <input id="password" type="password" name="password" autocomplete="new-password" placeholder="Minimum 8 characters" required>
     </div>
 
     <div class="field">
         <label for="password_confirm">Confirm Password</label>
-        <input id="password_confirm" type="password" name="password_confirm" required>
+        <input id="password_confirm" type="password" name="password_confirm" autocomplete="new-password" placeholder="Re-enter password" required>
     </div>
 
     <button type="submit" class="btn btn-primary btn-block">Create Account</button>

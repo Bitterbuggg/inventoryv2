@@ -14,15 +14,15 @@ $pageSubtitle = 'Use your approved account credentials.';
 
     <div class="field">
         <label for="identifier">Email or Username</label>
-        <input id="identifier" name="identifier" value="<?= esc((string) old('identifier')) ?>" required>
+        <input id="identifier" name="identifier" autocomplete="username" placeholder="admin@local.test" value="<?= esc((string) old('identifier')) ?>" required>
     </div>
 
     <div class="field">
         <label for="password">Password</label>
-        <input id="password" type="password" name="password" required>
+        <input id="password" type="password" name="password" autocomplete="current-password" placeholder="Enter your password" required>
     </div>
 
-    <button type="submit" class="btn btn-primary btn-block">Login</button>
+    <button type="submit" class="btn btn-primary btn-block">Sign In</button>
 </form>
 
 <p class="muted">No account yet? <a href="<?= site_url('signup') ?>">Create account</a></p>
