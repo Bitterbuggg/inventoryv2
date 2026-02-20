@@ -9,6 +9,8 @@ $crumbs = [
     ['label' => 'Admin Dashboard', 'url' => site_url('admin/dashboard')],
     ['label' => 'Manage Users'],
 ];
+
+$availableRoles = ['admin', 'employee', 'it_staff'];
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -27,18 +29,28 @@ $crumbs = [
             </thead>
             <tbody>
                 <?php foreach ($users as $user): ?>
+                    <?php
+                    $userGroups = $user->getGroups() ?? [];
+                    $currentRole = 'employee';
+                    foreach ($availableRoles as $role) {
+                        if (in_array($role, $userGroups, true)) {
+                            $currentRole = $role;
+                            break;
+                        }
+                    }
+                    ?>
                     <tr>
                         <td><?= esc((string) $user->id) ?></td>
                         <td><?= esc((string) ($user->username ?? '')) ?></td>
                         <td><?= esc((string) ($user->email ?? '')) ?></td>
-                        <td><?= esc(implode(', ', $user->getGroups() ?? [])) ?></td>
+                        <td><?= esc(implode(', ', $userGroups)) ?></td>
                         <td>
                             <form class="inline-form" method="post" action="<?= site_url('admin/users/' . $user->id . '/role') ?>">
                                 <?= csrf_field() ?>
                                 <select name="role" aria-label="Assign role group">
-                                    <option value="admin">admin</option>
-                                    <option value="employee">employee</option>
-                                    <option value="it_staff">it_staff</option>
+                                    <option value="admin" <?= $currentRole === 'admin' ? 'selected' : '' ?>>admin</option>
+                                    <option value="employee" <?= $currentRole === 'employee' ? 'selected' : '' ?>>employee</option>
+                                    <option value="it_staff" <?= $currentRole === 'it_staff' ? 'selected' : '' ?>>it_staff</option>
                                 </select>
                                 <button type="submit" class="btn btn-primary">Assign</button>
                             </form>

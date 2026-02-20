@@ -46,10 +46,14 @@ class UserRepository implements UserRepositoryInterface
     public function assignGroup(int $userId, string $group): void
     {
         $user = $this->getUserOrFail($userId);
+        $group = strtolower(trim($group));
 
-        if (! $user->inGroup($group)) {
-            $user->addGroup($group);
+        if ($group === '') {
+            throw new RuntimeException('Group cannot be empty.');
         }
+
+        // Roles are single-assignment in this project, so replace existing groups.
+        $user->syncGroups($group);
     }
 
     public function userInGroup(int $userId, string $group): bool

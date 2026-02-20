@@ -1,15 +1,29 @@
-# InventoryV2 - Local Setup and Browser Run Guide
+# InventoryV2 - Run Guide (XAMPP + Browser)
 
-This guide shows exactly how to set up and run the current Phase 4 baseline project on your browser.
+This document shows how to run the project quickly, and how to do full first-time setup.
+
+## Quick Run (If Already Setup)
+
+Use this if dependencies, database, and seed data were already done before.
+
+1. Start XAMPP services:
+   - Apache
+   - MySQL
+2. Open browser:
+   - `http://localhost/inventoryv2/public/`
+3. Login:
+   - Admin: `admin@local.test` / `Admin@1234`
+
+---
+
+## Full First-Time Setup
 
 ## 1. Prerequisites
-
-- PHP 8.2+ (your setup already uses PHP 8.2)
+- PHP 8.2+
 - Composer 2+
 - XAMPP (Apache + MySQL)
-- Git (if cloning)
 
-## 2. Open the project folder
+## 2. Open project folder
 
 ```powershell
 cd C:\xampp\htdocs\inventoryv2
@@ -21,15 +35,15 @@ cd C:\xampp\htdocs\inventoryv2
 composer install
 ```
 
-## 4. Create environment file
+## 4. Prepare `.env`
 
-If `.env` does not exist yet:
+If missing:
 
 ```powershell
 Copy-Item env .env
 ```
 
-Then set these values in `.env`:
+Set values in `.env`:
 
 ```dotenv
 CI_ENVIRONMENT = development
@@ -43,79 +57,49 @@ database.default.DBDriver = MySQLi
 database.default.port = 3306
 ```
 
-## 5. Start XAMPP services
-
-Open XAMPP Control Panel and start:
-
+## 5. Start XAMPP
+Start:
 - Apache
 - MySQL
 
-## 6. Ensure project is accessible by Apache
-
-Use one of these:
-
-1. Put project under `C:\xampp\htdocs\inventoryv2`
-2. Or configure an Apache VirtualHost/Alias to point this project path to `public/`
-
-For the current `.env` value, the expected URL is:
-
-- `http://localhost/inventoryv2/public/`
-
-## 7. Create database and run migrations
+## 6. Create DB + run migrations
 
 ```powershell
 php spark db:create inventoryv2
 php spark migrate --all
 ```
 
-## 8. Seed baseline users and roles
+## 7. Seed roles/users
 
 ```powershell
 php spark db:seed AuthRbacSeeder
 ```
 
-Optional verify:
-
-```powershell
-php spark shield:user list
-```
-
-## 9. Open in browser
-
+## 8. Open browser
 - Home: `http://localhost/inventoryv2/public/`
 - Login: `http://localhost/inventoryv2/public/login`
-- Signup: `http://localhost/inventoryv2/public/signup`
-- Admin dashboard (admin only): `http://localhost/inventoryv2/public/admin/dashboard`
-- Issuance list: `http://localhost/inventoryv2/public/inventory/issuance`
-- Stock balance report (admin/IT only): `http://localhost/inventoryv2/public/reports/stock-balance`
+- Admin Dashboard: `http://localhost/inventoryv2/public/admin/dashboard`
 
-## 10. Test accounts (seeded)
+## 9. Test accounts
+- Admin: `admin@local.test` / `Admin@1234`
+- Employee: `employee@local.test` / `Employee@1234`
+- IT Staff: `itstaff@local.test` / `Itstaff@1234`
 
-- Admin  
-  - Email: `admin@local.test`  
-  - Password: `Admin@1234`
-- Employee  
-  - Email: `employee@local.test`  
-  - Password: `Employee@1234`
-- IT Dev/Staff  
-  - Email: `itstaff@local.test`  
-  - Password: `Itstaff@1234`
-
-## 11. Run automated tests
+## 10. Run tests (recommended)
 
 ```powershell
 vendor\bin\phpunit
 ```
 
-Expected result:
+Expected: `OK (...)`
 
-- `OK (...)`
+---
 
-## 12. Quick alternative (without Apache)
+## Optional Local Server (No Apache)
 
-If you want a fast local check without XAMPP Apache:
+If you want to use CI built-in server:
 
-1. Set base URL in `.env` to:
+1. Set in `.env`:
 
 ```dotenv
 app.baseURL = 'http://localhost:8080/'
@@ -131,90 +115,42 @@ php spark serve
 
 - `http://localhost:8080/`
 
-## Troubleshooting
+---
 
-- `Unknown database 'inventoryv2'`  
-  Run `php spark db:create inventoryv2`
+## Analytics Operations
 
-- CSRF error on POST forms  
-  Refresh the page and submit again (token expired/invalid)
-
-- 403 on `/admin/dashboard`  
-  Log in using the admin account
-
-- DB connection error  
-  Check `.env` DB host/user/password/port and ensure MySQL is running
-
-## 13. Immediate Next Step (Proceed Now)
-
-After setup and passing tests, follow this sequence:
-
-1. Run UAT checklist: `docs/UAT_CHECKLIST.md`
-2. Fix any failed UAT items
-3. Run deployment checklist: `docs/DEPLOYMENT_CHECKLIST.md`
-4. Deploy to your target XAMPP/LAN machine
-
-Recommended command flow before UAT:
+Manual commands:
 
 ```powershell
-php spark migrate:refresh --all
-php spark db:seed AuthRbacSeeder
-vendor\bin\phpunit
-```
-
-
-## 14. Analytics Operations (Phase F4)
-
-Run analytics maintenance commands after deployment:
-
-```powershell
-# Aggregate daily metrics (default lookback from config)
 php spark analytics:aggregate
-
-# Aggregate explicit date
-php spark analytics:aggregate 2026-02-20
-
-# Aggregate last N days
 php spark analytics:aggregate --days 7
-
-# Prune old analytics data using config retention
 php spark analytics:prune
-
-# Override retention for one run
 php spark analytics:prune --raw-days 180 --metric-days 730
 ```
 
-Default policy is configured in `app/Config/Analytics.php`:
-- IP masking enabled (`hash` strategy)
-- Raw events retention: 180 days
-- Daily metrics retention: 730 days
-
-## 15. Windows Task Scheduler (Configured)
-
-On this machine, the analytics jobs are already registered:
-
+Windows scheduled tasks configured on this machine:
 - `InventoryV2_Analytics_Aggregate_Daily`
-  - Schedule: Daily at `11:55 PM`
-  - Action: `C:\xampp\htdocs\inventoryv2\scripts\analytics\aggregate_daily.bat`
 - `InventoryV2_Analytics_Prune_Weekly`
-  - Schedule: Weekly every `Sunday 11:50 PM`
-  - Action: `C:\xampp\htdocs\inventoryv2\scripts\analytics\prune_weekly.bat`
 
-Verify task status:
+Verify:
 
 ```powershell
 schtasks /Query /TN "InventoryV2_Analytics_Aggregate_Daily" /V /FO LIST
 schtasks /Query /TN "InventoryV2_Analytics_Prune_Weekly" /V /FO LIST
 ```
 
-Run immediately (manual trigger):
-
-```powershell
-schtasks /Run /TN "InventoryV2_Analytics_Aggregate_Daily"
-schtasks /Run /TN "InventoryV2_Analytics_Prune_Weekly"
-```
-
-Task logs:
-
+Logs:
 - `writable/logs/analytics_aggregate_task.log`
 - `writable/logs/analytics_prune_task.log`
+
+---
+
+## Troubleshooting
+- `Unknown database 'inventoryv2'`:
+  - Run `php spark db:create inventoryv2`
+- CSRF error on POST:
+  - Refresh page, then submit again
+- 403 on admin/report pages:
+  - Login with admin or `it_staff`
+- DB connection errors:
+  - Recheck `.env` DB credentials and confirm MySQL is running
