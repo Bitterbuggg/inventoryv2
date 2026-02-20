@@ -346,6 +346,7 @@ class RepositoryServices
                 self::receivingValidationService(),
                 self::inventoryPostingService(),
                 db_connect(),
+                self::auditService(),
             );
         }
 
@@ -437,3 +438,4 @@ class RepositoryServices
         return self::$auditService;
     }
 }
+

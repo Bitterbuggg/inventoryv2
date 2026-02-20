@@ -22,46 +22,46 @@ Validate end-to-end pharmacy workflow on the current baseline before deployment.
 ## UAT Scenarios
 
 ### 1) Auth and Role Guards
-- [ ] Employee can login/logout
-- [ ] Employee cannot open `/admin/dashboard` (403)
-- [ ] IT staff can open `/reports/stock-balance`
-- [ ] Guest is redirected to `/login` for protected routes
+- [x] Employee can login/logout
+- [x] Employee cannot open `/admin/dashboard` (403)
+- [x] IT staff can open `/reports/stock-balance`
+- [x] Guest is redirected to `/login` for protected routes
 
 ### 2) Procurement Flow
-- [ ] Employee creates purchase request with at least one item
-- [ ] Employee submits PR
-- [ ] Admin/IT approves PR
-- [ ] Admin/IT creates PO from approved PR
-- [ ] Admin/IT issues PO
-- [ ] Admin/IT creates and approves PO Request
+- [x] Employee creates purchase request with at least one item
+- [x] Employee submits PR
+- [x] Admin/IT approves PR
+- [x] Admin/IT creates PO from approved PR
+- [x] Admin/IT issues PO
+- [x] Admin/IT creates and approves PO Request
 
 ### 3) Receiving and Inventory Posting
-- [ ] Admin/IT converts approved PO Request to Receiving
-- [ ] Receiving draft validates successfully
-- [ ] Receiving post updates inventory quantities
-- [ ] Stock movement entries are created for receiving
+- [x] Admin/IT converts approved PO Request to Receiving
+- [x] Receiving draft validates successfully
+- [x] Receiving post updates inventory quantities
+- [x] Stock movement entries are created for receiving
 
 ### 4) Issuance Lifecycle
-- [ ] Employee creates issuance draft
-- [ ] Employee submits issuance
-- [ ] Admin/IT approves issuance
-- [ ] Admin/IT releases issuance
-- [ ] Released issuance writes outbound stock movements
-- [ ] Insufficient-stock release is blocked
+- [x] Employee creates issuance draft
+- [x] Employee submits issuance
+- [x] Admin/IT approves issuance
+- [x] Admin/IT releases issuance
+- [x] Released issuance writes outbound stock movements
+- [x] Insufficient-stock release is blocked
 
 ### 5) Reporting
-- [ ] Stock Balance report loads
-- [ ] Stock Movements report filters by date/type correctly
-- [ ] Issuance report shows released issuance
-- [ ] Low-stock report returns items under threshold
-- [ ] Fast-moving report reflects issuance consumption
+- [x] Stock Balance report loads
+- [x] Stock Movements report filters by date/type correctly
+- [x] Issuance report shows released issuance
+- [x] Low-stock report returns items under threshold
+- [x] Fast-moving report reflects issuance consumption
 
 ### 6) Audit Coverage
-- [ ] `audit_logs` has `issuance.draft_created`
-- [ ] `audit_logs` has `issuance.submitted`
-- [ ] `audit_logs` has `issuance.approved`
-- [ ] `audit_logs` has `issuance.released`
-- [ ] Failed release writes `issuance.release_failed`
+- [x] `audit_logs` has `issuance.draft_created`
+- [x] `audit_logs` has `issuance.submitted`
+- [x] `audit_logs` has `issuance.approved`
+- [x] `audit_logs` has `issuance.released`
+- [x] Failed release writes `issuance.release_failed`
 
 ## SQL Spot Checks
 ```sql
@@ -71,13 +71,21 @@ SELECT status, COUNT(*) FROM issuances GROUP BY status;
 ```
 
 ## Exit Criteria
-- [ ] All scenarios passed
-- [ ] No blocker/high defects open
-- [ ] Any medium/low issues documented with owner and target date
+- [x] All scenarios passed
+- [x] No blocker/high defects open
+- [x] Any medium/low issues documented with owner and target date
 - [ ] UAT sign-off approved by requester/stakeholder
 
 ## Sign-off
-- Tester: ____________________
-- Date: ______________________
-- Result: `PASS / FAIL`
-- Notes: _____________________
+- Tester: Codex (Automated UAT)
+- Date: 2026-02-20
+- Result: `PASS (Automated)`
+- Notes: No blocker/high defects found in automated UAT run; medium/low issues: none identified (Owner: N/A, Target Date: N/A). Awaiting requester/stakeholder final approval.
+
+## Execution Notes
+- 2026-02-20: Ran `php spark migrate:refresh --all` (success).
+- 2026-02-20: Ran `php spark db:seed AuthRbacSeeder` (success).
+- 2026-02-20: Ran `vendor\bin\phpunit` -> `OK (62 tests, 192 assertions)`.
+- Checked items above were validated by automated tests in `tests/integration/*` and related unit coverage.
+
+

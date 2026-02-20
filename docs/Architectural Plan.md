@@ -444,7 +444,7 @@ Procurement Module -> Approved PO Request -> Receiving Module -> Inventory Quant
 
 2. **Begin Implementation**: Run UAT, finalize deployment checklist, and harden operational monitoring
 
-3. **Development Priority**: UAT and deployment readiness
+3. **Development Priority**: UAT execution, deployment handoff, and optional report-export endpoints
 
 ### Total Timeline Estimate
 - **Foundation Setup**: 1-2 weeks
@@ -457,7 +457,7 @@ Procurement Module -> Approved PO Request -> Receiving Module -> Inventory Quant
 - ✅ **Current Baseline**: CodeIgniter 4 app with Foundation/Auth + Procurement + Receiving/Inventory modules implemented
 - ✅ **Installed**: `codeigniter4/shield` for auth/RBAC implementation
 - 🔄 **Optional Next**: PDF package and static analysis tooling hardening
-- 📋 **To Plan**: UAT scripts, deployment checklist, and optional report export endpoints
+- 📋 **To Plan**: Optional report export endpoints and production monitoring hardening
 
 ### Phase 1 Notes
 - Auth implementation uses **CodeIgniter Shield** (session authenticator).
@@ -468,6 +468,8 @@ Procurement Module -> Approved PO Request -> Receiving Module -> Inventory Quant
 ### Phase 2 Notes
 - Procurement routes are implemented under `/procurement/*` with role guards.
 - Workflow transitions are enforced in service layer (PR -> Approval -> PO -> PO Request).
+- Draft PR edit/update routes and screen are implemented (`/procurement/purchase-requests/{id}/edit`, `/procurement/purchase-requests/{id}/update`).
+- Duplicate PR item validation is enforced in service normalization.
 - Added procurement unit and integration tests with full lifecycle coverage.
 
 
@@ -476,9 +478,13 @@ Procurement Module -> Approved PO Request -> Receiving Module -> Inventory Quant
 - Receiving routes are implemented under `/receiving/*` with role guards.
 - Inventory quantity views are available under `/inventory/quantities` and `/inventory/quantities/{id}`.
 - Posting enforces quantity validation and writes `inventory_stocks` + `stock_movements` atomically.
+- Receiving post/void workflows now write audit events (`receiving.posted`, `receiving.voided`) through shared audit service.
+- Added targeted receiving tests for weighted-average cost posting and transaction rollback on posting failure.
 
 ### Phase 4 Notes
 - Issuance routes are implemented under `/inventory/issuance/*` with role guards for create/submit/cancel (admin/employee/it_staff) and approve/reject/release (admin/it_staff).
 - Reporting routes are implemented under `/reports/*` with role guards (admin/it_staff).
 - Phase I4 hardening is complete: audit logs are persisted for issuance lifecycle events, high-volume reporting checks are covered in integration tests, and report-focused indexes are applied via migration.
+
+
 

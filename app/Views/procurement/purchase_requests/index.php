@@ -82,6 +82,7 @@
                         <td><?= esc((string) ($request['remarks'] ?? '')) ?></td>
                         <td>
                             <?php if (($request['status'] ?? '') === 'draft'): ?>
+                                <a href="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/edit') ?>">Edit</a>
                                 <form class="inline" method="post" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/submit') ?>">
                                     <?= csrf_field() ?>
                                     <button type="submit">Submit</button>
@@ -110,3 +111,4 @@
     </table>
 </body>
 </html>
+

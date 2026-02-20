@@ -26,6 +26,23 @@ class PurchaseRequestController extends BaseController
         return view('procurement/purchase_requests/create');
     }
 
+    public function edit(int $id): string|RedirectResponse
+    {
+        $purchaseRequest = RepositoryServices::purchaseRequestService()->findWithItems($id);
+
+        if ($purchaseRequest === null) {
+            return redirect()->to('/procurement/purchase-requests')->with('error', 'Purchase request not found.');
+        }
+
+        if (($purchaseRequest['status'] ?? '') !== 'draft') {
+            return redirect()->to('/procurement/purchase-requests')->with('error', 'Only draft purchase requests can be edited.');
+        }
+
+        return view('procurement/purchase_requests/edit', [
+            'purchaseRequest' => $purchaseRequest,
+        ]);
+    }
+
     public function store(): RedirectResponse
     {
         $rules = [
@@ -53,6 +70,32 @@ class PurchaseRequestController extends BaseController
         return redirect()
             ->to('/procurement/purchase-requests')
             ->with('message', "Purchase request #{$purchaseRequestId} created.");
+    }
+
+    public function update(int $id): RedirectResponse
+    {
+        $rules = [
+            'request_date' => 'required|valid_date[Y-m-d]',
+            'needed_date'  => 'permit_empty|valid_date[Y-m-d]',
+            'remarks'      => 'permit_empty|max_length[5000]',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        try {
+            RepositoryServices::purchaseRequestService()->update($id, [
+                'request_date' => (string) $this->request->getPost('request_date'),
+                'needed_date'  => $this->request->getPost('needed_date'),
+                'remarks'      => $this->request->getPost('remarks'),
+                'items'        => $this->extractItemsFromPost(),
+            ]);
+        } catch (DomainException|InvalidArgumentException $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
+        }
+
+        return redirect()->to('/procurement/purchase-requests')->with('message', 'Purchase request updated.');
     }
 
     public function submit(int $id): RedirectResponse

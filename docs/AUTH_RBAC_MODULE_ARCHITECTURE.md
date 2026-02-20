@@ -36,7 +36,7 @@ The Foundation + Auth/RBAC Module is the first implementation block of the Inven
 
 ### Key Components
 - **Controllers**: `AuthController`, `SignupController`, `Admin/UserController`
-- **Services**: `AuthenticationService`, `RegistrationService`, `AuthorizationService`
+- **Services**: `AuthenticationService`, `AuthorizationService`
 - **Repositories**: `UserRepository`, `RoleRepository`, `PermissionRepository`
 - **Filters**: `AuthFilter`, `RoleFilter`
 - **Views**: `auth/login.php`, `auth/signup.php`, `admin/dashboard.php`
@@ -163,7 +163,7 @@ graph TD
 - `POST /logout`
 - `GET /admin/dashboard` (`admin` only)
 - `GET /admin/users` (`auth.manage_users`)
-- `POST /admin/users/{id}/roles` (`auth.manage_users`)
+- `POST /admin/users/{id}/role` (`auth.manage_users`)
 
 ### Future Route Gate Reuse
 The same `AuthFilter` and `RoleFilter` structure is reused in:
@@ -238,24 +238,24 @@ The same `AuthFilter` and `RoleFilter` structure is reused in:
 ## Implementation Checklist
 
 ### Phase A1: Setup
-- [ ] Create migrations for users/roles/permissions/link tables
-- [ ] Add seeders for roles and baseline permissions
-- [ ] Register repository bindings in provider
+- [x] Install/publish Shield auth migrations and run setup
+- [x] Seed baseline groups and permissions (`admin`, `employee`, `it_staff`)
+- [x] Register repository/service bindings (`RepositoryServices`)
 
 ### Phase A2: Auth Flows
-- [ ] Implement login controller/service/repository
-- [ ] Implement signup controller/service/repository
-- [ ] Implement logout and session invalidation
+- [x] Implement login controller/service/repository
+- [x] Implement signup controller/service/repository
+- [x] Implement logout and session invalidation
 
 ### Phase A3: RBAC
-- [ ] Build role and permission resolution service
-- [ ] Implement role filter and route integration
-- [ ] Add admin dashboard access gate
+- [x] Build role and permission resolution service
+- [x] Implement role filter and route integration
+- [x] Add admin dashboard access gate
 
 ### Phase A4: Tests
-- [ ] Add unit tests for auth services
-- [ ] Add integration tests for auth/rbac routes
-- [ ] Validate failure paths and status handling
+- [x] Add unit tests for auth services
+- [x] Add integration tests for auth/rbac routes
+- [x] Validate failure paths and status handling
 
 ---
 
@@ -268,9 +268,10 @@ The same `AuthFilter` and `RoleFilter` structure is reused in:
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2026-02-19  
+**Document Version:** 1.1  
+**Last Updated:** 2026-02-20  
 **Related Documents:**
 - [Architectural Plan](Architectural Plan.md)
 - [Architecture Reference](Architecture.md)
 - [Complete Database Schema](PHARMACY_DATABASE_SCHEMA.md)
+

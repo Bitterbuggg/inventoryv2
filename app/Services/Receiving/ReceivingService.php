@@ -6,6 +6,7 @@ use App\Repositories\Contracts\Procurement\PoRequestRepositoryInterface;
 use App\Repositories\Contracts\Procurement\PurchaseOrderRepositoryInterface;
 use App\Repositories\Contracts\Receiving\ReceivingItemRepositoryInterface;
 use App\Repositories\Contracts\Receiving\ReceivingRepositoryInterface;
+use App\Services\Shared\AuditService;
 use CodeIgniter\Database\BaseConnection;
 
 class ReceivingService
@@ -18,6 +19,7 @@ class ReceivingService
         private readonly ReceivingValidationService $validation,
         private readonly InventoryPostingService $inventoryPosting,
         private readonly BaseConnection $db,
+        private readonly AuditService $audit,
     ) {
     }
 
@@ -287,6 +289,16 @@ class ReceivingService
         }
 
         $this->db->transCommit();
+
+        $this->safeAudit(
+            actorId: $actorId,
+            action: 'receiving.posted',
+            module: 'receiving',
+            referenceType: 'receiving',
+            referenceId: $receivingId,
+            oldValues: ['status' => 'draft'],
+            newValues: ['status' => 'posted', 'posted_at' => $now],
+        );
     }
 
     public function void(int $receivingId, int $actorId, string $reason): void
@@ -306,12 +318,24 @@ class ReceivingService
             throw new \DomainException('Void reason is required.');
         }
 
+        $now = date('Y-m-d H:i:s');
+
         $this->receivings->update($receivingId, [
             'status'      => 'voided',
-            'voided_at'   => date('Y-m-d H:i:s'),
+            'voided_at'   => $now,
             'voided_by'   => $actorId,
             'void_reason' => $reason,
         ]);
+
+        $this->safeAudit(
+            actorId: $actorId,
+            action: 'receiving.voided',
+            module: 'receiving',
+            referenceType: 'receiving',
+            referenceId: $receivingId,
+            oldValues: ['status' => 'draft'],
+            newValues: ['status' => 'voided', 'void_reason' => $reason, 'voided_at' => $now],
+        );
     }
 
     private function generateReceivingNumber(): string
@@ -432,6 +456,26 @@ class ReceivingService
         }
     }
 
+    /**
+     * @param array<string, mixed>|null $oldValues
+     * @param array<string, mixed>|null $newValues
+     */
+    private function safeAudit(
+        ?int $actorId,
+        string $action,
+        string $module,
+        ?string $referenceType = null,
+        ?int $referenceId = null,
+        ?array $oldValues = null,
+        ?array $newValues = null,
+    ): void {
+        try {
+            $this->audit->log($actorId, $action, $module, $referenceType, $referenceId, $oldValues, $newValues);
+        } catch (\Throwable) {
+            // Audit logging should not block the primary workflow.
+        }
+    }
+
     private function nullableString(mixed $value): ?string
     {
         $text = trim((string) $value);
@@ -439,3 +483,4 @@ class ReceivingService
         return $text === '' ? null : $text;
     }
 }
+

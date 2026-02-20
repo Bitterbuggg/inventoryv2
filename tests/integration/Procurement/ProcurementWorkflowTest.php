@@ -5,6 +5,7 @@ use App\Models\Procurement\ApprovalModel;
 use App\Models\Procurement\PoRequestModel;
 use App\Models\Procurement\PurchaseOrderModel;
 use App\Models\Procurement\PurchaseRequestModel;
+use App\Models\Procurement\PurchaseRequestItemModel;
 use CodeIgniter\Shield\Entities\User;
 use CodeIgniter\Shield\Models\UserModel;
 use CodeIgniter\Test\CIUnitTestCase;
@@ -128,6 +129,65 @@ final class ProcurementWorkflowTest extends CIUnitTestCase
         $this->assertSame('approved', $approvedPoRequest['status']);
     }
 
+    public function testDraftPurchaseRequestCanBeEdited(): void
+    {
+        $employee = $this->findUserByEmail('employee@local.test');
+        auth('session')->login($employee);
+
+        $createPrResponse = $this->withSession(session()->get())->post('/procurement/purchase-requests', $this->csrfPayload([
+            'request_date'         => '2026-02-20',
+            'needed_date'          => '2026-02-25',
+            'remarks'              => 'Initial draft',
+            'item_name'            => ['Vitamin C'],
+            'requested_qty'        => ['10'],
+            'unit'                 => ['box'],
+            'estimated_unit_cost'  => ['65.00'],
+            'notes'                => ['Initial line'],
+        ]));
+        $createPrResponse->assertRedirectTo('/procurement/purchase-requests');
+
+        /** @var PurchaseRequestModel $purchaseRequestModel */
+        $purchaseRequestModel = model(PurchaseRequestModel::class);
+        $purchaseRequest = $purchaseRequestModel
+            ->where('requested_by', (int) $employee->id)
+            ->orderBy('id', 'DESC')
+            ->first();
+
+        $this->assertNotNull($purchaseRequest);
+        $purchaseRequestId = (int) $purchaseRequest['id'];
+
+        $editPage = $this->withSession(session()->get())->get('/procurement/purchase-requests/' . $purchaseRequestId . '/edit');
+        $editPage->assertOK();
+
+        $updateResponse = $this->withSession(session()->get())->post(
+            '/procurement/purchase-requests/' . $purchaseRequestId . '/update',
+            $this->csrfPayload([
+                'request_date'         => '2026-02-21',
+                'needed_date'          => '2026-02-26',
+                'remarks'              => 'Updated draft',
+                'item_name'            => ['Vitamin C', 'Bandage'],
+                'requested_qty'        => ['8', '3'],
+                'unit'                 => ['box', 'pack'],
+                'estimated_unit_cost'  => ['60.00', '22.50'],
+                'notes'                => ['Adjusted qty', 'Add support item'],
+            ]),
+        );
+        $updateResponse->assertRedirectTo('/procurement/purchase-requests');
+
+        $updated = $purchaseRequestModel->find($purchaseRequestId);
+        $this->assertSame('2026-02-21', $updated['request_date']);
+        $this->assertSame('2026-02-26', $updated['needed_date']);
+        $this->assertSame('Updated draft', $updated['remarks']);
+
+        /** @var PurchaseRequestItemModel $itemModel */
+        $itemModel = model(PurchaseRequestItemModel::class);
+        $items = $itemModel->where('purchase_request_id', $purchaseRequestId)->orderBy('id', 'ASC')->findAll();
+
+        $this->assertCount(2, $items);
+        $this->assertSame('Vitamin C', $items[0]['item_name']);
+        $this->assertSame('Bandage', $items[1]['item_name']);
+    }
+
     private function findUserByEmail(string $email): User
     {
         $user = model(UserModel::class)->findByCredentials(['email' => $email]);
@@ -149,3 +209,5 @@ final class ProcurementWorkflowTest extends CIUnitTestCase
         return $data + [csrf_token() => csrf_hash()];
     }
 }
+
+

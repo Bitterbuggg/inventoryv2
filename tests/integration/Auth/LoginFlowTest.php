@@ -38,6 +38,20 @@ final class LoginFlowTest extends CIUnitTestCase
         $response->assertRedirectTo('/admin/dashboard');
     }
 
+
+    public function testEmployeeCanLoginAndLogout(): void
+    {
+        $loginPayload = $this->csrfPayload([
+            'identifier' => 'employee@local.test',
+            'password'   => 'Employee@1234',
+        ]);
+
+        $loginResponse = $this->withSession(session()->get())->post('/login', $loginPayload);
+        $loginResponse->assertRedirectTo('/');
+
+        $logoutResponse = $this->withSession(session()->get())->post('/logout', $this->csrfPayload([]));
+        $logoutResponse->assertRedirectTo('/login');
+    }
     public function testLoginFailsWithInvalidCredentials(): void
     {
         $payload = $this->csrfPayload([
@@ -81,3 +95,4 @@ final class LoginFlowTest extends CIUnitTestCase
         return $data + [$name => $hash];
     }
 }
+

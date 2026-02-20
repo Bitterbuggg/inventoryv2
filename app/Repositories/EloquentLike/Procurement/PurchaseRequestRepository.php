@@ -72,6 +72,14 @@ class PurchaseRequestRepository implements PurchaseRequestRepositoryInterface
         $this->newItemModel()->insertBatch($rows);
     }
 
+    public function replaceItems(int $purchaseRequestId, array $items): void
+    {
+        $itemModel = $this->newItemModel();
+        $itemModel->where('purchase_request_id', $purchaseRequestId)->delete();
+
+        $this->addItems($purchaseRequestId, $items);
+    }
+
     public function listItems(int $purchaseRequestId): array
     {
         return $this->newItemModel()
@@ -95,3 +103,5 @@ class PurchaseRequestRepository implements PurchaseRequestRepositoryInterface
         return new PurchaseRequestItemModel();
     }
 }
+
+

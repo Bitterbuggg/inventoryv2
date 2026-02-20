@@ -258,24 +258,25 @@ If any step fails, rollback entire transaction.
 ## Implementation Checklist
 
 ### Phase R1: Conversion and Draft
-- [ ] Implement PO request to receiving conversion action
-- [ ] Build receiving create/show interfaces
-- [ ] Load PO item defaults into receiving lines
+- [x] Implement PO request to receiving conversion action
+- [x] Build receiving create/show interfaces
+- [x] Load PO item defaults into receiving lines
 
 ### Phase R2: Validation and Posting
-- [ ] Implement receiving line validation service
-- [ ] Implement inventory posting transaction
-- [ ] Create stock movement logging for posted lines
+- [x] Implement receiving line validation service
+- [x] Implement inventory posting transaction
+- [x] Create stock movement logging for posted lines
 
 ### Phase R3: Reconciliation
-- [ ] Add mismatch and over-receipt checks
-- [ ] Add receiving void rules and safeguards
-- [ ] Add audit logging for all posting/void actions
+- [x] Add mismatch and over-receipt checks
+- [x] Add receiving void rules and safeguards
+- [x] Add audit logging for all posting/void actions
 
 ### Phase R4: Testing
-- [ ] Add unit tests for quantity and cost logic
-- [ ] Add integration tests for conversion/posting paths
-- [ ] Add rollback tests for forced posting failures
+- [x] Add unit tests for quantity validation logic
+- [x] Add unit tests for cost and weighted-average posting logic
+- [x] Add integration tests for conversion/posting paths
+- [x] Add rollback tests for forced posting failures
 
 ---
 
@@ -288,10 +289,12 @@ If any step fails, rollback entire transaction.
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2026-02-19  
+**Document Version:** 1.1  
+**Last Updated:** 2026-02-20  
 **Related Documents:**
 - [Architectural Plan](Architectural Plan.md)
 - [Complete Database Schema](PHARMACY_DATABASE_SCHEMA.md)
 - [Procurement Module](PROCUREMENT_MODULE_ARCHITECTURE.md)
 - [Issuance + Reporting Module](ISSUANCE_REPORTING_MODULE_ARCHITECTURE.md)
+
+

@@ -32,6 +32,11 @@ interface PurchaseRequestRepositoryInterface
     public function addItems(int $purchaseRequestId, array $items): void;
 
     /**
+     * @param array<int, array<string, mixed>> $items
+     */
+    public function replaceItems(int $purchaseRequestId, array $items): void;
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function listItems(int $purchaseRequestId): array;
@@ -41,3 +46,4 @@ interface PurchaseRequestRepositoryInterface
      */
     public function update(int $id, array $data): bool;
 }
+

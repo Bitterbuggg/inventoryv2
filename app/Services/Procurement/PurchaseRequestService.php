@@ -87,6 +87,42 @@ class PurchaseRequestService
         return $purchaseRequestId;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function update(int $purchaseRequestId, array $data): void
+    {
+        $purchaseRequest = $this->purchaseRequests->find($purchaseRequestId);
+
+        if ($purchaseRequest === null) {
+            throw new DomainException('Purchase request not found.');
+        }
+
+        if (($purchaseRequest['status'] ?? '') !== 'draft') {
+            throw new DomainException('Only draft purchase requests can be edited.');
+        }
+
+        $requestDate = trim((string) ($data['request_date'] ?? ''));
+
+        if ($requestDate === '') {
+            throw new InvalidArgumentException('Request date is required.');
+        }
+
+        $items = $this->normalizeItems($data['items'] ?? []);
+
+        if ($items === []) {
+            throw new DomainException('At least one valid item is required.');
+        }
+
+        $this->purchaseRequests->update($purchaseRequestId, [
+            'request_date' => $requestDate,
+            'needed_date'  => $this->nullableDate($data['needed_date'] ?? null),
+            'remarks'      => $this->nullableText($data['remarks'] ?? null),
+        ]);
+
+        $this->purchaseRequests->replaceItems($purchaseRequestId, $items);
+    }
+
     public function submit(int $purchaseRequestId): void
     {
         $purchaseRequest = $this->purchaseRequests->find($purchaseRequestId);
@@ -182,6 +218,7 @@ class PurchaseRequestService
         }
 
         $normalized = [];
+        $seenKeys   = [];
 
         foreach ($items as $item) {
             if (! is_array($item)) {
@@ -200,11 +237,20 @@ class PurchaseRequestService
                 throw new DomainException('Requested quantity must be greater than zero.');
             }
 
+            $unit = trim((string) ($item['unit'] ?? 'unit')) ?: 'unit';
+            $key  = strtolower($itemName) . '|' . strtolower($unit);
+
+            if (isset($seenKeys[$key])) {
+                throw new DomainException('Duplicate purchase request items are not allowed.');
+            }
+
+            $seenKeys[$key] = true;
+
             $normalized[] = [
                 'item_name'           => $itemName,
                 'requested_qty'       => $qty,
                 'approved_qty'        => null,
-                'unit'                => trim((string) ($item['unit'] ?? 'unit')) ?: 'unit',
+                'unit'                => $unit,
                 'estimated_unit_cost' => $this->nullableNumeric($item['estimated_unit_cost'] ?? null),
                 'notes'               => $this->nullableText($item['notes'] ?? null),
             ];
@@ -238,3 +284,4 @@ class PurchaseRequestService
         return (float) $raw;
     }
 }
+

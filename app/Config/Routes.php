@@ -22,6 +22,8 @@ $routes->group('procurement', ['filter' => 'auth'], static function (RouteCollec
     $routes->get('purchase-requests', 'Procurement\PurchaseRequestController::index', ['filter' => 'role:admin,employee,it_staff']);
     $routes->get('purchase-requests/create', 'Procurement\PurchaseRequestController::create', ['filter' => 'role:admin,employee,it_staff']);
     $routes->post('purchase-requests', 'Procurement\PurchaseRequestController::store', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->get('purchase-requests/(:num)/edit', 'Procurement\PurchaseRequestController::edit/$1', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->post('purchase-requests/(:num)/update', 'Procurement\PurchaseRequestController::update/$1', ['filter' => 'role:admin,employee,it_staff']);
     $routes->post('purchase-requests/(:num)/submit', 'Procurement\PurchaseRequestController::submit/$1', ['filter' => 'role:admin,employee,it_staff']);
     $routes->post('purchase-requests/(:num)/cancel', 'Procurement\PurchaseRequestController::cancel/$1', ['filter' => 'role:admin,employee,it_staff']);
 

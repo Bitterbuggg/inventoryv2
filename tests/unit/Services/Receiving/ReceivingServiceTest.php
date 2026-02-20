@@ -7,6 +7,7 @@ use App\Repositories\Contracts\Receiving\ReceivingRepositoryInterface;
 use App\Services\Receiving\InventoryPostingService;
 use App\Services\Receiving\ReceivingService;
 use App\Services\Receiving\ReceivingValidationService;
+use App\Services\Shared\AuditService;
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Test\CIUnitTestCase;
 
@@ -23,6 +24,7 @@ final class ReceivingServiceTest extends CIUnitTestCase
         $orders     = $this->createMock(PurchaseOrderRepositoryInterface::class);
         $posting    = $this->createMock(InventoryPostingService::class);
         $db         = $this->createMock(BaseConnection::class);
+        $audit      = $this->createMock(AuditService::class);
 
         $poRequests->method('find')->with(21)->willReturn([
             'id'                => 21,
@@ -60,6 +62,7 @@ final class ReceivingServiceTest extends CIUnitTestCase
             new ReceivingValidationService(),
             $posting,
             $db,
+            $audit,
         );
 
         $receivingId = $service->createDraft([
@@ -88,6 +91,7 @@ final class ReceivingServiceTest extends CIUnitTestCase
         $orders     = $this->createMock(PurchaseOrderRepositoryInterface::class);
         $posting    = $this->createMock(InventoryPostingService::class);
         $db         = $this->createMock(BaseConnection::class);
+        $audit      = $this->createMock(AuditService::class);
 
         $poRequests->method('find')->with(22)->willReturn([
             'id'                => 22,
@@ -103,6 +107,7 @@ final class ReceivingServiceTest extends CIUnitTestCase
             new ReceivingValidationService(),
             $posting,
             $db,
+            $audit,
         );
 
         $this->expectException(DomainException::class);
@@ -113,5 +118,76 @@ final class ReceivingServiceTest extends CIUnitTestCase
             'received_by'   => 1,
             'items'         => [],
         ]);
+    }
+
+    public function testPostRollsBackTransactionWhenInventoryPostingFails(): void
+    {
+        $receivings = $this->createMock(ReceivingRepositoryInterface::class);
+        $items      = $this->createMock(ReceivingItemRepositoryInterface::class);
+        $poRequests = $this->createMock(PoRequestRepositoryInterface::class);
+        $orders     = $this->createMock(PurchaseOrderRepositoryInterface::class);
+        $posting    = $this->createMock(InventoryPostingService::class);
+        $db         = $this->createMock(BaseConnection::class);
+        $audit      = $this->createMock(AuditService::class);
+
+        $receivings->method('find')->with(55)->willReturn([
+            'id'                => 55,
+            'status'            => 'draft',
+            'po_request_id'     => 77,
+            'purchase_order_id' => 88,
+        ]);
+
+        $poRequests->method('find')->with(77)->willReturn([
+            'id'     => 77,
+            'status' => 'approved',
+        ]);
+
+        $items->method('listByReceiving')->with(55)->willReturn([
+            [
+                'id'                    => 500,
+                'purchase_order_item_id' => 901,
+                'accepted_qty'          => 4,
+                'received_qty'          => 4,
+                'rejected_qty'          => 0,
+                'unit_cost'             => 10,
+            ],
+        ]);
+
+        $orders->method('listItems')->with(88)->willReturn([
+            [
+                'id'           => 901,
+                'ordered_qty'  => 10,
+                'received_qty' => 0,
+            ],
+        ]);
+
+        $items->expects($this->once())
+            ->method('update')
+            ->with(500, ['line_total' => 40.0]);
+
+        $posting->expects($this->once())
+            ->method('postReceivingItems')
+            ->with(55, $this->isType('array'), 9)
+            ->willThrowException(new RuntimeException('inventory posting failed'));
+
+        $db->expects($this->once())->method('transBegin');
+        $db->expects($this->once())->method('transRollback');
+        $db->expects($this->never())->method('transCommit');
+
+        $service = new ReceivingService(
+            $receivings,
+            $items,
+            $poRequests,
+            $orders,
+            new ReceivingValidationService(),
+            $posting,
+            $db,
+            $audit,
+        );
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('inventory posting failed');
+
+        $service->post(55, 9);
     }
 }

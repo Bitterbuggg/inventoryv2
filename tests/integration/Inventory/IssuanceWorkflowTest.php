@@ -125,6 +125,14 @@ final class IssuanceWorkflowTest extends CIUnitTestCase
         $reportResponse = $this->withSession(session()->get())->get('/reports/fast-moving');
         $reportResponse->assertOK();
         $reportResponse->assertSee('Paracetamol 500mg');
+
+        $issuanceReportResponse = $this->withSession(session()->get())->get('/reports/issuances?status=released');
+        $issuanceReportResponse->assertOK();
+        $issuanceReportResponse->assertSee((string) $releasedIssuance['issuance_number']);
+
+        $lowStockResponse = $this->withSession(session()->get())->get('/reports/low-stock?threshold=20');
+        $lowStockResponse->assertOK();
+        $lowStockResponse->assertSee('Paracetamol 500mg');
     }
 
     public function testReleaseFailsWhenStockIsInsufficient(): void
@@ -249,3 +257,4 @@ final class IssuanceWorkflowTest extends CIUnitTestCase
         return $data + [csrf_token() => csrf_hash()];
     }
 }
+

@@ -200,6 +200,8 @@ app/
 - `GET /procurement/purchase-requests`
 - `GET /procurement/purchase-requests/create`
 - `POST /procurement/purchase-requests`
+- `GET /procurement/purchase-requests/{id}/edit`
+- `POST /procurement/purchase-requests/{id}/update`
 - `POST /procurement/purchase-requests/{id}/submit`
 - `POST /procurement/purchase-requests/{id}/cancel`
 
@@ -282,24 +284,26 @@ app/
 ## Implementation Checklist
 
 ### Phase P1: Purchase Requests
-- [ ] Implement PR controllers, services, repositories
-- [ ] Add create/edit/submit/cancel screens
-- [ ] Add PR item validation and duplicate checks
+- [x] Implement PR controllers, services, repositories
+- [x] Add create/submit/cancel screens
+- [x] Add PR edit screen support
+- [x] Add PR item validation
+- [x] Add duplicate-item checks
 
 ### Phase P2: Approval Flow
-- [ ] Implement approval assignment and decision endpoints
-- [ ] Add rejection reason enforcement
-- [ ] Add pending approvals dashboard list
+- [x] Implement approval assignment and decision endpoints
+- [x] Add rejection reason enforcement
+- [x] Add pending approvals dashboard list
 
 ### Phase P3: Purchase Orders
-- [ ] Implement PR-to-PO conversion action
-- [ ] Implement PO item and total computations
-- [ ] Add PO issuance transition and guard rules
+- [x] Implement PR-to-PO conversion action
+- [x] Implement PO item and total computations
+- [x] Add PO issuance transition and guard rules
 
 ### Phase P4: PO Requests
-- [ ] Implement PO request create/approve/reject flows
-- [ ] Enforce readiness rules for receiving conversion
-- [ ] Add integration tests for complete procurement lifecycle
+- [x] Implement PO request create/approve/reject flows
+- [x] Enforce readiness rules for receiving conversion
+- [x] Add integration tests for complete procurement lifecycle
 
 ---
 
@@ -312,9 +316,11 @@ app/
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2026-02-19  
+**Document Version:** 1.1  
+**Last Updated:** 2026-02-20  
 **Related Documents:**
 - [Architectural Plan](Architectural Plan.md)
 - [Complete Database Schema](PHARMACY_DATABASE_SCHEMA.md)
 - [Receiving + Inventory Module](RECEIVING_INVENTORY_MODULE_ARCHITECTURE.md)
+
+
