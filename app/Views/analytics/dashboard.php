@@ -21,10 +21,16 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
 <?= $this->section('content') ?>
 <div class="stack-lg">
     <section class="card stack-md">
+        <div class="stack-sm">
+            <h2>Time Window</h2>
+            <p class="muted">Adjust the period to review short-term and monthly operational trends.</p>
+        </div>
+
         <form class="inline-form" method="get" action="<?= site_url('analytics/dashboard') ?>">
             <label for="days">Period (days)</label>
             <input id="days" type="number" min="1" max="30" name="days" value="<?= esc((string) $days) ?>">
             <button type="submit" class="btn btn-outline">Refresh</button>
+            <a class="btn btn-outline" href="<?= site_url('analytics/dashboard') ?>">Reset</a>
         </form>
 
         <div class="kpi-grid">
@@ -164,3 +170,4 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
     </section>
 </div>
 <?= $this->endSection() ?>
+

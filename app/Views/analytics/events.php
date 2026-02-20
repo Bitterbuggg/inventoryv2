@@ -52,6 +52,11 @@ $inventoryEvents = count(array_filter($eventRows, static fn (array $row): bool =
     </section>
 
     <section class="card stack-md">
+        <div class="stack-sm">
+            <h2>Filter Events</h2>
+            <p class="muted">Narrow down event logs by name, module, actor, date range, and record limit.</p>
+        </div>
+
         <form class="stack-sm" method="get" action="<?= site_url('analytics/events') ?>">
             <div class="form-grid-2">
                 <div class="field">
@@ -88,8 +93,14 @@ $inventoryEvents = count(array_filter($eventRows, static fn (array $row): bool =
 
             <div class="toolbar">
                 <button type="submit" class="btn btn-outline">Apply Filters</button>
+                <a class="btn btn-outline" href="<?= site_url('analytics/events') ?>">Reset</a>
             </div>
         </form>
+
+        <div class="stack-sm">
+            <h2>Event Log</h2>
+            <p class="muted">Latest matching events with routing and metadata context.</p>
+        </div>
 
         <div class="table-wrap">
             <table class="table">
@@ -130,3 +141,4 @@ $inventoryEvents = count(array_filter($eventRows, static fn (array $row): bool =
     </section>
 </div>
 <?= $this->endSection() ?>
+

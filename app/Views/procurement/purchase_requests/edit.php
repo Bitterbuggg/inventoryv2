@@ -52,20 +52,29 @@ $currentStatus = (string) ($purchaseRequest['status'] ?? 'draft');
         <form method="post" action="<?= site_url('procurement/purchase-requests/' . $purchaseRequest['id'] . '/update') ?>" class="stack-md">
             <?= csrf_field() ?>
 
-            <div class="form-grid-2">
-                <div class="field">
-                    <label for="request_date">Request Date</label>
-                    <input id="request_date" type="date" name="request_date" value="<?= esc((string) old('request_date', (string) ($purchaseRequest['request_date'] ?? ''))) ?>" required>
+            <div class="form-section stack-md">
+                <div class="stack-sm">
+                    <h2>Request Header</h2>
+                    <p class="muted">Update request details before adjusting line items.</p>
                 </div>
-                <div class="field">
-                    <label for="needed_date">Needed Date</label>
-                    <input id="needed_date" type="date" name="needed_date" value="<?= esc((string) old('needed_date', (string) ($purchaseRequest['needed_date'] ?? ''))) ?>">
-                </div>
-            </div>
 
-            <div class="field">
-                <label for="remarks">Remarks</label>
-                <textarea id="remarks" name="remarks" placeholder="Optional notes"><?= esc((string) old('remarks', (string) ($purchaseRequest['remarks'] ?? ''))) ?></textarea>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label for="request_date">Request Date</label>
+                        <input id="request_date" type="date" name="request_date" value="<?= esc((string) old('request_date', (string) ($purchaseRequest['request_date'] ?? ''))) ?>" required>
+                    </div>
+                    <div class="field">
+                        <label for="needed_date">Needed Date</label>
+                        <p class="field-hint">Optional</p>
+                        <input id="needed_date" type="date" name="needed_date" value="<?= esc((string) old('needed_date', (string) ($purchaseRequest['needed_date'] ?? ''))) ?>">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="remarks">Remarks</label>
+                    <p class="field-hint">Optional notes</p>
+                    <textarea id="remarks" name="remarks" placeholder="Optional notes"><?= esc((string) old('remarks', (string) ($purchaseRequest['remarks'] ?? ''))) ?></textarea>
+                </div>
             </div>
 
             <div class="stack-sm">
@@ -106,3 +115,4 @@ $currentStatus = (string) ($purchaseRequest['status'] ?? 'draft');
     </section>
 </div>
 <?= $this->endSection() ?>
+

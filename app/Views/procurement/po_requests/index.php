@@ -51,6 +51,11 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
 </section>
 
 <section class="card stack-md">
+    <div class="stack-sm">
+        <h2>PO Request Queue</h2>
+        <p class="muted">Filter records and apply approval decisions on pending PO requests.</p>
+    </div>
+
     <form class="inline-form" method="get" action="<?= site_url('procurement/po-requests') ?>">
         <label for="status">Filter status</label>
         <select id="status" name="status">
@@ -60,6 +65,7 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
             <?php endforeach ?>
         </select>
         <button type="submit" class="btn btn-outline">Apply</button>
+        <a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>">Reset</a>
     </form>
 
     <div class="table-wrap">
@@ -94,13 +100,13 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                     <?php if (($poRequest['status'] ?? '') === 'pending'): ?>
                                         <form class="inline-form" method="post" action="<?= site_url('procurement/po-requests/' . $poRequest['id'] . '/approve') ?>">
                                             <?= csrf_field() ?>
-                                            <button type="submit" class="btn btn-primary">Approve</button>
+                                            <button type="submit" class="btn btn-primary">Approve Request</button>
                                         </form>
 
                                         <form class="inline-form" method="post" action="<?= site_url('procurement/po-requests/' . $poRequest['id'] . '/reject') ?>">
                                             <?= csrf_field() ?>
                                             <input type="text" name="reason" placeholder="Rejection reason" required>
-                                            <button type="submit" class="btn btn-danger">Reject</button>
+                                            <button type="submit" class="btn btn-danger">Reject Request</button>
                                         </form>
                                     <?php endif ?>
                                 </div>
@@ -113,3 +119,4 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
     </div>
 </section>
 <?= $this->endSection() ?>
+

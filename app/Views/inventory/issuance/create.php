@@ -47,30 +47,42 @@ $crumbs = [
         <form method="post" action="<?= site_url('inventory/issuance') ?>" class="stack-md">
             <?= csrf_field() ?>
 
-            <div class="form-grid-2">
-                <div class="field">
-                    <label for="issue_date">Issue Date</label>
-                    <input id="issue_date" type="date" name="issue_date" value="<?= esc((string) old('issue_date', date('Y-m-d'))) ?>" required>
+            <div class="form-section stack-md">
+                <div class="stack-sm">
+                    <h2>Issuance Header</h2>
+                    <p class="muted">Set issuance details before filling requested item quantities.</p>
                 </div>
-                <div class="field">
-                    <label for="department">Department</label>
-                    <input id="department" type="text" name="department" value="<?= esc((string) old('department')) ?>">
+
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label for="issue_date">Issue Date</label>
+                        <input id="issue_date" type="date" name="issue_date" value="<?= esc((string) old('issue_date', date('Y-m-d'))) ?>" required>
+                    </div>
+                    <div class="field">
+                        <label for="department">Department</label>
+                        <p class="field-hint">Optional</p>
+                        <input id="department" type="text" name="department" value="<?= esc((string) old('department')) ?>">
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label for="purpose">Purpose</label>
+                        <p class="field-hint">Optional</p>
+                        <textarea id="purpose" name="purpose"><?= esc((string) old('purpose')) ?></textarea>
+                    </div>
+                    <div class="field">
+                        <label for="remarks">Remarks</label>
+                        <p class="field-hint">Optional notes</p>
+                        <textarea id="remarks" name="remarks"><?= esc((string) old('remarks')) ?></textarea>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-grid-2">
-                <div class="field">
-                    <label for="purpose">Purpose</label>
-                    <textarea id="purpose" name="purpose"><?= esc((string) old('purpose')) ?></textarea>
-                </div>
-                <div class="field">
-                    <label for="remarks">Remarks</label>
-                    <textarea id="remarks" name="remarks"><?= esc((string) old('remarks')) ?></textarea>
-                </div>
+            <div class="stack-sm">
+                <h2>Items</h2>
+                <p class="muted">Fill at least one row.</p>
             </div>
-
-            <h2>Items</h2>
-            <p class="muted">Fill at least one row.</p>
 
             <div class="table-wrap">
                 <table class="table">
@@ -103,3 +115,4 @@ $crumbs = [
     </section>
 </div>
 <?= $this->endSection() ?>
+

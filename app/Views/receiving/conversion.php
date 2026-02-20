@@ -51,23 +51,35 @@ $itemRows = $items ?? [];
             <?= csrf_field() ?>
             <input type="hidden" name="po_request_id" value="<?= esc((string) ($po_request['id'] ?? 0)) ?>">
 
-            <div class="form-grid-2">
-                <div class="field">
-                    <label for="received_date">Received Date</label>
-                    <input id="received_date" type="date" name="received_date" value="<?= esc((string) old('received_date', date('Y-m-d'))) ?>" required>
+            <div class="form-section stack-md">
+                <div class="stack-sm">
+                    <h2>Receiving Header</h2>
+                    <p class="muted">Confirm document references and optional notes before line-level checks.</p>
                 </div>
+
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label for="received_date">Received Date</label>
+                        <input id="received_date" type="date" name="received_date" value="<?= esc((string) old('received_date', date('Y-m-d'))) ?>" required>
+                    </div>
+                    <div class="field">
+                        <label for="delivery_reference">Delivery Reference</label>
+                        <p class="field-hint">Optional</p>
+                        <input id="delivery_reference" type="text" name="delivery_reference" value="<?= esc((string) old('delivery_reference')) ?>">
+                    </div>
+                </div>
+
                 <div class="field">
-                    <label for="delivery_reference">Delivery Reference</label>
-                    <input id="delivery_reference" type="text" name="delivery_reference" value="<?= esc((string) old('delivery_reference')) ?>">
+                    <label for="remarks">Remarks</label>
+                    <p class="field-hint">Optional notes</p>
+                    <textarea id="remarks" name="remarks"><?= esc((string) old('remarks')) ?></textarea>
                 </div>
             </div>
 
-            <div class="field">
-                <label for="remarks">Remarks</label>
-                <textarea id="remarks" name="remarks"><?= esc((string) old('remarks')) ?></textarea>
+            <div class="stack-sm">
+                <h2>Receiving Items</h2>
+                <p class="muted">Confirm quantities and traceability fields before creating the draft.</p>
             </div>
-
-            <h2>Receiving Items</h2>
 
             <div class="table-wrap">
                 <table class="table">
@@ -123,3 +135,4 @@ $itemRows = $items ?? [];
     </section>
 </div>
 <?= $this->endSection() ?>
+

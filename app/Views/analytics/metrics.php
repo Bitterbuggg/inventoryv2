@@ -50,14 +50,32 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
     </section>
 
     <section class="card stack-md">
-        <form class="inline-form" method="get" action="<?= site_url('analytics/metrics') ?>">
-            <label for="date_from">Date From</label>
-            <input id="date_from" type="date" name="date_from" value="<?= esc((string) $date_from) ?>">
-            <label for="date_to">Date To</label>
-            <input id="date_to" type="date" name="date_to" value="<?= esc((string) $date_to) ?>">
-            <label for="module">Module</label>
-            <input id="module" type="text" name="module" value="<?= esc((string) $module) ?>" placeholder="optional module filter">
-            <button type="submit" class="btn btn-outline">Apply</button>
+        <div class="stack-sm">
+            <h2>Filter Metrics</h2>
+            <p class="muted">Adjust date range and optional module scope for trend and snapshot tables.</p>
+        </div>
+
+        <form class="stack-sm" method="get" action="<?= site_url('analytics/metrics') ?>">
+            <div class="form-grid-2">
+                <div class="field">
+                    <label for="date_from">Date From</label>
+                    <input id="date_from" type="date" name="date_from" value="<?= esc((string) $date_from) ?>">
+                </div>
+                <div class="field">
+                    <label for="date_to">Date To</label>
+                    <input id="date_to" type="date" name="date_to" value="<?= esc((string) $date_to) ?>">
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="module">Module</label>
+                <input id="module" type="text" name="module" value="<?= esc((string) $module) ?>" placeholder="optional module filter">
+            </div>
+
+            <div class="toolbar">
+                <button type="submit" class="btn btn-outline">Apply</button>
+                <a class="btn btn-outline" href="<?= site_url('analytics/metrics') ?>">Reset</a>
+            </div>
         </form>
     </section>
 
@@ -124,3 +142,4 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
     </section>
 </div>
 <?= $this->endSection() ?>
+

@@ -52,6 +52,11 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
 </section>
 
 <section class="card stack-md">
+    <div class="stack-sm">
+        <h2>Request Queue</h2>
+        <p class="muted">Filter requests and process actions directly from this list.</p>
+    </div>
+
     <form class="inline-form" method="get" action="<?= site_url('procurement/purchase-requests') ?>">
         <label for="status">Filter status</label>
         <select id="status" name="status">
@@ -61,6 +66,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
             <?php endforeach ?>
         </select>
         <button type="submit" class="btn btn-outline">Apply</button>
+        <a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests') ?>">Reset</a>
     </form>
 
     <div class="table-wrap">
@@ -93,25 +99,25 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                             <td>
                                 <div class="toolbar">
                                     <?php if (($request['status'] ?? '') === 'draft'): ?>
-                                        <a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/edit') ?>">Edit</a>
                                         <form class="inline-form" method="post" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/submit') ?>">
                                             <?= csrf_field() ?>
-                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                            <button type="submit" class="btn btn-primary">Submit Request</button>
                                         </form>
+                                        <a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/edit') ?>">Edit Draft</a>
                                     <?php endif ?>
 
                                     <?php if (in_array((string) ($request['status'] ?? ''), ['draft', 'submitted'], true)): ?>
                                         <form class="inline-form" method="post" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>">
                                             <?= csrf_field() ?>
-                                            <button type="submit" class="btn btn-danger">Cancel</button>
+                                            <button type="submit" class="btn btn-danger">Cancel Request</button>
                                         </form>
                                     <?php endif ?>
 
                                     <?php if (($request['status'] ?? '') === 'approved'): ?>
                                         <form class="inline-form" method="post" action="<?= site_url('procurement/purchase-orders/from-pr/' . $request['id']) ?>">
                                             <?= csrf_field() ?>
-                                            <input type="text" name="supplier_name" placeholder="Supplier (optional)">
-                                            <button type="submit" class="btn btn-primary">Generate PO</button>
+                                            <input type="text" name="supplier_name" placeholder="Supplier name (optional)">
+                                            <button type="submit" class="btn btn-primary">Create PO</button>
                                         </form>
                                     <?php endif ?>
                                 </div>
@@ -124,3 +130,4 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
     </div>
 </section>
 <?= $this->endSection() ?>
+

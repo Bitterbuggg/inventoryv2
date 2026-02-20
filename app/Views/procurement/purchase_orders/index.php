@@ -51,6 +51,11 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
 </section>
 
 <section class="card stack-md">
+    <div class="stack-sm">
+        <h2>Purchase Order Queue</h2>
+        <p class="muted">Filter by status, issue draft POs, and convert issued POs to PO requests.</p>
+    </div>
+
     <form class="inline-form" method="get" action="<?= site_url('procurement/purchase-orders') ?>">
         <label for="status">Filter status</label>
         <select id="status" name="status">
@@ -60,6 +65,7 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
             <?php endforeach ?>
         </select>
         <button type="submit" class="btn btn-outline">Apply</button>
+        <a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>">Reset</a>
     </form>
 
     <div class="table-wrap">
@@ -96,7 +102,7 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
                                     <?php if (($order['status'] ?? '') === 'draft'): ?>
                                         <form class="inline-form" method="post" action="<?= site_url('procurement/purchase-orders/' . $order['id'] . '/issue') ?>">
                                             <?= csrf_field() ?>
-                                            <button type="submit" class="btn btn-primary">Issue PO</button>
+                                            <button type="submit" class="btn btn-primary">Issue Order</button>
                                         </form>
                                     <?php endif ?>
 
@@ -116,3 +122,4 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
     </div>
 </section>
 <?= $this->endSection() ?>
+

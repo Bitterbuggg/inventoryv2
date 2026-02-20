@@ -51,6 +51,11 @@ $issuanceApprovals = count(array_filter($rows, static fn (array $row): bool => (
 </section>
 
 <section class="card stack-md">
+    <div class="stack-sm">
+        <h2>Approval Queue</h2>
+        <p class="muted">Review pending references and submit approve/reject decisions with notes.</p>
+    </div>
+
     <div class="table-wrap">
         <table class="table">
             <thead>
@@ -96,3 +101,4 @@ $issuanceApprovals = count(array_filter($rows, static fn (array $row): bool => (
     </div>
 </section>
 <?= $this->endSection() ?>
+

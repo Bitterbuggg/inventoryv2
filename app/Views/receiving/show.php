@@ -49,10 +49,24 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
             </article>
         </div>
 
-        <p><strong>Status:</strong> <?= view('components/shared/table_status_badge', ['status' => $receiving['status'] ?? 'unknown']) ?></p>
-        <p><strong>PO Request ID:</strong> <?= esc((string) ($receiving['po_request_id'] ?? '')) ?></p>
-        <p><strong>Purchase Order ID:</strong> <?= esc((string) ($receiving['purchase_order_id'] ?? '')) ?></p>
-        <p><strong>Received Date:</strong> <?= esc((string) ($receiving['received_date'] ?? '')) ?></p>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="detail-label">Status</span>
+                <span class="detail-value"><?= view('components/shared/table_status_badge', ['status' => $receiving['status'] ?? 'unknown']) ?></span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">PO Request ID</span>
+                <span class="detail-value"><?= esc((string) ($receiving['po_request_id'] ?? '')) ?></span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Purchase Order ID</span>
+                <span class="detail-value"><?= esc((string) ($receiving['purchase_order_id'] ?? '')) ?></span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Received Date</span>
+                <span class="detail-value"><?= esc((string) ($receiving['received_date'] ?? '')) ?></span>
+            </div>
+        </div>
 
         <?php if (($receiving['status'] ?? '') === 'draft'): ?>
             <div class="toolbar">
@@ -118,3 +132,4 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
     </section>
 </div>
 <?= $this->endSection() ?>
+

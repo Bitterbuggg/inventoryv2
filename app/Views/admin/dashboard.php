@@ -32,20 +32,34 @@ $moduleStatus = [
 </section>
 
 <section class="card stack-md">
-    <h2>Quick Actions</h2>
-    <div class="toolbar">
-        <a class="btn btn-outline" href="<?= site_url('admin/users') ?>">Manage Users</a>
-        <a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests') ?>">Purchase Requests</a>
-        <a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>">Pending Approvals</a>
-        <a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>">Purchase Orders</a>
-        <a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>">PO Requests</a>
-        <a class="btn btn-outline" href="<?= site_url('receiving') ?>">Receiving</a>
-        <a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>">Inventory Quantities</a>
-        <a class="btn btn-outline" href="<?= site_url('inventory/issuance') ?>">Inventory Issuance</a>
-        <a class="btn btn-outline" href="<?= site_url('reports/stock-balance') ?>">Stock Balance</a>
-        <a class="btn btn-outline" href="<?= site_url('reports/stock-movements') ?>">Stock Movements</a>
-        <a class="btn btn-outline" href="<?= site_url('reports/issuances') ?>">Issuances Report</a>
-        <a class="btn btn-outline" href="<?= site_url('analytics/dashboard') ?>">Analytics Dashboard</a>
+    <div class="stack-sm">
+        <h2>Quick Actions</h2>
+        <p class="muted">Use grouped shortcuts to jump into transaction workflows and reporting.</p>
+    </div>
+
+    <div class="stack-sm">
+        <h3>Operations</h3>
+        <div class="toolbar">
+            <a class="btn btn-outline" href="<?= site_url('admin/users') ?>">Manage Users</a>
+            <a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests') ?>">Purchase Requests</a>
+            <a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>">Pending Approvals</a>
+            <a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>">Purchase Orders</a>
+            <a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>">PO Requests</a>
+            <a class="btn btn-outline" href="<?= site_url('receiving') ?>">Receiving</a>
+            <a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>">Inventory Quantities</a>
+            <a class="btn btn-outline" href="<?= site_url('inventory/issuance') ?>">Inventory Issuance</a>
+        </div>
+    </div>
+
+    <div class="stack-sm">
+        <h3>Reports and Analytics</h3>
+        <div class="toolbar">
+            <a class="btn btn-outline" href="<?= site_url('reports/stock-balance') ?>">Stock Balance</a>
+            <a class="btn btn-outline" href="<?= site_url('reports/stock-movements') ?>">Stock Movements</a>
+            <a class="btn btn-outline" href="<?= site_url('reports/issuances') ?>">Issuances Report</a>
+            <a class="btn btn-outline" href="<?= site_url('analytics/dashboard') ?>">Analytics Dashboard</a>
+        </div>
     </div>
 </section>
 <?= $this->endSection() ?>
+

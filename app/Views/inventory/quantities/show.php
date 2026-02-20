@@ -47,15 +47,29 @@ $totalOut = array_sum(array_map(static fn (array $row): float => (float) ($row['
             </article>
         </div>
 
-        <p><strong>Item:</strong> <?= esc((string) ($stock['item_name'] ?? '')) ?></p>
-        <p><strong>Unit:</strong> <?= esc((string) ($stock['unit'] ?? '')) ?></p>
-        <p><strong>On Hand:</strong> <?= esc((string) ($stock['on_hand_qty'] ?? '0')) ?></p>
-        <p><strong>Available:</strong> <?= esc((string) ($stock['available_qty'] ?? '0')) ?></p>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="detail-label">Item</span>
+                <span class="detail-value"><?= esc((string) ($stock['item_name'] ?? '')) ?></span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Unit</span>
+                <span class="detail-value"><?= esc((string) ($stock['unit'] ?? '')) ?></span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">On Hand</span>
+                <span class="detail-value"><?= esc((string) ($stock['on_hand_qty'] ?? '0')) ?></span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Available</span>
+                <span class="detail-value"><?= esc((string) ($stock['available_qty'] ?? '0')) ?></span>
+            </div>
+        </div>
     </section>
 
     <section class="card stack-md">
         <h2>Stock Movements</h2>
-        <p class="muted">Total In: <?= esc(number_format($totalIn, 2)) ?> | Total Out: <?= esc(number_format($totalOut, 2)) ?></p>
+        <p class="split-note"><span>Total In: <?= esc(number_format($totalIn, 2)) ?></span><span>Total Out: <?= esc(number_format($totalOut, 2)) ?></span></p>
         <div class="table-wrap">
             <table class="table">
                 <thead>
@@ -93,3 +107,4 @@ $totalOut = array_sum(array_map(static fn (array $row): float => (float) ($row['
     </section>
 </div>
 <?= $this->endSection() ?>
+

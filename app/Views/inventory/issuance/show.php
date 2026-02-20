@@ -48,10 +48,24 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
             </article>
         </div>
 
-        <p><strong>Status:</strong> <?= view('components/shared/table_status_badge', ['status' => $issuance['status'] ?? 'unknown']) ?></p>
-        <p><strong>Requestor ID:</strong> <?= esc((string) ($issuance['requestor_id'] ?? '')) ?></p>
-        <p><strong>Issue Date:</strong> <?= esc((string) ($issuance['issue_date'] ?? '')) ?></p>
-        <p><strong>Department:</strong> <?= esc((string) ($issuance['department'] ?? '')) ?></p>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span class="detail-label">Status</span>
+                <span class="detail-value"><?= view('components/shared/table_status_badge', ['status' => $issuance['status'] ?? 'unknown']) ?></span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Requestor ID</span>
+                <span class="detail-value"><?= esc((string) ($issuance['requestor_id'] ?? '')) ?></span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Issue Date</span>
+                <span class="detail-value"><?= esc((string) ($issuance['issue_date'] ?? '')) ?></span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Department</span>
+                <span class="detail-value"><?= esc((string) ($issuance['department'] ?? '')) ?></span>
+            </div>
+        </div>
 
         <div class="toolbar">
             <?php if (($issuance['status'] ?? '') === 'draft'): ?>
@@ -130,3 +144,4 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
     </section>
 </div>
 <?= $this->endSection() ?>
+

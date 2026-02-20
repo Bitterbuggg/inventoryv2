@@ -225,12 +225,26 @@
     flex-wrap: wrap;
 }
 
+.page-actions .btn,
+.toolbar .btn {
+    white-space: nowrap;
+}
+
 .card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     padding: var(--space-4);
     box-shadow: var(--shadow-sm);
+    transition: box-shadow 160ms ease;
+}
+
+.card:hover {
+    box-shadow: 0 10px 24px rgba(23, 56, 112, 0.12);
+}
+
+.card h2 {
+    color: #17325e;
 }
 
 .kpi-grid {
@@ -257,9 +271,10 @@
 .kpi-value {
     margin-top: var(--space-2);
     color: var(--color-brand-700);
-    font-size: 1.35rem;
+    font-size: clamp(1.12rem, 1.03rem + 0.48vw, 1.42rem);
     font-weight: 700;
-    line-height: 1;
+    line-height: 1.05;
+    overflow-wrap: anywhere;
 }
 
 .kpi-note {
@@ -282,6 +297,7 @@
 
 .muted {
     color: var(--color-text-muted);
+    font-size: 0.92rem;
 }
 
 .toolbar {
@@ -297,6 +313,12 @@
     gap: var(--space-2);
     margin: 0;
     flex-wrap: wrap;
+}
+
+.inline-form input,
+.inline-form select {
+    width: auto;
+    min-width: 120px;
 }
 
 .form-grid-2 {
@@ -351,9 +373,11 @@ textarea {
 .btn {
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
-    padding: 10px 14px;
+    padding: 9px 14px;
     font-weight: 600;
     font-size: 0.92rem;
+    line-height: 1.2;
+    min-height: 38px;
     cursor: pointer;
     text-decoration: none;
     display: inline-flex;
@@ -418,15 +442,17 @@ textarea {
 .table th,
 .table td {
     border-bottom: 1px solid var(--color-border);
-    padding: 11px 12px;
+    padding: 10px 12px;
     vertical-align: top;
     text-align: left;
+    font-size: 0.92rem;
 }
 
 .table th {
     background: #eef4ff;
     color: #17325e;
     font-weight: 700;
+    white-space: nowrap;
 }
 
 .table tbody tr:nth-child(even) {
@@ -435,6 +461,22 @@ textarea {
 
 .table tbody tr:hover {
     background: #f1f6ff;
+}
+
+.table td .toolbar {
+    gap: 6px;
+}
+
+.table td .inline-form input {
+    min-width: 150px;
+}
+
+.table td .inline-form select {
+    min-width: 120px;
+}
+
+.table td .inline-form button {
+    white-space: nowrap;
 }
 
 .alert {
@@ -667,6 +709,14 @@ textarea {
     .kpi-grid {
         grid-template-columns: 1fr;
     }
+
+    .page-actions {
+        width: 100%;
+    }
+
+    .page-actions .btn {
+        flex: 1 1 calc(50% - var(--space-2));
+    }
 }
 
 .auth-screen {
@@ -760,3 +810,137 @@ textarea {
         padding-top: 0;
     }
 }
+
+@media (max-width: 520px) {
+    .page-actions .btn {
+        flex: 1 1 100%;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .content-wrap .card {
+        animation: rise-in 220ms ease both;
+    }
+
+    .content-wrap .kpi-card {
+        animation: rise-in 280ms ease both;
+    }
+
+    .content-wrap .kpi-card:nth-child(2) {
+        animation-delay: 35ms;
+    }
+
+    .content-wrap .kpi-card:nth-child(3) {
+        animation-delay: 70ms;
+    }
+
+    .content-wrap .kpi-card:nth-child(4) {
+        animation-delay: 105ms;
+    }
+}
+
+@keyframes rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+.split-note {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2) var(--space-4);
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: #f8fbff;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.detail-label {
+    color: var(--color-text-muted);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+}
+
+.detail-value {
+    color: var(--color-text);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.table td code {
+    display: inline-block;
+    max-width: 320px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.form-section {
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: #fbfdff;
+}
+
+.field-hint {
+    margin-top: -2px;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+}
+
+
+.card h3 {
+    color: #1f3e70;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+}
+
+@media (max-width: 768px) {
+    .table td .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .table td .inline-form,
+    .table td .btn {
+        width: 100%;
+    }
+
+    .table td .inline-form input,
+    .table td .inline-form select,
+    .table td .inline-form button {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
