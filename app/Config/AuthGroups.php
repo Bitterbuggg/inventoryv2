@@ -61,6 +61,10 @@ class AuthGroups extends ShieldAuthGroups
         'procurement.por.manage'     => 'Can manage PO request transitions',
         'receiving.convert'          => 'Can convert approved PO requests to receiving records',
         'inventory.quantity.update'  => 'Can post receiving quantities to inventory stocks',
+        'inventory.issuance.create'  => 'Can create and submit inventory issuances',
+        'inventory.issuance.approve' => 'Can approve, reject, and release issuances',
+        'reports.view'               => 'Can view inventory and movement reports',
+        'audit.view'                 => 'Can view workflow and audit logs',
     ];
 
     /**
@@ -78,9 +82,14 @@ class AuthGroups extends ShieldAuthGroups
             'procurement.por.manage',
             'receiving.convert',
             'inventory.quantity.update',
+            'inventory.issuance.create',
+            'inventory.issuance.approve',
+            'reports.view',
+            'audit.view',
         ],
         'employee' => [
             'procurement.pr.create',
+            'inventory.issuance.create',
         ],
         'it_staff' => [
             'procurement.pr.create',
@@ -89,6 +98,11 @@ class AuthGroups extends ShieldAuthGroups
             'procurement.por.manage',
             'receiving.convert',
             'inventory.quantity.update',
+            'inventory.issuance.create',
+            'inventory.issuance.approve',
+            'reports.view',
+            'audit.view',
         ],
     ];
 }
+

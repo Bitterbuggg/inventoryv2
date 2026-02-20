@@ -52,4 +52,24 @@ $routes->group('receiving', ['filter' => 'auth'], static function (RouteCollecti
 $routes->group('inventory', ['filter' => 'auth'], static function (RouteCollection $routes): void {
     $routes->get('quantities', 'Receiving\InventoryQuantityController::index', ['filter' => 'role:admin,employee,it_staff']);
     $routes->get('quantities/(:num)', 'Receiving\InventoryQuantityController::show/$1', ['filter' => 'role:admin,employee,it_staff']);
+
+    $routes->get('issuance', 'Inventory\IssuanceController::index', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->get('issuance/create', 'Inventory\IssuanceController::create', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->post('issuance', 'Inventory\IssuanceController::store', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->get('issuance/(:num)', 'Inventory\IssuanceController::show/$1', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->post('issuance/(:num)/submit', 'Inventory\IssuanceController::submit/$1', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->post('issuance/(:num)/cancel', 'Inventory\IssuanceController::cancel/$1', ['filter' => 'role:admin,employee,it_staff']);
+
+    $routes->post('issuance/(:num)/approve', 'Inventory\IssuanceApprovalController::approve/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('issuance/(:num)/reject', 'Inventory\IssuanceApprovalController::reject/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('issuance/(:num)/release', 'Inventory\IssuanceController::release/$1', ['filter' => 'role:admin,it_staff']);
 });
+
+$routes->group('reports', ['filter' => 'auth'], static function (RouteCollection $routes): void {
+    $routes->get('stock-balance', 'Inventory\ReportingController::stockBalance', ['filter' => 'role:admin,it_staff']);
+    $routes->get('stock-movements', 'Inventory\ReportingController::stockMovements', ['filter' => 'role:admin,it_staff']);
+    $routes->get('issuances', 'Inventory\ReportingController::issuances', ['filter' => 'role:admin,it_staff']);
+    $routes->get('low-stock', 'Inventory\ReportingController::lowStock', ['filter' => 'role:admin,it_staff']);
+    $routes->get('fast-moving', 'Inventory\ReportingController::fastMoving', ['filter' => 'role:admin,it_staff']);
+});
+

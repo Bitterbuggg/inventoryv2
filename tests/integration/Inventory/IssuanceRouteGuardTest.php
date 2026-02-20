@@ -10,7 +10,7 @@ use CodeIgniter\Test\FeatureTestTrait;
 /**
  * @internal
  */
-final class ProcurementRouteGuardTest extends CIUnitTestCase
+final class IssuanceRouteGuardTest extends CIUnitTestCase
 {
     use DatabaseTestTrait;
     use FeatureTestTrait;
@@ -21,13 +21,13 @@ final class ProcurementRouteGuardTest extends CIUnitTestCase
     protected $namespace = null;
     protected $DBGroup = 'tests';
 
-    public function testGuestCannotAccessPurchaseRequestsPage(): void
+    public function testGuestCannotAccessIssuanceIndex(): void
     {
         auth('session')->logout();
         session()->remove('user');
         session()->destroy();
 
-        $response = $this->get('/procurement/purchase-requests');
+        $response = $this->get('/inventory/issuance');
         $status   = $response->response()->getStatusCode();
 
         if (in_array($status, [301, 302, 303, 307, 308], true)) {
@@ -39,21 +39,21 @@ final class ProcurementRouteGuardTest extends CIUnitTestCase
         $response->assertStatus(403);
     }
 
-    public function testEmployeeCannotAccessPendingApprovalsPage(): void
+    public function testEmployeeCannotAccessReportsPage(): void
     {
         $employee = $this->findUserByEmail('employee@local.test');
         auth('session')->login($employee);
 
-        $response = $this->withSession(session()->get())->get('/procurement/approvals/pending');
+        $response = $this->withSession(session()->get())->get('/reports/stock-balance');
         $response->assertStatus(403);
     }
 
-    public function testItStaffCanAccessPendingApprovalsPage(): void
+    public function testItStaffCanAccessReportsPage(): void
     {
         $itStaff = $this->findUserByEmail('itstaff@local.test');
         auth('session')->login($itStaff);
 
-        $response = $this->withSession(session()->get())->get('/procurement/approvals/pending');
+        $response = $this->withSession(session()->get())->get('/reports/stock-balance');
         $response->assertOK();
     }
 
@@ -68,4 +68,3 @@ final class ProcurementRouteGuardTest extends CIUnitTestCase
         return $user;
     }
 }
-

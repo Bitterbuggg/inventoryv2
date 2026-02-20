@@ -13,7 +13,7 @@
 <body>
     <h1>Admin Dashboard</h1>
     <p>Welcome, <?= esc((string) ($user->username ?? 'Admin')) ?>.</p>
-    <p>Current baseline: Phase 1 auth/RBAC, Phase 2 procurement workflow, and Phase 3 receiving/inventory routes are active.</p>
+    <p>Current baseline: Phase 1 auth/RBAC, Phase 2 procurement workflow, Phase 3 receiving/inventory, and Phase 4 issuance/reporting routes are active.</p>
 
     <div class="actions">
         <a href="<?= site_url('admin/users') ?>">Manage Users</a>
@@ -23,6 +23,10 @@
         <a href="<?= site_url('procurement/po-requests') ?>">Procurement - PO Requests</a>
         <a href="<?= site_url('receiving') ?>">Receiving</a>
         <a href="<?= site_url('inventory/quantities') ?>">Inventory Quantities</a>
+        <a href="<?= site_url('inventory/issuance') ?>">Inventory Issuance</a>
+        <a href="<?= site_url('reports/stock-balance') ?>">Reports - Stock Balance</a>
+        <a href="<?= site_url('reports/stock-movements') ?>">Reports - Stock Movements</a>
+        <a href="<?= site_url('reports/issuances') ?>">Reports - Issuances</a>
         <form method="post" action="<?= site_url('logout') ?>">
             <?= csrf_field() ?>
             <button type="submit">Logout</button>
@@ -30,3 +34,4 @@
     </div>
 </body>
 </html>
+

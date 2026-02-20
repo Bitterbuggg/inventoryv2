@@ -1,6 +1,6 @@
 # InventoryV2 - Local Setup and Browser Run Guide
 
-This guide shows exactly how to set up and run the current Phase 3 baseline project on your browser.
+This guide shows exactly how to set up and run the current Phase 4 baseline project on your browser.
 
 ## 1. Prerequisites
 
@@ -86,6 +86,8 @@ php spark shield:user list
 - Login: `http://localhost/inventoryv2/public/login`
 - Signup: `http://localhost/inventoryv2/public/signup`
 - Admin dashboard (admin only): `http://localhost/inventoryv2/public/admin/dashboard`
+- Issuance list: `http://localhost/inventoryv2/public/inventory/issuance`
+- Stock balance report (admin/IT only): `http://localhost/inventoryv2/public/reports/stock-balance`
 
 ## 10. Test accounts (seeded)
 
@@ -142,6 +144,7 @@ php spark serve
 
 - DB connection error  
   Check `.env` DB host/user/password/port and ensure MySQL is running
+
 
 
 
