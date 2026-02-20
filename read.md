@@ -162,3 +162,59 @@ php spark db:seed AuthRbacSeeder
 vendor\bin\phpunit
 ```
 
+
+## 14. Analytics Operations (Phase F4)
+
+Run analytics maintenance commands after deployment:
+
+```powershell
+# Aggregate daily metrics (default lookback from config)
+php spark analytics:aggregate
+
+# Aggregate explicit date
+php spark analytics:aggregate 2026-02-20
+
+# Aggregate last N days
+php spark analytics:aggregate --days 7
+
+# Prune old analytics data using config retention
+php spark analytics:prune
+
+# Override retention for one run
+php spark analytics:prune --raw-days 180 --metric-days 730
+```
+
+Default policy is configured in `app/Config/Analytics.php`:
+- IP masking enabled (`hash` strategy)
+- Raw events retention: 180 days
+- Daily metrics retention: 730 days
+
+## 15. Windows Task Scheduler (Configured)
+
+On this machine, the analytics jobs are already registered:
+
+- `InventoryV2_Analytics_Aggregate_Daily`
+  - Schedule: Daily at `11:55 PM`
+  - Action: `C:\xampp\htdocs\inventoryv2\scripts\analytics\aggregate_daily.bat`
+- `InventoryV2_Analytics_Prune_Weekly`
+  - Schedule: Weekly every `Sunday 11:50 PM`
+  - Action: `C:\xampp\htdocs\inventoryv2\scripts\analytics\prune_weekly.bat`
+
+Verify task status:
+
+```powershell
+schtasks /Query /TN "InventoryV2_Analytics_Aggregate_Daily" /V /FO LIST
+schtasks /Query /TN "InventoryV2_Analytics_Prune_Weekly" /V /FO LIST
+```
+
+Run immediately (manual trigger):
+
+```powershell
+schtasks /Run /TN "InventoryV2_Analytics_Aggregate_Daily"
+schtasks /Run /TN "InventoryV2_Analytics_Prune_Weekly"
+```
+
+Task logs:
+
+- `writable/logs/analytics_aggregate_task.log`
+- `writable/logs/analytics_prune_task.log`

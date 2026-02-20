@@ -14,6 +14,14 @@ class PurchaseOrderController extends BaseController
     {
         $status = trim((string) $this->request->getGet('status'));
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.po_list_viewed',
+            'procurement',
+            null,
+            null,
+            ['status_filter' => $status === '' ? 'all' : $status],
+        );
+
         return view('procurement/purchase_orders/index', [
             'purchaseOrders' => RepositoryServices::purchaseOrderService()->list($status === '' ? null : $status),
             'status'         => $status,
@@ -39,6 +47,14 @@ class PurchaseOrderController extends BaseController
             return redirect()->back()->with('error', $exception->getMessage());
         }
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.po_created',
+            'procurement',
+            'purchase_order',
+            $purchaseOrderId,
+            ['purchase_request_id' => $prId],
+        );
+
         return redirect()->to('/procurement/purchase-orders')->with('message', "Purchase order #{$purchaseOrderId} created.");
     }
 
@@ -49,6 +65,13 @@ class PurchaseOrderController extends BaseController
         } catch (DomainException $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.po_issued',
+            'procurement',
+            'purchase_order',
+            $id,
+        );
 
         return redirect()->to('/procurement/purchase-orders')->with('message', 'Purchase order issued.');
     }

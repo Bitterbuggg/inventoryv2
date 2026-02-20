@@ -26,24 +26,52 @@ class LoginController extends BaseController
         ];
 
         if (! $this->validate($rules)) {
+            RepositoryServices::analyticsService()->trackHttp(
+                'auth.login_validation_failed',
+                'auth',
+                null,
+                null,
+                null,
+                ['errors_count' => count($this->validator->getErrors())],
+            );
+
             return redirect()
                 ->back()
                 ->withInput()
                 ->with('errors', $this->validator->getErrors());
         }
 
+        $identifier = (string) $this->request->getPost('identifier');
+
         $service = RepositoryServices::authenticationService();
         $success = $service->login(
-            (string) $this->request->getPost('identifier'),
+            $identifier,
             (string) $this->request->getPost('password'),
         );
 
         if (! $success) {
+            RepositoryServices::analyticsService()->trackHttp(
+                'auth.login_failed',
+                'auth',
+                null,
+                null,
+                null,
+                ['identifier_type' => $this->identifierType($identifier)],
+            );
+
             return redirect()
                 ->back()
                 ->withInput()
                 ->with('error', $service->getLastError() ?? 'Invalid credentials.');
         }
+
+        $user = auth()->user();
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'auth.login_success',
+            'auth',
+            'user',
+            $user === null ? null : (int) ($user->id ?? 0),
+        );
 
         return $this->redirectByRole();
     }
@@ -58,5 +86,9 @@ class LoginController extends BaseController
 
         return redirect()->to('/');
     }
-}
 
+    private function identifierType(string $identifier): string
+    {
+        return str_contains($identifier, '@') ? 'email' : 'username';
+    }
+}

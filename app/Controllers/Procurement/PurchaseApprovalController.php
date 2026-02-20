@@ -12,6 +12,8 @@ class PurchaseApprovalController extends BaseController
 {
     public function pending(): string
     {
+        RepositoryServices::analyticsService()->trackCurrentUser('procurement.approvals_viewed', 'procurement');
+
         return view('procurement/approvals/pending', [
             'approvals' => RepositoryServices::approvalService()->listPending(),
         ]);
@@ -37,6 +39,13 @@ class PurchaseApprovalController extends BaseController
             return redirect()->back()->with('error', $exception->getMessage());
         }
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.pr_approved',
+            'procurement',
+            'approval',
+            $id,
+        );
+
         return redirect()->to('/procurement/approvals/pending')->with('message', 'Approval completed.');
     }
 
@@ -59,6 +68,13 @@ class PurchaseApprovalController extends BaseController
         } catch (DomainException $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.pr_rejected',
+            'procurement',
+            'approval',
+            $id,
+        );
 
         return redirect()->to('/procurement/approvals/pending')->with('message', 'Approval rejected.');
     }

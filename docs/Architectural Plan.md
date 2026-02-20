@@ -190,6 +190,16 @@ Each module has its own detailed architectural plan and implementation guide:
 - Daily and monthly stock movement reports
 - Fast-moving and low-stock analytics
 - Printable issuance summaries
+### 🎨 [Frontend Design + Analytics Module](FRONTEND_DESIGN_ANALYTICS_ARCHITECTURE.md) - **Planned Enhancement**
+**Status:** Planned  
+**Timeline:** 2-4 weeks (iterative rollout)  
+**Core Features:**
+- Design system for consistent UI across modules
+- Shared layouts/components for forms, tables, and alerts
+- Accessibility and responsive baseline hardening
+- Internal first-party analytics event tracking
+- Analytics dashboard for operational usage insights
+
 
 ---
 
@@ -485,6 +495,7 @@ Procurement Module -> Approved PO Request -> Receiving Module -> Inventory Quant
 - Issuance routes are implemented under `/inventory/issuance/*` with role guards for create/submit/cancel (admin/employee/it_staff) and approve/reject/release (admin/it_staff).
 - Reporting routes are implemented under `/reports/*` with role guards (admin/it_staff).
 - Phase I4 hardening is complete: audit logs are persisted for issuance lifecycle events, high-volume reporting checks are covered in integration tests, and report-focused indexes are applied via migration.
+
 
 
 

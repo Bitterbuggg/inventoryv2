@@ -13,6 +13,14 @@ class ReceivingController extends BaseController
     {
         $status = trim((string) $this->request->getGet('status'));
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'receiving.list_viewed',
+            'receiving',
+            null,
+            null,
+            ['status_filter' => $status === '' ? 'all' : $status],
+        );
+
         return view('receiving/index', [
             'receivings'            => RepositoryServices::receivingService()->list($status === '' ? null : $status),
             'convertiblePoRequests' => RepositoryServices::receivingService()->listConvertiblePoRequests(),
@@ -27,6 +35,13 @@ class ReceivingController extends BaseController
         } catch (\Throwable $exception) {
             return redirect()->to('/receiving')->with('error', $exception->getMessage());
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'receiving.conversion_viewed',
+            'receiving',
+            'po_request',
+            $poRequestId,
+        );
 
         return view('receiving/conversion', $conversion);
     }
@@ -56,6 +71,13 @@ class ReceivingController extends BaseController
             return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'receiving.draft_created',
+            'receiving',
+            'receiving',
+            $receivingId,
+        );
+
         return redirect()->to('/receiving/' . $receivingId)->with('message', 'Receiving draft created.');
     }
 
@@ -66,6 +88,13 @@ class ReceivingController extends BaseController
         if ($receiving === null) {
             return redirect()->to('/receiving')->with('error', 'Receiving not found.');
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'receiving.details_viewed',
+            'receiving',
+            'receiving',
+            $id,
+        );
 
         return view('receiving/show', [
             'receiving' => $receiving,
@@ -79,6 +108,13 @@ class ReceivingController extends BaseController
         } catch (\Throwable $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'receiving.posted',
+            'receiving',
+            'receiving',
+            $id,
+        );
 
         return redirect()->to('/receiving/' . $id)->with('message', 'Receiving posted and inventory updated.');
     }
@@ -102,6 +138,13 @@ class ReceivingController extends BaseController
         } catch (\Throwable $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'receiving.voided',
+            'receiving',
+            'receiving',
+            $id,
+        );
 
         return redirect()->to('/receiving')->with('message', 'Receiving draft voided.');
     }

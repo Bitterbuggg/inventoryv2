@@ -14,6 +14,14 @@ class PoRequestController extends BaseController
     {
         $status = trim((string) $this->request->getGet('status'));
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.po_request_list_viewed',
+            'procurement',
+            null,
+            null,
+            ['status_filter' => $status === '' ? 'all' : $status],
+        );
+
         return view('procurement/po_requests/index', [
             'poRequests' => RepositoryServices::poRequestService()->list($status === '' ? null : $status),
             'status'     => $status,
@@ -28,6 +36,14 @@ class PoRequestController extends BaseController
             return redirect()->back()->with('error', $exception->getMessage());
         }
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.po_request_created',
+            'procurement',
+            'po_request',
+            $poRequestId,
+            ['purchase_order_id' => $poId],
+        );
+
         return redirect()->to('/procurement/po-requests')->with('message', "PO request #{$poRequestId} created.");
     }
 
@@ -38,6 +54,13 @@ class PoRequestController extends BaseController
         } catch (DomainException $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.po_request_approved',
+            'procurement',
+            'po_request',
+            $id,
+        );
 
         return redirect()->to('/procurement/po-requests')->with('message', 'PO request approved.');
     }
@@ -61,6 +84,13 @@ class PoRequestController extends BaseController
         } catch (DomainException $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.po_request_rejected',
+            'procurement',
+            'po_request',
+            $id,
+        );
 
         return redirect()->to('/procurement/po-requests')->with('message', 'PO request rejected.');
     }

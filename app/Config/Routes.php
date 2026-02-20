@@ -75,3 +75,9 @@ $routes->group('reports', ['filter' => 'auth'], static function (RouteCollection
     $routes->get('fast-moving', 'Inventory\ReportingController::fastMoving', ['filter' => 'role:admin,it_staff']);
 });
 
+$routes->group('analytics', ['filter' => 'auth'], static function (RouteCollection $routes): void {
+    $routes->get('dashboard', 'Analytics\AnalyticsController::dashboard', ['filter' => 'role:admin,it_staff']);
+    $routes->get('events', 'Analytics\AnalyticsController::events', ['filter' => 'role:admin,it_staff']);
+    $routes->get('metrics', 'Analytics\AnalyticsController::metrics', ['filter' => 'role:admin,it_staff']);
+    $routes->post('track', 'Analytics\AnalyticsController::track', ['filter' => 'role:admin,employee,it_staff']);
+});

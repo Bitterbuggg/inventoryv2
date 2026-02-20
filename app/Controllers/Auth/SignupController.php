@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use CodeIgniter\HTTP\RedirectResponse;
 use Config\RepositoryServices;
 use DomainException;
+use function auth;
 
 class SignupController extends BaseController
 {
@@ -24,6 +25,15 @@ class SignupController extends BaseController
         ];
 
         if (! $this->validate($rules)) {
+            RepositoryServices::analyticsService()->trackHttp(
+                'auth.signup_validation_failed',
+                'auth',
+                null,
+                null,
+                null,
+                ['errors_count' => count($this->validator->getErrors())],
+            );
+
             return redirect()
                 ->back()
                 ->withInput()
@@ -39,6 +49,15 @@ class SignupController extends BaseController
                 'password' => (string) $this->request->getPost('password'),
             ]);
         } catch (DomainException $e) {
+            RepositoryServices::analyticsService()->trackHttp(
+                'auth.signup_failed',
+                'auth',
+                null,
+                null,
+                null,
+                ['reason' => 'domain_exception'],
+            );
+
             return redirect()
                 ->back()
                 ->withInput()
@@ -50,7 +69,14 @@ class SignupController extends BaseController
             (string) $this->request->getPost('password'),
         );
 
+        $user = auth()->user();
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'auth.signup_success',
+            'auth',
+            'user',
+            $user === null ? null : (int) ($user->id ?? 0),
+        );
+
         return redirect()->to('/');
     }
 }
-

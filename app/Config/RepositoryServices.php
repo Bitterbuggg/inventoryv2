@@ -2,6 +2,7 @@
 
 namespace Config;
 
+use App\Repositories\Contracts\Analytics\AnalyticsRepositoryInterface;
 use App\Repositories\Contracts\Auth\UserRepositoryInterface;
 use App\Repositories\Contracts\Inventory\InventoryStockRepositoryInterface as IssuanceInventoryStockRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceItemRepositoryInterface;
@@ -17,6 +18,7 @@ use App\Repositories\Contracts\Receiving\ReceivingItemRepositoryInterface;
 use App\Repositories\Contracts\Receiving\ReceivingRepositoryInterface;
 use App\Repositories\Contracts\Receiving\StockMovementRepositoryInterface as ReceivingStockMovementRepositoryInterface;
 use App\Repositories\Contracts\Shared\AuditLogRepositoryInterface;
+use App\Repositories\EloquentLike\Analytics\AnalyticsRepository;
 use App\Repositories\EloquentLike\Auth\UserRepository;
 use App\Repositories\EloquentLike\Inventory\InventoryStockRepository as IssuanceInventoryStockRepository;
 use App\Repositories\EloquentLike\Inventory\IssuanceItemRepository;
@@ -32,6 +34,7 @@ use App\Repositories\EloquentLike\Receiving\ReceivingItemRepository;
 use App\Repositories\EloquentLike\Receiving\ReceivingRepository;
 use App\Repositories\EloquentLike\Receiving\StockMovementRepository as ReceivingStockMovementRepository;
 use App\Repositories\EloquentLike\Shared\AuditLogRepository;
+use App\Services\Analytics\AnalyticsService;
 use App\Services\Auth\AuthenticationService;
 use App\Services\Auth\AuthorizationService;
 use App\Services\Inventory\InventoryAvailabilityService;
@@ -53,6 +56,7 @@ use App\Services\Shared\AuditService;
 class RepositoryServices
 {
     private static ?UserRepositoryInterface $userRepository = null;
+    private static ?AnalyticsRepositoryInterface $analyticsRepository = null;
 
     private static ?PurchaseRequestRepositoryInterface $purchaseRequestRepository = null;
     private static ?ApprovalRepositoryInterface $approvalRepository = null;
@@ -74,6 +78,7 @@ class RepositoryServices
 
     private static ?AuthenticationService $authenticationService = null;
     private static ?AuthorizationService $authorizationService = null;
+    private static ?AnalyticsService $analyticsService = null;
 
     private static ?PurchaseRequestService $purchaseRequestService = null;
     private static ?ApprovalService $approvalService = null;
@@ -100,6 +105,15 @@ class RepositoryServices
         }
 
         return self::$userRepository;
+    }
+
+    public static function analyticsRepository(): AnalyticsRepositoryInterface
+    {
+        if (self::$analyticsRepository === null) {
+            self::$analyticsRepository = new AnalyticsRepository();
+        }
+
+        return self::$analyticsRepository;
     }
 
     public static function purchaseRequestRepository(): PurchaseRequestRepositoryInterface
@@ -254,6 +268,15 @@ class RepositoryServices
         }
 
         return self::$authorizationService;
+    }
+
+    public static function analyticsService(): AnalyticsService
+    {
+        if (self::$analyticsService === null) {
+            self::$analyticsService = new AnalyticsService(self::analyticsRepository());
+        }
+
+        return self::$analyticsService;
     }
 
     public static function purchaseRequestService(): PurchaseRequestService
@@ -438,4 +461,3 @@ class RepositoryServices
         return self::$auditService;
     }
 }
-

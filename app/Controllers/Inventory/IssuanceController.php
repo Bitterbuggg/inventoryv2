@@ -13,6 +13,14 @@ class IssuanceController extends BaseController
     {
         $status = trim((string) $this->request->getGet('status'));
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'inventory.issuance_list_viewed',
+            'inventory',
+            null,
+            null,
+            ['status_filter' => $status === '' ? 'all' : $status],
+        );
+
         return view('inventory/issuance/index', [
             'issuances' => RepositoryServices::issuanceService()->list($status === '' ? null : $status),
             'status'    => $status,
@@ -50,6 +58,13 @@ class IssuanceController extends BaseController
             return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'issuance.draft_created',
+            'inventory',
+            'issuance',
+            $issuanceId,
+        );
+
         return redirect()->to('/inventory/issuance/' . $issuanceId)->with('message', 'Issuance draft created.');
     }
 
@@ -60,6 +75,13 @@ class IssuanceController extends BaseController
         if ($issuance === null) {
             return redirect()->to('/inventory/issuance')->with('error', 'Issuance record not found.');
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'issuance.details_viewed',
+            'inventory',
+            'issuance',
+            $id,
+        );
 
         return view('inventory/issuance/show', [
             'issuance' => $issuance,
@@ -74,6 +96,13 @@ class IssuanceController extends BaseController
             return redirect()->back()->with('error', $exception->getMessage());
         }
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'issuance.submitted',
+            'inventory',
+            'issuance',
+            $id,
+        );
+
         return redirect()->to('/inventory/issuance/' . $id)->with('message', 'Issuance submitted for approval.');
     }
 
@@ -82,8 +111,23 @@ class IssuanceController extends BaseController
         try {
             RepositoryServices::issuanceReleaseService()->release($id, $this->currentUserId());
         } catch (\Throwable $exception) {
+            RepositoryServices::analyticsService()->trackCurrentUser(
+                'issuance.release_failed',
+                'inventory',
+                'issuance',
+                $id,
+                ['error' => $exception->getMessage()],
+            );
+
             return redirect()->back()->with('error', $exception->getMessage());
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'issuance.released',
+            'inventory',
+            'issuance',
+            $id,
+        );
 
         return redirect()->to('/inventory/issuance/' . $id)->with('message', 'Issuance released and stock updated.');
     }
@@ -99,6 +143,13 @@ class IssuanceController extends BaseController
         } catch (\Throwable $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'issuance.cancelled',
+            'inventory',
+            'issuance',
+            $id,
+        );
 
         return redirect()->to('/inventory/issuance/' . $id)->with('message', 'Issuance cancelled.');
     }
@@ -134,4 +185,3 @@ class IssuanceController extends BaseController
         return $items;
     }
 }
-

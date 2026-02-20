@@ -15,6 +15,14 @@ class PurchaseRequestController extends BaseController
     {
         $status = trim((string) $this->request->getGet('status'));
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.pr_list_viewed',
+            'procurement',
+            null,
+            null,
+            ['status_filter' => $status === '' ? 'all' : $status],
+        );
+
         return view('procurement/purchase_requests/index', [
             'requests' => RepositoryServices::purchaseRequestService()->list($status === '' ? null : $status),
             'status'   => $status,
@@ -67,6 +75,13 @@ class PurchaseRequestController extends BaseController
             return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.pr_created',
+            'procurement',
+            'purchase_request',
+            $purchaseRequestId,
+        );
+
         return redirect()
             ->to('/procurement/purchase-requests')
             ->with('message', "Purchase request #{$purchaseRequestId} created.");
@@ -95,6 +110,13 @@ class PurchaseRequestController extends BaseController
             return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.pr_updated',
+            'procurement',
+            'purchase_request',
+            $id,
+        );
+
         return redirect()->to('/procurement/purchase-requests')->with('message', 'Purchase request updated.');
     }
 
@@ -106,6 +128,13 @@ class PurchaseRequestController extends BaseController
             return redirect()->back()->with('error', $exception->getMessage());
         }
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.pr_submitted',
+            'procurement',
+            'purchase_request',
+            $id,
+        );
+
         return redirect()->to('/procurement/purchase-requests')->with('message', 'Purchase request submitted for approval.');
     }
 
@@ -116,6 +145,13 @@ class PurchaseRequestController extends BaseController
         } catch (DomainException $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.pr_cancelled',
+            'procurement',
+            'purchase_request',
+            $id,
+        );
 
         return redirect()->to('/procurement/purchase-requests')->with('message', 'Purchase request cancelled.');
     }

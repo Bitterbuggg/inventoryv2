@@ -12,6 +12,14 @@ class InventoryQuantityController extends BaseController
     {
         $keyword = trim((string) $this->request->getGet('q'));
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'inventory.quantities_viewed',
+            'inventory',
+            null,
+            null,
+            ['keyword_used' => $keyword !== ''],
+        );
+
         return view('inventory/quantities/index', [
             'stocks'  => RepositoryServices::inventoryQuantityService()->list($keyword === '' ? null : $keyword),
             'keyword' => $keyword,
@@ -25,6 +33,13 @@ class InventoryQuantityController extends BaseController
         if ($stock === null) {
             return redirect()->to('/inventory/quantities')->with('error', 'Inventory stock record not found.');
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'inventory.stock_viewed',
+            'inventory',
+            'inventory_stock',
+            $inventoryStockId,
+        );
 
         return view('inventory/quantities/show', [
             'stock' => $stock,

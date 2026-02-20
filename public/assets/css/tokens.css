@@ -1,0 +1,110 @@
+:root {
+    --font-sans: "Source Sans 3", "Trebuchet MS", "Segoe UI", sans-serif;
+    --font-mono: "Consolas", "Courier New", monospace;
+
+    --color-bg: #f6faf9;
+    --color-surface: #ffffff;
+    --color-surface-alt: #ecf5f2;
+    --color-border: #ceddd8;
+    --color-border-strong: #9bb8b0;
+
+    --color-text: #18302a;
+    --color-text-muted: #4f6861;
+
+    --color-brand-700: #0f5a55;
+    --color-brand-600: #12766e;
+    --color-brand-500: #169084;
+    --color-brand-100: #d6f2ec;
+
+    --color-success-700: #166534;
+    --color-success-100: #dcfce7;
+
+    --color-warning-700: #9a5500;
+    --color-warning-100: #ffedd5;
+
+    --color-danger-700: #9f1239;
+    --color-danger-100: #ffe4e6;
+
+    --color-info-700: #1d4ed8;
+    --color-info-100: #dbeafe;
+
+    --radius-xs: 6px;
+    --radius-sm: 10px;
+    --radius-md: 14px;
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+
+    --shadow-sm: 0 1px 2px rgba(10, 30, 26, 0.08);
+    --shadow-md: 0 10px 30px rgba(18, 118, 110, 0.12);
+
+    --container-max: 1200px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-sans);
+    color: var(--color-text);
+    background:
+        radial-gradient(circle at 10% 10%, rgba(22, 144, 132, 0.14), transparent 45%),
+        radial-gradient(circle at 95% 5%, rgba(19, 96, 90, 0.12), transparent 40%),
+        var(--color-bg);
+    min-height: 100vh;
+    line-height: 1.45;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    margin: 0;
+    line-height: 1.2;
+}
+
+h1 {
+    font-size: clamp(1.45rem, 1.3rem + 0.8vw, 2rem);
+}
+
+h2 {
+    font-size: clamp(1.1rem, 1rem + 0.5vw, 1.4rem);
+}
+
+p {
+    margin: 0;
+}
+
+a {
+    color: var(--color-brand-600);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--color-brand-700);
+    text-decoration: underline;
+}
+
+:focus-visible {
+    outline: 3px solid rgba(22, 144, 132, 0.45);
+    outline-offset: 1px;
+}
+
+code {
+    font-family: var(--font-mono);
+    background: #eef5f3;
+    border: 1px solid #d8e6e2;
+    border-radius: var(--radius-xs);
+    padding: 1px 5px;
+}

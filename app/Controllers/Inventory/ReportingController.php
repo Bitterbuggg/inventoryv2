@@ -11,6 +11,10 @@ class ReportingController extends BaseController
     {
         $keyword = trim((string) $this->request->getGet('q'));
 
+        $this->trackReportView('stock_balance', [
+            'has_keyword' => $keyword !== '',
+        ]);
+
         return view('inventory/reports/stock_balance', [
             'rows'    => RepositoryServices::reportingService()->stockBalance($keyword === '' ? null : $keyword),
             'keyword' => $keyword,
@@ -22,6 +26,12 @@ class ReportingController extends BaseController
         $dateFrom     = trim((string) $this->request->getGet('date_from'));
         $dateTo       = trim((string) $this->request->getGet('date_to'));
         $movementType = trim((string) $this->request->getGet('movement_type'));
+
+        $this->trackReportView('stock_movements', [
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+            'movement_type' => $movementType,
+        ]);
 
         return view('inventory/reports/stock_movements', [
             'rows'         => RepositoryServices::reportingService()->stockMovements(
@@ -41,6 +51,12 @@ class ReportingController extends BaseController
         $dateFrom = trim((string) $this->request->getGet('date_from'));
         $dateTo   = trim((string) $this->request->getGet('date_to'));
 
+        $this->trackReportView('issuances', [
+            'status' => $status,
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+        ]);
+
         return view('inventory/reports/issuances', [
             'rows'      => RepositoryServices::reportingService()->issuances(
                 $status === '' ? null : $status,
@@ -57,6 +73,10 @@ class ReportingController extends BaseController
     {
         $threshold = (float) ($this->request->getGet('threshold') ?? 10);
 
+        $this->trackReportView('low_stock', [
+            'threshold' => $threshold,
+        ]);
+
         return view('inventory/reports/low_stock', [
             'rows'       => RepositoryServices::reportingService()->lowStock($threshold),
             'threshold'  => $threshold,
@@ -69,6 +89,12 @@ class ReportingController extends BaseController
         $dateTo   = trim((string) $this->request->getGet('date_to'));
         $limit    = (int) ($this->request->getGet('limit') ?? 20);
 
+        $this->trackReportView('fast_moving', [
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+            'limit' => $limit,
+        ]);
+
         return view('inventory/reports/fast_moving', [
             'rows'      => RepositoryServices::reportingService()->fastMoving(
                 $dateFrom === '' ? null : $dateFrom,
@@ -79,5 +105,22 @@ class ReportingController extends BaseController
             'date_to'   => $dateTo,
             'limit'     => $limit,
         ]);
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     */
+    private function trackReportView(string $reportName, array $filters): void
+    {
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'report.viewed',
+            'reports',
+            'report',
+            null,
+            [
+                'report' => $reportName,
+                'filters' => $filters,
+            ],
+        );
     }
 }

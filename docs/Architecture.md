@@ -188,6 +188,8 @@ Code Quality Tools: PHP_CodeSniffer or PHP-CS-Fixer, PHPStan (recommended), CI p
 
 [Implement asynchronous notifications (queue worker) for workflow events and retry handling.]
 
+[Add first-party on-prem analytics (events + aggregated metrics) for workflow usage visibility without external trackers.]
+
 ## 10. Project Identification
 
 Project Name: InventoryV2 Pharmacy Inventory System
@@ -211,3 +213,4 @@ RBAC: Role-Based Access Control
 FEFO: First-Expired, First-Out inventory allocation method
 
 GRN: Goods Received Note (receiving conversion record)
+

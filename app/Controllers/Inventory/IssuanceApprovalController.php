@@ -29,6 +29,13 @@ class IssuanceApprovalController extends BaseController
             return redirect()->back()->with('error', $exception->getMessage());
         }
 
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'issuance.approved',
+            'inventory',
+            'issuance',
+            $id,
+        );
+
         return redirect()->to('/inventory/issuance/' . $id)->with('message', 'Issuance approved.');
     }
 
@@ -51,6 +58,13 @@ class IssuanceApprovalController extends BaseController
         } catch (\Throwable $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'issuance.rejected',
+            'inventory',
+            'issuance',
+            $id,
+        );
 
         return redirect()->to('/inventory/issuance/' . $id)->with('message', 'Issuance rejected.');
     }

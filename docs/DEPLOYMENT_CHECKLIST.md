@@ -74,3 +74,10 @@ If blocking issue occurs:
 - 2026-02-20: `.env` switched to production mode and validated (`CI_ENVIRONMENT = production`), backup saved as `.env.bak_20260220_110238`.
 - 2026-02-20: Maintenance window owner/monitoring owner recorded as Requester (local execution window).
 - Known issues shared: none identified in this run.
+- 2026-02-20: Analytics hardening completed (Phase F4): added `analytics:aggregate` and `analytics:prune` commands.
+- 2026-02-20: Executed `php spark analytics:aggregate --days 1` and `php spark analytics:prune` successfully.
+- 2026-02-20: Re-ran full test suite -> `OK (72 tests, 220 assertions)`.
+- 2026-02-20: Scheduled analytics tasks configured on host `MSI`:
+  - `InventoryV2_Analytics_Aggregate_Daily` (Daily 11:55 PM)
+  - `InventoryV2_Analytics_Prune_Weekly` (Weekly Sunday 11:50 PM)
+- 2026-02-20: Manual task run verification complete (`Last Result = 0` for both tasks).
