@@ -17,48 +17,79 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<section class="card stack-md">
-    <p><strong>Item:</strong> <?= esc((string) ($stock['item_name'] ?? '')) ?></p>
-    <p><strong>Unit:</strong> <?= esc((string) ($stock['unit'] ?? '')) ?></p>
-    <p><strong>On Hand:</strong> <?= esc((string) ($stock['on_hand_qty'] ?? '0')) ?></p>
-    <p><strong>Available:</strong> <?= esc((string) ($stock['available_qty'] ?? '0')) ?></p>
-</section>
+<?php
+$movements = $stock['movements'] ?? [];
+$totalIn = array_sum(array_map(static fn (array $row): float => (float) ($row['qty_in'] ?? 0), $movements));
+$totalOut = array_sum(array_map(static fn (array $row): float => (float) ($row['qty_out'] ?? 0), $movements));
+?>
+<div class="stack-lg">
+    <section class="card stack-md">
+        <div class="kpi-grid">
+            <article class="kpi-card">
+                <p class="kpi-label">Item</p>
+                <p class="kpi-value"><?= esc((string) ($stock['item_name'] ?? 'N/A')) ?></p>
+                <p class="kpi-note">Current stock record item name.</p>
+            </article>
+            <article class="kpi-card">
+                <p class="kpi-label">On Hand</p>
+                <p class="kpi-value"><?= esc((string) ($stock['on_hand_qty'] ?? '0')) ?></p>
+                <p class="kpi-note">Total physical balance.</p>
+            </article>
+            <article class="kpi-card">
+                <p class="kpi-label">Available</p>
+                <p class="kpi-value"><?= esc((string) ($stock['available_qty'] ?? '0')) ?></p>
+                <p class="kpi-note">On hand minus reserved quantity.</p>
+            </article>
+            <article class="kpi-card">
+                <p class="kpi-label">Movements</p>
+                <p class="kpi-value"><?= esc((string) count($movements)) ?></p>
+                <p class="kpi-note">History entries on this stock ID.</p>
+            </article>
+        </div>
 
-<section class="card stack-md" style="margin-top: 16px;">
-    <h2>Stock Movements</h2>
-    <div class="table-wrap">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Movement Number</th>
-                    <th>Type</th>
-                    <th>Reference</th>
-                    <th>Qty In</th>
-                    <th>Qty Out</th>
-                    <th>Balance After</th>
-                    <th>Performed At</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (($stock['movements'] ?? []) === []): ?>
-                    <tr><td colspan="8" class="empty-state">No movements found.</td></tr>
-                <?php else: ?>
-                    <?php foreach ($stock['movements'] as $movement): ?>
-                        <tr>
-                            <td><?= esc((string) $movement['id']) ?></td>
-                            <td><?= esc((string) $movement['movement_number']) ?></td>
-                            <td><?= esc((string) $movement['movement_type']) ?></td>
-                            <td><?= esc((string) $movement['reference_type']) ?> #<?= esc((string) $movement['reference_id']) ?></td>
-                            <td><?= esc((string) $movement['qty_in']) ?></td>
-                            <td><?= esc((string) $movement['qty_out']) ?></td>
-                            <td><?= esc((string) $movement['balance_after']) ?></td>
-                            <td><?= esc((string) $movement['performed_at']) ?></td>
-                        </tr>
-                    <?php endforeach ?>
-                <?php endif ?>
-            </tbody>
-        </table>
-    </div>
-</section>
+        <p><strong>Item:</strong> <?= esc((string) ($stock['item_name'] ?? '')) ?></p>
+        <p><strong>Unit:</strong> <?= esc((string) ($stock['unit'] ?? '')) ?></p>
+        <p><strong>On Hand:</strong> <?= esc((string) ($stock['on_hand_qty'] ?? '0')) ?></p>
+        <p><strong>Available:</strong> <?= esc((string) ($stock['available_qty'] ?? '0')) ?></p>
+    </section>
+
+    <section class="card stack-md">
+        <h2>Stock Movements</h2>
+        <p class="muted">Total In: <?= esc(number_format($totalIn, 2)) ?> | Total Out: <?= esc(number_format($totalOut, 2)) ?></p>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Movement Number</th>
+                        <th>Type</th>
+                        <th>Reference</th>
+                        <th>Qty In</th>
+                        <th>Qty Out</th>
+                        <th>Balance After</th>
+                        <th>Performed At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (($stock['movements'] ?? []) === []): ?>
+                        <tr><td colspan="8" class="empty-state">No movements found.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($stock['movements'] as $movement): ?>
+                            <tr>
+                                <td><?= esc((string) $movement['id']) ?></td>
+                                <td><?= esc((string) $movement['movement_number']) ?></td>
+                                <td><?= esc((string) $movement['movement_type']) ?></td>
+                                <td><?= esc((string) $movement['reference_type']) ?> #<?= esc((string) $movement['reference_id']) ?></td>
+                                <td><?= esc((string) $movement['qty_in']) ?></td>
+                                <td><?= esc((string) $movement['qty_out']) ?></td>
+                                <td><?= esc((string) $movement['balance_after']) ?></td>
+                                <td><?= esc((string) $movement['performed_at']) ?></td>
+                            </tr>
+                        <?php endforeach ?>
+                    <?php endif ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
 <?= $this->endSection() ?>
