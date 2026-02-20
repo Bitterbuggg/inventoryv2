@@ -28,9 +28,10 @@ final class UserRoleAssignmentTest extends CIUnitTestCase
 
         auth('session')->login($admin);
 
-        $response = $this->withSession(session()->get())->post('/admin/users/' . $employee->id . '/role', [
-            'role' => 'it_staff',
-        ]);
+        $response = $this->withSession(session()->get())->post(
+            '/admin/users/' . $employee->id . '/role',
+            $this->csrfPayload(['role' => 'it_staff'])
+        );
 
         $response->assertRedirectTo('/admin/users');
 
@@ -50,5 +51,18 @@ final class UserRoleAssignmentTest extends CIUnitTestCase
         }
 
         return $user;
+    }
+
+    /**
+     * @param array<string, string> $data
+     *
+     * @return array<string, string>
+     */
+    private function csrfPayload(array $data): array
+    {
+        $hash = csrf_hash();
+        $name = csrf_token();
+
+        return $data + [$name => $hash];
     }
 }
