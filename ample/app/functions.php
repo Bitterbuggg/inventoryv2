@@ -18,7 +18,7 @@ function dateForUser($date){
 
 // currnt date with time
 function timestramp(){
-    return date("Y-m-d H:s:i");
+    return date("Y-m-d H:i:s");
 }
 
 
