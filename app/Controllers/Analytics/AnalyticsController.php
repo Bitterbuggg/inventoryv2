@@ -13,8 +13,25 @@ class AnalyticsController extends BaseController
         $days = (int) ($this->request->getGet('days') ?? 7);
         $summary = RepositoryServices::analyticsService()->dashboardSummary(max(1, min(30, $days)));
 
+        // --- FUNCTIONAL PAGINATION LOGIC ---
+        $pager = \Config\Services::pager();
+        $page = (int) ($this->request->getGet('page') ?? 1);
+        $perPage = 10;
+        
+        // Get all events returned by the service
+        $allRecentEvents = $summary['recent_events'] ?? [];
+        $totalEvents = count($allRecentEvents);
+        
+        // Slice the array to only show 10 items for the current page
+        $summary['recent_events'] = array_slice($allRecentEvents, ($page - 1) * $perPage, $perPage);
+        
+        // Generate the functional HTML links
+        $pagerLinks = $pager->makeLinks($page, $perPage, $totalEvents, 'default_full');
+
         return view('analytics/dashboard', [
-            'days' => max(1, min(30, $days)),
+            'days'         => max(1, min(30, $days)),
+            'pager_links'  => $pagerLinks,
+            'total_events' => $totalEvents
         ] + $summary);
     }
 
