@@ -32,6 +32,18 @@
             </div>
 </div>
       <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-12">
+            <div class="info-box bg-light">
+              <div class="info-box-content">
+                <?php $currentDateTime = date('l, d M Y h:i:s A'); ?>
+                <span class="info-box-text">System Date & Time (Local PC Timezone)</span>
+                <span class="info-box-number"><?php echo $currentDateTime; ?></span>
+              </div>
+              <span class="info-box-icon"><i class="material-symbols-outlined">schedule</i></span>
+            </div>
+          </div>
+        </div>
         <!-- .row -->
         <div class="row">
 

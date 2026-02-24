@@ -6,6 +6,51 @@ use CodeIgniter\Config\BaseConfig;
 
 class App extends BaseConfig
 {
+    public function __construct()
+    {
+        parent::__construct();
+
+        $systemTimezone = $this->detectSystemTimezone();
+        if ($systemTimezone !== null) {
+            $this->appTimezone = $systemTimezone;
+        }
+    }
+
+    private function detectSystemTimezone(): ?string
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            $windowsTimezone = null;
+
+            if (function_exists('exec')) {
+                $output = [];
+                $exitCode = 1;
+                @exec('tzutil /g 2>NUL', $output, $exitCode);
+
+                if ($exitCode === 0 && isset($output[0])) {
+                    $windowsTimezone = trim($output[0]);
+                }
+            }
+
+            if ($windowsTimezone !== null && class_exists('IntlTimeZone') && method_exists('IntlTimeZone', 'getIDForWindowsID')) {
+                $ianaTimezone = \IntlTimeZone::getIDForWindowsID($windowsTimezone, '001');
+                if (is_string($ianaTimezone) && $ianaTimezone !== '') {
+                    return $ianaTimezone;
+                }
+            }
+
+            if ($windowsTimezone === 'Singapore Standard Time') {
+                return 'Asia/Singapore';
+            }
+        }
+
+        $timezone = date_default_timezone_get();
+        if (is_string($timezone) && in_array($timezone, \DateTimeZone::listIdentifiers(), true)) {
+            return $timezone;
+        }
+
+        return null;
+    }
+
     /**
      * --------------------------------------------------------------------------
      * Base Site URL
@@ -133,7 +178,7 @@ class App extends BaseConfig
      * @see https://www.php.net/manual/en/timezones.php for list of timezones
      *      supported by PHP.
      */
-    public string $appTimezone = 'Asia/Kolkata';
+    public string $appTimezone = 'Asia/Singapore';
 
     /**
      * --------------------------------------------------------------------------
