@@ -18,8 +18,14 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
-    min-height: 100vh;
     z-index: 21;
+
+    /* --- THE GRID STICKY FIX (Belongs here at the top!) --- */
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    align-self: start; 
+    overflow-y: auto;
 }
 
 .side-overlay {
@@ -79,24 +85,73 @@
 .side-section {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 2px; /* Tight gap for accordion style */
 }
 
+/* Make the title a clickable button */
 .side-section-title {
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-sidebar-muted);
-    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    min-height: 42px;
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+    font-size: 0.95rem; /* Match normal link text size */
+    font-weight: 600; /* Bold to show it's a header */
+    text-transform: none; /* Removed uppercase */
+    letter-spacing: normal;
+    color: var(--color-sidebar-link);
+    cursor: pointer;
+    text-align: left;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.side-section-title:hover {
+    background: rgba(255, 255, 255, 0.08); /* Brighter hover */
+    color: #ffffff;
+}
+
+/* The little arrow icon */
+.chevron {
+    transition: transform 0.3s ease;
+    opacity: 0.7;
+}
+
+/* --- THE ACCORDION ANIMATION --- */
+/* --- THE ACCORDION ANIMATION --- */
+.side-links-wrapper {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease-in-out;
 }
 
 .side-links {
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
+    padding-top: 2px;
+    min-height: 0; /* CRITICAL for grid animation to work in some browsers */
 }
 
-/* --- ACTIVE SIDEBAR HIGHLIGHT APPLIED HERE --- */
+/* WHEN EXPANDED */
+.side-section.is-expanded .side-links-wrapper {
+    grid-template-rows: 1fr;
+}
+
+.side-section.is-expanded .chevron {
+    transform: rotate(180deg);
+}
+
+.side-section.is-expanded .side-section-title {
+    color: #ffffff; /* Keep header bright when open */
+}
+
+/* --- SIDEBAR LINKS --- */
 .side-link {
     display: flex;
     align-items: center;
@@ -109,28 +164,51 @@
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
+/* Specific styling for the indented sub-links */
+.side-link.child-link {
+    padding: 8px 10px 8px 42px; 
+    font-size: 0.88rem; 
+    min-height: 36px;
+    position: relative;
+    background: transparent;
+    box-shadow: none;
+}
+
+.side-link.child-link::before {
+    content: "";
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: background 0.2s ease;
+}
+
 .side-link:hover {
     color: #ffffff;
     text-decoration: none;
-    background: var(--color-brand-500);
-    border-color: var(--color-sidebar-muted);
+    background: rgba(255, 255, 255, 0.05);
 }
 
-.side-link.is-active {
-    background: var(--color-sidebar-link-active-bg);
-    border-color: var(--color-sidebar-muted);
-    color: var(--color-sidebar-link-active);
-    box-shadow: none;
-    font-weight: 600;
+.side-link.child-link:hover::before,
+.side-link.child-link.is-active::before {
+    background: #ffffff;
 }
-/* ------------------------------------------- */
+
+/* --- STRONG ACTIVE HIGHLIGHT (Fixed) --- */
+.side-link.is-active,
+.side-link.child-link.is-active {
+    background: var(--color-sidebar-link-active-bg, #0077b6);
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); 
+}
 
 .side-link-label {
     font-weight: 600;
-}
-
-.side-logout-form {
-    margin-top: auto;
 }
 
 .main-panel {
@@ -683,6 +761,7 @@ textarea {
         grid-template-columns: 1fr;
     }
 
+    /* Restored to original Fixed Mobile position */
     .side-panel {
         position: fixed;
         top: 0;
@@ -693,6 +772,7 @@ textarea {
         transform: translateX(-100%);
         transition: transform 200ms ease;
         box-shadow: none;
+        height: 100vh; /* Keeps it full height on mobile */
     }
 
     .app-shell.is-side-open .side-panel {
@@ -966,4 +1046,23 @@ textarea {
         width: 100%;
         min-width: 0;
     }
+}
+
+/* --- CUSTOM SIDEBAR SCROLLBAR --- */
+.side-panel::-webkit-scrollbar,
+.side-nav::-webkit-scrollbar {
+    width: 5px;
+}
+.side-panel::-webkit-scrollbar-track,
+.side-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+.side-panel::-webkit-scrollbar-thumb,
+.side-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+.side-panel::-webkit-scrollbar-thumb:hover,
+.side-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
 }
