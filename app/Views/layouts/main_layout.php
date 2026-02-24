@@ -168,10 +168,10 @@ if ($canOps) {
                     <div class="user-strip" style="display: flex; flex-direction: column; align-items: flex-end; text-align: right; padding-top: 0.25rem;">
                         
                         <div style="margin-bottom: 12px; display: flex; flex-direction: column; align-items: flex-end;">
-                            <span id="dashboardTime" style="font-size: 1.85rem; font-weight: 800; color: var(--color-gray-900, #111827); line-height: 1; letter-spacing: -0.02em;">
+                            <span id="dashboardTime" style="font-size: 1.85rem; font-weight: 800; color: var(--color-text); line-height: 1; letter-spacing: -0.02em;">
                                 <?= esc(date('h:i A')) ?>
                             </span>
-                            <span id="dashboardDate" style="font-size: 0.9rem; color: var(--color-gray-600, #6c757d); font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em;">
+                            <span id="dashboardDate" style="font-size: 0.9rem; color: var(--color-text-muted); font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em;">
                                 <?= esc(date('F j, Y')) ?>
                             </span>
                         </div>
