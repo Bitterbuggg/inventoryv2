@@ -1,6 +1,6 @@
 <?php
 // setting time zone
-date_default_timezone_set("Asia/Kolkata");
+date_default_timezone_set("Asia/Singapore");
 
 // define the site root
 define('SITE_ROOT', 'http://localhost/ample/');
