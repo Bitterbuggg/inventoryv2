@@ -30,7 +30,7 @@ if ($isAdmin) {
     $roleLabel = 'IT dev/staff';
 }
 
-$currentPath = trim(service('uri')->getPath(), '/');
+$currentPath = trim(uri_string(), '/');
 
 $isActivePath = static function (string $target) use ($currentPath): bool {
     $target = trim($target, '/');
@@ -39,7 +39,9 @@ $isActivePath = static function (string $target) use ($currentPath): bool {
         return $currentPath === '';
     }
 
-    return $currentPath === $target || str_starts_with($currentPath, $target . '/');
+    $cleanPath = str_replace('index.php/', '', $currentPath);
+
+    return $cleanPath === $target || str_starts_with($cleanPath, $target . '/');
 };
 
 $navGroups = [];

@@ -96,6 +96,7 @@
     gap: 4px;
 }
 
+/* --- ACTIVE SIDEBAR HIGHLIGHT APPLIED HERE --- */
 .side-link {
     display: flex;
     align-items: center;
@@ -105,6 +106,7 @@
     color: var(--color-sidebar-link);
     border: 1px solid transparent;
     font-size: 0.92rem;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .side-link:hover {
@@ -119,7 +121,9 @@
     border-color: rgba(255, 255, 255, 0.24);
     color: var(--color-sidebar-link-active);
     box-shadow: 0 8px 18px rgba(16, 79, 185, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    font-weight: 600;
 }
+/* ------------------------------------------- */
 
 .side-link-label {
     font-weight: 600;
@@ -881,7 +885,6 @@ textarea {
     }
 }
 
-
 .split-note {
     display: flex;
     gap: 10px;
@@ -948,7 +951,6 @@ textarea {
     font-size: 0.8rem;
 }
 
-
 .card h3 {
     color: #1b4c95;
     font-size: 0.95rem;
@@ -973,6 +975,3 @@ textarea {
         min-width: 0;
     }
 }
-
-
-
