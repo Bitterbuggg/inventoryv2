@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 $title = 'Admin Dashboard - InventoryV2';
 $pageTitle = 'Admin Dashboard';
-$pageSubtitle = 'Operational snapshot inspired by Ample-style admin panels, aligned to your current workflow modules.';
+$pageSubtitle = 'Operational snapshot aligned to your current workflow modules.';
 
 $moduleStatus = [
     ['name' => 'Auth and RBAC', 'status' => 'Active', 'note' => 'Shield login, signup, role guards'],
