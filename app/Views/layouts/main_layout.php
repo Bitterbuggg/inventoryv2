@@ -196,7 +196,7 @@ if ($canOps) {
                         
                         <div style="margin-bottom: 12px; display: flex; flex-direction: column; align-items: flex-end;">
                             <span id="dashboardTime" style="font-size: 1.85rem; font-weight: 800; color: var(--color-text); line-height: 1; letter-spacing: -0.02em;">
-                                <?= esc(date('h:i A')) ?>
+                                <?= esc(date('h:i:s A')) ?>
                             </span>
                             <span id="dashboardDate" style="font-size: 0.9rem; color: var(--color-text-muted); font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em;">
                                 <?= esc(date('F j, Y')) ?>
@@ -294,6 +294,41 @@ if ($canOps) {
                 });
             });
         });
+
+        // ==========================================
+        // 3. LIVE HEADER CLOCK
+        // ==========================================
+        (function () {
+            const timeElement = document.getElementById('dashboardTime');
+            const dateElement = document.getElementById('dashboardDate');
+
+            if (!timeElement || !dateElement) {
+                return;
+            }
+
+            const updateHeaderClock = () => {
+                const now = new Date();
+
+                const timeText = now.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                });
+
+                const dateText = now.toLocaleDateString([], {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+
+                timeElement.textContent = timeText;
+                dateElement.textContent = dateText;
+            };
+
+            updateHeaderClock();
+            setInterval(updateHeaderClock, 1000);
+        })();
     </script>
 </body>
 </html>

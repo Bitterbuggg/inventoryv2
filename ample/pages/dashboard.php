@@ -38,6 +38,7 @@
               <div class="info-box-content">
                 <span class="info-box-text">System Date & Time (Local PC Timezone)</span>
                 <span class="info-box-number" id="live-date-time"><?php echo date('l, d M Y h:i:s A'); ?></span>
+                <span class="info-box-text" id="live-seconds">Seconds: <?php echo date('s'); ?></span>
                 <span class="info-box-text" id="live-timezone"></span>
               </div>
               <span class="info-box-icon"><i class="material-symbols-outlined">schedule</i></span>
@@ -320,6 +321,7 @@
   <script>
     (function () {
       var liveDateTimeElement = document.getElementById('live-date-time');
+      var liveSecondsElement = document.getElementById('live-seconds');
       var liveTimezoneElement = document.getElementById('live-timezone');
       if (!liveDateTimeElement) {
         return;
@@ -344,6 +346,11 @@
         });
 
         liveDateTimeElement.textContent = formatted;
+
+        if (liveSecondsElement) {
+          var seconds = now.getSeconds().toString().padStart(2, '0');
+          liveSecondsElement.textContent = 'Seconds: ' + seconds;
+        }
       }
 
       updateLiveDateTime();
