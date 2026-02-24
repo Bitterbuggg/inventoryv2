@@ -152,7 +152,8 @@ if ($canOps) {
 
         <div class="main-panel">
             <header class="app-header">
-                <div class="container header-inner">
+                <div class="container header-inner" style="display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 20px;">
+                    
                     <div class="header-main stack-sm">
                         <button type="button" class="side-toggle" id="sideToggle" aria-controls="sidePanel" aria-expanded="false">Menu</button>
                         <p class="top-kicker">Operations Console</p>
@@ -162,10 +163,19 @@ if ($canOps) {
                         <?php endif ?>
                     </div>
 
-                    <div class="user-strip">
-                        <span><?= esc(date('F j, Y')) ?></span>
+                    <div class="user-strip" style="display: flex; flex-direction: column; align-items: flex-end; text-align: right; padding-top: 0.25rem;">
+                        
+                        <div style="margin-bottom: 12px; display: flex; flex-direction: column; align-items: flex-end;">
+                            <span id="dashboardTime" style="font-size: 1.85rem; font-weight: 800; color: var(--color-gray-900, #111827); line-height: 1; letter-spacing: -0.02em;">
+                                <?= esc(date('h:i A')) ?>
+                            </span>
+                            <span id="dashboardDate" style="font-size: 0.9rem; color: var(--color-gray-600, #6c757d); font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em;">
+                                <?= esc(date('F j, Y')) ?>
+                            </span>
+                        </div>
+
                         <?php if ($pageActions !== ''): ?>
-                            <div class="page-actions">
+                            <div class="page-actions" style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
                                 <?= $pageActions ?>
                             </div>
                         <?php endif ?>
@@ -174,13 +184,16 @@ if ($canOps) {
             </header>
 
             <main class="content-wrap">
-                <div class="container">
+                <div class="container stack-lg"> 
                     <?php if ($crumbs !== []): ?>
                         <?= view('components/shared/breadcrumbs', ['crumbs' => $crumbs]) ?>
                     <?php endif ?>
 
                     <?= view('components/shared/alerts') ?>
-                    <?= $this->renderSection('content') ?>
+                    
+                    <div class="stack-lg">
+                        <?= $this->renderSection('content') ?>
+                    </div>
                 </div>
             </main>
         </div>

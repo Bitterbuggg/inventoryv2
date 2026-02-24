@@ -30,7 +30,7 @@ $nearExpiryRows = count(array_filter(
     static fn (array $row): bool => isset($row['expiry_date']) && (string) $row['expiry_date'] !== '' && strtotime((string) $row['expiry_date']) <= strtotime('+60 days')
 ));
 ?>
-<div class="stack-lg">
+    <div class="stack-lg">
     <section class="card stack-md">
         <div class="kpi-grid">
             <article class="kpi-card">
