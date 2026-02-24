@@ -36,9 +36,9 @@
           <div class="col-12">
             <div class="info-box bg-light">
               <div class="info-box-content">
-                <?php $currentDateTime = date('l, d M Y h:i:s A'); ?>
                 <span class="info-box-text">System Date & Time (Local PC Timezone)</span>
-                <span class="info-box-number"><?php echo $currentDateTime; ?></span>
+                <span class="info-box-number" id="live-date-time"><?php echo date('l, d M Y h:i:s A'); ?></span>
+                <span class="info-box-text" id="live-timezone"></span>
               </div>
               <span class="info-box-icon"><i class="material-symbols-outlined">schedule</i></span>
             </div>
@@ -316,3 +316,37 @@
     </section>
     <!-- /.content -->
   </div>
+
+  <script>
+    (function () {
+      var liveDateTimeElement = document.getElementById('live-date-time');
+      var liveTimezoneElement = document.getElementById('live-timezone');
+      if (!liveDateTimeElement) {
+        return;
+      }
+
+      if (liveTimezoneElement) {
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown Timezone';
+        liveTimezoneElement.textContent = 'Timezone: ' + timezone;
+      }
+
+      function updateLiveDateTime() {
+        var now = new Date();
+        var formatted = now.toLocaleString(undefined, {
+          weekday: 'long',
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        });
+
+        liveDateTimeElement.textContent = formatted;
+      }
+
+      updateLiveDateTime();
+      setInterval(updateLiveDateTime, 1000);
+    })();
+  </script>
