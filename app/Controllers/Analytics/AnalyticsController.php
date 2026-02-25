@@ -13,25 +13,10 @@ class AnalyticsController extends BaseController
         $days = (int) ($this->request->getGet('days') ?? 7);
         $summary = RepositoryServices::analyticsService()->dashboardSummary(max(1, min(30, $days)));
 
-        // --- FUNCTIONAL PAGINATION LOGIC ---
-        $pager = \Config\Services::pager();
-        $page = (int) ($this->request->getGet('page') ?? 1);
-        $perPage = 10;
-        
-        // Get all events returned by the service
-        $allRecentEvents = $summary['recent_events'] ?? [];
-        $totalEvents = count($allRecentEvents);
-        
-        // Slice the array to only show 10 items for the current page
-        $summary['recent_events'] = array_slice($allRecentEvents, ($page - 1) * $perPage, $perPage);
-        
-        // Generate the functional HTML links
-        $pagerLinks = $pager->makeLinks($page, $perPage, $totalEvents, 'default_full');
-
+        // Pass everything directly to the view for instant JS pagination
         return view('analytics/dashboard', [
             'days'         => max(1, min(30, $days)),
-            'pager_links'  => $pagerLinks,
-            'total_events' => $totalEvents
+            'total_events' => count($summary['recent_events'] ?? [])
         ] + $summary);
     }
 
@@ -45,14 +30,15 @@ class AnalyticsController extends BaseController
             'date_to'    => trim((string) $this->request->getGet('date_to')),
         ];
 
-        $limit = (int) ($this->request->getGet('limit') ?? 200);
-
-        $events = RepositoryServices::analyticsService()->listEvents($filters, max(1, min(500, $limit)));
+        // Fetch all matching records up to the limit
+        $limit = (int) ($this->request->getGet('limit') ?? 500);
+        $allEvents = RepositoryServices::analyticsService()->listEvents($filters, max(1, min(1000, $limit)));
 
         return view('analytics/events', [
-            'rows'    => $events,
-            'filters' => $filters,
-            'limit'   => max(1, min(500, $limit)),
+            'rows'         => $allEvents, // Pass all rows to the browser for instant JS pagination
+            'filters'      => $filters,
+            'limit'        => $limit,
+            'total_events' => count($allEvents)
         ]);
     }
 

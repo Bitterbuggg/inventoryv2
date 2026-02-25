@@ -14,7 +14,6 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
 <?= $this->extend('layouts/main_layout') ?>
 
 <?= $this->section('head') ?>
-<?= $this->section('head') ?>
 <style>
     /* Force CodeIgniter's default Pager to match your modern button design */
     .ci-pager {
@@ -59,7 +58,7 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
         border-color: var(--color-brand-600);
     }
 
-    /* Disabled State (if you ever need it) */
+    /* Disabled State */
     .ci-pager li.disabled a {
         opacity: 0.5;
         background: var(--color-surface-alt);
@@ -69,14 +68,47 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
     }
     
     /* Strips out the double-border bug from CodeIgniter's internal tags */
-    .ci-pager li a span {
+    .ci-pager li span.ellipsis {
         border: none !important;
         background: transparent !important;
-        padding: 0 !important;
-        margin: 0 !important;
+        padding: 0 4px !important;
+        min-width: auto;
+        color: var(--color-text-muted);
+    }
+
+    /* --- SORTABLE TABLE HEADERS --- */
+    th.sortable {
+        cursor: pointer;
+        position: relative;
+        padding-right: 18px !important;
+        user-select: none;
+        transition: background 0.2s ease;
+    }
+    th.sortable:hover {
+        background: rgba(0, 0, 0, 0.03) !important;
+    }
+    th.sortable::after {
+        content: '↕';
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.75rem;
+        opacity: 0.3;
+    }
+    th.sortable.asc::after {
+        content: '↑';
+        opacity: 1;
+        color: var(--color-brand-600);
+        font-weight: bold;
+    }
+    th.sortable.desc::after {
+        content: '↓';
+        opacity: 1;
+        color: var(--color-brand-600);
+        font-weight: bold;
     }
 </style>
-<?= $this->endSection() ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
@@ -220,7 +252,7 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
         
     </div>
 
-<section class="card stack-md">
+    <section class="card stack-md">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2>Recent Events</h2>
             <a href="<?= site_url('analytics/events') ?>" class="btn btn-outline" style="font-size: 0.8rem; padding: 4px 10px;">View Full Log &rarr;</a>
@@ -228,15 +260,17 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
         
         <div id="recent-events-container">
             <div class="table-wrap">
-                <table class="table">
+                <table class="table" id="recent-events-table" style="table-layout: fixed; width: 100%; min-width: 900px;">
+                    <colgroup>
+                        <col style="width: 60px;">  <col style="width: 25%;">   <col style="width: 15%;">   <col style="width: 10%;">   <col style="width: 30%;">   <col style="width: 160px;"> </colgroup>
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Event</th>
-                            <th>Module</th>
-                            <th>Actor</th>
-                            <th>Route</th>
-                            <th>Timestamp</th>
+                            <th class="sortable" data-col="0">ID</th>
+                            <th class="sortable" data-col="1">Event</th>
+                            <th class="sortable" data-col="2">Module</th>
+                            <th class="sortable" data-col="3">Actor</th>
+                            <th class="sortable" data-col="4">Route</th>
+                            <th class="sortable" data-col="5">Timestamp</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -244,12 +278,12 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
                             <tr><td colspan="6" class="empty-state">No recent events found.</td></tr>
                         <?php else: ?>
                             <?php foreach ($recent_events as $row): ?>
-                                <tr>
+                                <tr class="event-row" style="display: none;">
                                     <td><?= esc((string) ($row['id'] ?? '')) ?></td>
-                                    <td style="font-family: var(--font-mono); color: var(--color-brand-700); font-size: 0.85rem;"><?= esc((string) ($row['event_name'] ?? '')) ?></td>
+                                    <td style="font-family: var(--font-mono); color: var(--color-brand-700); font-size: 0.85rem; word-break: break-all;"><?= esc((string) ($row['event_name'] ?? '')) ?></td>
                                     <td><?= esc((string) ($row['module'] ?? '')) ?></td>
                                     <td><strong><?= esc((string) ($row['actor_id'] ?? '')) ?></strong></td>
-                                    <td style="color: var(--color-text-muted); font-size: 0.85rem;"><?= esc((string) ($row['route'] ?? '')) ?></td>
+                                    <td style="color: var(--color-text-muted); font-size: 0.85rem; word-break: break-all;"><?= esc((string) ($row['route'] ?? '')) ?></td>
                                     <td style="white-space: nowrap;"><?= esc((string) ($row['created_at'] ?? '')) ?></td>
                                 </tr>
                             <?php endforeach ?>
@@ -259,62 +293,138 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
             </div>
             
             <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--color-border);">
-                <p class="muted" style="margin: 0; font-size: 0.85rem;">Showing records (Total: <?= esc((string) ($total_events ?? 0)) ?>)</p>
+                <p class="muted" style="margin: 0; font-size: 0.85rem; line-height: 1;">
+                    Showing records <span id="page-indicator"></span> (Total: <?= esc((string) ($total_events ?? 0)) ?>)
+                </p>
                 
-                <nav aria-label="Recent Events Pagination" style="display: flex; align-items: center;">
-                    <?= str_replace(['<ul class="pagination">'], ['<ul class="ci-pager">'], $pager_links ?? '') ?>
+                <nav aria-label="Recent Events Pagination">
+                    <ul class="ci-pager" id="client-pager"></ul>
                 </nav>
             </div>
         </div>
-        </section>
+    </section>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Listen for clicks anywhere inside the recent-events-container
-        const container = document.getElementById('recent-events-container');
+        const rowsPerPage = 10; // Keep dashboard compact with 10 rows
+        const tbody = document.querySelector('#recent-events-table tbody');
+        if (!tbody) return;
 
-        if (container) {
-            container.addEventListener('click', function(e) {
-                // Check if the user clicked a pagination link
-                const pageLink = e.target.closest('.ci-pager a');
-                
-                if (pageLink) {
-                    e.preventDefault(); // Stop the browser from reloading the page
-                    const url = pageLink.href;
-                    
-                    // Add a quick fade effect to show it's loading
-                    container.style.opacity = '0.5';
-                    container.style.pointerEvents = 'none';
+        // Convert to Array so we can sort
+        let rowsArray = Array.from(tbody.querySelectorAll('.event-row'));
+        const pagerContainer = document.getElementById('client-pager');
+        const pageIndicator = document.getElementById('page-indicator');
+        const totalRows = rowsArray.length;
+        
+        if (totalRows === 0) return;
 
-                    // Fetch the next page in the background
-                    fetch(url)
-                        .then(response => response.text())
-                        .then(html => {
-                            // Turn the fetched text into a readable HTML object
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(html, 'text/html');
-                            
-                            // Extract just the new table container from the fetched page
-                            const newContainer = doc.getElementById('recent-events-container');
-                            
-                            if (newContainer) {
-                                // Swap the old table and buttons with the new ones!
-                                container.innerHTML = newContainer.innerHTML;
-                            }
-                            
-                            // Restore full visibility
-                            container.style.opacity = '1';
-                            container.style.pointerEvents = 'auto';
-                        })
-                        .catch(err => {
-                            console.error('Error fetching page:', err);
-                            // Fallback: If AJAX fails, just load the page normally
-                            window.location.href = url;
-                        });
-                }
+        const totalPages = Math.ceil(totalRows / rowsPerPage);
+        let currentPage = 1;
+
+        // ==========================================
+        // 1. PAGINATION LOGIC
+        // ==========================================
+        function showPage(page) {
+            currentPage = page;
+            const startPoint = (page - 1) * rowsPerPage;
+            const endPoint = startPoint + rowsPerPage;
+
+            rowsArray.forEach((row, index) => {
+                row.style.display = (index >= startPoint && index < endPoint) ? '' : 'none';
+            });
+
+            const actualEnd = Math.min(endPoint, totalRows);
+            if (pageIndicator) pageIndicator.innerText = `${startPoint + 1} - ${actualEnd}`;
+
+            buildPaginationButtons();
+        }
+
+        function buildPaginationButtons() {
+            if (!pagerContainer) return;
+            pagerContainer.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            let html = `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo; Prev</a></li>`;
+
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+
+            if (startPage > 1) {
+                html += `<li><a href="#" data-page="1">1</a></li>`;
+                if (startPage > 2) html += `<li><span class="ellipsis">...</span></li>`;
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += `<li><span class="ellipsis">...</span></li>`;
+                html += `<li><a href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+            }
+
+            html += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;
+
+            pagerContainer.innerHTML = html;
+        }
+
+        if (pagerContainer) {
+            pagerContainer.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
+                if (!link) return;
+                e.preventDefault();
+
+                const li = link.parentElement;
+                if (li.classList.contains('disabled') || li.classList.contains('active')) return;
+
+                const targetPage = parseInt(link.getAttribute('data-page'));
+                showPage(targetPage);
             });
         }
+
+        // ==========================================
+        // 2. SORTING LOGIC
+        // ==========================================
+        document.querySelectorAll('#recent-events-table th.sortable').forEach(th => {
+            th.addEventListener('click', () => {
+                const colIndex = parseInt(th.getAttribute('data-col'));
+                const isAsc = th.classList.contains('asc');
+                const direction = isAsc ? -1 : 1; 
+                
+                // Reset styling on all headers
+                document.querySelectorAll('#recent-events-table th.sortable').forEach(header => {
+                    header.classList.remove('asc', 'desc');
+                });
+                
+                th.classList.add(isAsc ? 'desc' : 'asc');
+                
+                rowsArray.sort((a, b) => {
+                    let aText = a.children[colIndex].innerText.trim();
+                    let bText = b.children[colIndex].innerText.trim();
+                    
+                    // ID (0) and Actor (3) are sorted mathematically
+                    if (colIndex === 0 || colIndex === 3) {
+                        return (parseFloat(aText) - parseFloat(bText)) * direction;
+                    }
+                    
+                    return aText.localeCompare(bText) * direction;
+                });
+                
+                // Re-append sorted rows
+                rowsArray.forEach(row => tbody.appendChild(row));
+                
+                // Go back to page 1
+                showPage(1);
+            });
+        });
+
+        // Initialize table on Page 1
+        showPage(1);
     });
 </script>
 <?= $this->endSection() ?>
