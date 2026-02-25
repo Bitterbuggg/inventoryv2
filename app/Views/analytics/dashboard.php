@@ -210,7 +210,7 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
                         <?php else: ?>
                             <?php foreach (array_slice($top_events, 0, 10) as $row): ?>
                                 <tr>
-                                    <td style="white-space: normal; word-break: break-all; font-family: var(--font-mono); color: var(--color-brand-700); font-size: 0.85rem;"><?= esc((string) ($row['event_name'] ?? '')) ?></td>
+                                    <td style="white-spac   e: normal; word-break: break-all; font-family: var(--font-mono); color: var(--color-brand-700); font-size: 0.85rem;"><?= esc((string) ($row['event_name'] ?? '')) ?></td>
                                     <td style="text-align: right;"><?= esc((string) ($row['total'] ?? 0)) ?></td>
                                 </tr>
                             <?php endforeach ?>
