@@ -4,6 +4,7 @@ namespace App\Controllers\Procurement;
 
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 use Config\RepositoryServices;
 use DomainException;
 use InvalidArgumentException;
@@ -11,9 +12,10 @@ use function auth;
 
 class PurchaseRequestController extends BaseController
 {
-    public function index(): string
+    public function index(): string|ResponseInterface
     {
         $status = trim((string) $this->request->getGet('status'));
+        $requests = RepositoryServices::purchaseRequestService()->list($status === '' ? null : $status);
 
         RepositoryServices::analyticsService()->trackCurrentUser(
             'procurement.pr_list_viewed',
@@ -23,8 +25,23 @@ class PurchaseRequestController extends BaseController
             ['status_filter' => $status === '' ? 'all' : $status],
         );
 
+        if ($this->shouldExportCsv()) {
+            return $this->csvResponse(
+                'purchase_requests_' . date('Ymd_His') . '.csv',
+                ['ID', 'PR Number', 'Requested By', 'Request Date', 'Status', 'Remarks'],
+                array_map(static fn (array $row): array => [
+                    (string) ($row['id'] ?? ''),
+                    (string) ($row['pr_number'] ?? ''),
+                    (string) ($row['requested_by'] ?? ''),
+                    (string) ($row['request_date'] ?? ''),
+                    (string) ($row['status'] ?? ''),
+                    (string) ($row['remarks'] ?? ''),
+                ], $requests),
+            );
+        }
+
         return view('procurement/purchase_requests/index', [
-            'requests' => RepositoryServices::purchaseRequestService()->list($status === '' ? null : $status),
+            'requests' => $requests,
             'status'   => $status,
         ]);
     }
@@ -49,6 +66,29 @@ class PurchaseRequestController extends BaseController
         return view('procurement/purchase_requests/edit', [
             'purchaseRequest' => $purchaseRequest,
         ]);
+    }
+
+    public function itemsCsv(int $id): RedirectResponse|ResponseInterface
+    {
+        $purchaseRequest = RepositoryServices::purchaseRequestService()->findWithItems($id);
+
+        if ($purchaseRequest === null) {
+            return redirect()->to('/procurement/purchase-requests')->with('error', 'Purchase request not found.');
+        }
+
+        $rows = $purchaseRequest['items'] ?? [];
+
+        return $this->csvResponse(
+            'purchase_request_items_' . ((string) ($purchaseRequest['pr_number'] ?? $id)) . '.csv',
+            ['Item Name', 'Requested Qty', 'Unit', 'Estimated Unit Cost', 'Notes'],
+            array_map(static fn (array $row): array => [
+                (string) ($row['item_name'] ?? ''),
+                (string) ($row['requested_qty'] ?? '0'),
+                (string) ($row['unit'] ?? ''),
+                number_format((float) ($row['estimated_unit_cost'] ?? 0), 2, '.', ''),
+                (string) ($row['notes'] ?? ''),
+            ], $rows),
+        );
     }
 
     public function store(): RedirectResponse

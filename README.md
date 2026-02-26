@@ -101,6 +101,22 @@ Expected: `OK (...)`
 
 ---
 
+## CSV Export Process
+
+CSV export is available on list/report/detail pages through the **Export CSV** buttons in each page action bar.
+
+1. Open the target module page (for example: Procurement, Receiving, Inventory, Reports, Analytics, or Admin Users).
+2. Apply any filters you need (status, date range, keyword, module, etc.).
+3. Click the page's **Export CSV** button.
+4. Save the downloaded CSV file.
+
+Notes:
+- Exports include only the current server-side filter scope.
+- Detail pages expose item/history exports where applicable (example: issuance items, receiving items, stock movements).
+- Some pages provide multiple export datasets (example: Analytics Metrics has trends and daily metrics exports).
+
+---
+
 ## Optional Local Server (No Apache)
 
 If you want to use CI built-in server:

@@ -42,4 +42,45 @@ abstract class BaseController extends Controller
         // Preload any models, libraries, etc, here.
         // $this->session = service('session');
     }
+
+    protected function shouldExportCsv(): bool
+    {
+        return strtolower((string) $this->request->getGet('export')) === 'csv';
+    }
+
+    /**
+     * @param array<int, string> $headers
+     * @param array<int, array<int, mixed>> $rows
+     */
+    protected function csvResponse(string $filename, array $headers, array $rows): ResponseInterface
+    {
+        $handle = fopen('php://temp', 'r+');
+
+        if ($handle === false) {
+            return $this->response
+                ->setStatusCode(500)
+                ->setBody('Unable to generate CSV file.');
+        }
+
+        fputcsv($handle, $headers);
+
+        foreach ($rows as $row) {
+            fputcsv($handle, $row);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        if ($csv === false) {
+            return $this->response
+                ->setStatusCode(500)
+                ->setBody('Unable to generate CSV file.');
+        }
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/csv; charset=UTF-8')
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->setBody($csv);
+    }
 }

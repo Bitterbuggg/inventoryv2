@@ -33,6 +33,8 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
+<?php $lowStockExportQuery = http_build_query(['export' => 'csv', 'threshold' => ($threshold ?? 10)]); ?>
+<a class="btn btn-outline" href="<?= site_url('reports/low-stock') . '?' . $lowStockExportQuery ?>">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('reports/stock-balance') ?>">Stock Balance</a>
 <a class="btn btn-outline" href="<?= site_url('reports/stock-movements') ?>">Stock Movements</a>
 <a class="btn btn-outline" href="<?= site_url('reports/issuances') ?>">Issuance Report</a>

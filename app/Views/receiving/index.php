@@ -79,6 +79,8 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
+<?php $receivingExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
+<a class="btn btn-outline" href="<?= site_url('receiving') . '?' . $receivingExportQuery ?>">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>">PO Requests</a>
 <a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>">Purchase Orders</a>
 <a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>">Inventory Quantities</a>

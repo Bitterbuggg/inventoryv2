@@ -36,6 +36,10 @@ foreach ($usersList as $userRow) {
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
+<?= $this->section('page_actions') ?>
+<a class="btn btn-outline" href="<?= site_url('admin/users?export=csv') ?>">Export CSV</a>
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 <div class="stack-lg">
     <section class="card stack-md">
@@ -79,7 +83,21 @@ foreach ($usersList as $userRow) {
                 <tbody>
                     <?php foreach ($usersList as $user): ?>
                         <?php
-                        $userGroups = $user->getGroups() ?? [];
+                        $userId = '';
+                        $username = '';
+                        $email = '';
+                        $userGroups = [];
+
+                        if (is_object($user)) {
+                            $userId = (string) ($user->id ?? '');
+                            $username = (string) ($user->username ?? '');
+                            $email = (string) ($user->email ?? '');
+
+                            if (method_exists($user, 'getGroups')) {
+                                $userGroups = $user->getGroups() ?? [];
+                            }
+                        }
+
                         $currentRole = 'employee';
                         foreach ($availableRoles as $role) {
                             if (in_array($role, $userGroups, true)) {
@@ -89,12 +107,12 @@ foreach ($usersList as $userRow) {
                         }
                         ?>
                         <tr>
-                            <td><?= esc((string) $user->id) ?></td>
-                            <td><?= esc((string) ($user->username ?? '')) ?></td>
-                            <td><?= esc((string) ($user->email ?? '')) ?></td>
+                            <td><?= esc($userId) ?></td>
+                            <td><?= esc($username) ?></td>
+                            <td><?= esc($email) ?></td>
                             <td><?= esc(implode(', ', $userGroups)) ?></td>
                             <td>
-                                <form class="inline-form" method="post" action="<?= site_url('admin/users/' . $user->id . '/role') ?>">
+                                <form class="inline-form" method="post" action="<?= site_url('admin/users/' . $userId . '/role') ?>">
                                     <?= csrf_field() ?>
                                     <select name="role" aria-label="Assign role group">
                                         <option value="admin" <?= $currentRole === 'admin' ? 'selected' : '' ?>>admin</option>

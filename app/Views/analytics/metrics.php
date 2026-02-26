@@ -13,6 +13,10 @@ $crumbs = [
 <?= $this->extend('layouts/main_layout') ?>
 
 <?= $this->section('page_actions') ?>
+<?php $metricsTrendsExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'trends', 'date_from' => ($date_from ?? ''), 'date_to' => ($date_to ?? ''), 'module' => ($module ?? '')]); ?>
+<?php $metricsDailyExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'metrics', 'date_from' => ($date_from ?? ''), 'date_to' => ($date_to ?? ''), 'module' => ($module ?? '')]); ?>
+<a class="btn btn-outline" href="<?= site_url('analytics/metrics') . '?' . $metricsTrendsExportQuery ?>">Export Trends CSV</a>
+<a class="btn btn-outline" href="<?= site_url('analytics/metrics') . '?' . $metricsDailyExportQuery ?>">Export Daily Metrics CSV</a>
 <a class="btn btn-outline" href="<?= site_url('analytics/dashboard') ?>">Dashboard</a>
 <a class="btn btn-outline" href="<?= site_url('analytics/events') ?>">Events</a>
 <?= $this->endSection() ?>

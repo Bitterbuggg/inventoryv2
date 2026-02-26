@@ -76,6 +76,8 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
+<?php $fastMovingExportQuery = http_build_query(['export' => 'csv', 'date_from' => ($date_from ?? ''), 'date_to' => ($date_to ?? ''), 'limit' => ($limit ?? 20)]); ?>
+<a class="btn btn-outline" href="<?= site_url('reports/fast-moving') . '?' . $fastMovingExportQuery ?>">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('reports/stock-balance') ?>">Stock Balance</a>
 <a class="btn btn-outline" href="<?= site_url('reports/stock-movements') ?>">Stock Movements</a>
 <a class="btn btn-outline" href="<?= site_url('reports/issuances') ?>">Issuance Report</a>

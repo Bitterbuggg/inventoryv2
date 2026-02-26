@@ -15,6 +15,7 @@ $crumbs = [
 <?= $this->section('page_actions') ?>
 <a class="btn btn-outline" href="<?= site_url('inventory/issuance') ?>">Back to Issuance List</a>
 <a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>">Inventory Quantities</a>
+<a class="btn btn-outline" href="<?= site_url('inventory/issuance/' . $issuance['id'] . '/items.csv') ?>">Export Items CSV</a>
 <a class="btn btn-outline" href="<?= site_url('inventory/issuance/' . $issuance['id'] . '/allocations.csv') ?>">Export Allocations CSV</a>
 <?= $this->endSection() ?>
 

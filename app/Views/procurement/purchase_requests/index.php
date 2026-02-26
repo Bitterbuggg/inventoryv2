@@ -94,6 +94,8 @@ $crumbs = [
 
 <?= $this->section('page_actions') ?>
 <a class="btn btn-primary" href="<?= site_url('procurement/purchase-requests/create') ?>">Create Request</a>
+<?php $purchaseRequestExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
+<a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests') . '?' . $purchaseRequestExportQuery ?>">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>">Pending Approvals</a>
 <a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>">Purchase Orders</a>
 <a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>">PO Requests</a>

@@ -112,6 +112,8 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
+<?php $dashboardExportQuery = http_build_query(['export' => 'csv', 'days' => ($days ?? 7)]); ?>
+<a class="btn btn-outline" href="<?= site_url('analytics/dashboard') . '?' . $dashboardExportQuery ?>">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('analytics/events') ?>">Event Logs</a>
 <a class="btn btn-outline" href="<?= site_url('analytics/metrics') ?>">Metrics</a>
 <?= $this->endSection() ?>

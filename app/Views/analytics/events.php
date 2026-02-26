@@ -102,6 +102,8 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
+<?php $eventsExportQuery = http_build_query(['export' => 'csv', 'event_name' => ($filters['event_name'] ?? ''), 'module' => ($filters['module'] ?? ''), 'actor_id' => ($filters['actor_id'] ?? ''), 'date_from' => ($filters['date_from'] ?? ''), 'date_to' => ($filters['date_to'] ?? ''), 'limit' => ($limit ?? 500)]); ?>
+<a class="btn btn-outline" href="<?= site_url('analytics/events') . '?' . $eventsExportQuery ?>">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('analytics/dashboard') ?>">Dashboard</a>
 <a class="btn btn-outline" href="<?= site_url('analytics/metrics') ?>">Metrics</a>
 <?= $this->endSection() ?>

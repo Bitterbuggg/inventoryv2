@@ -33,6 +33,8 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
+<?php $stockBalanceExportQuery = http_build_query(['export' => 'csv', 'q' => ($keyword ?? '')]); ?>
+<a class="btn btn-outline" href="<?= site_url('reports/stock-balance') . '?' . $stockBalanceExportQuery ?>">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('reports/stock-movements') ?>">Stock Movements</a>
 <a class="btn btn-outline" href="<?= site_url('reports/issuances') ?>">Issuance Report</a>
 <a class="btn btn-outline" href="<?= site_url('reports/low-stock') ?>">Low Stock</a>

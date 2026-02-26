@@ -4,15 +4,17 @@ namespace App\Controllers\Procurement;
 
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 use Config\RepositoryServices;
 use DomainException;
 use function auth;
 
 class PurchaseOrderController extends BaseController
 {
-    public function index(): string
+    public function index(): string|ResponseInterface
     {
         $status = trim((string) $this->request->getGet('status'));
+        $purchaseOrders = RepositoryServices::purchaseOrderService()->list($status === '' ? null : $status);
 
         RepositoryServices::analyticsService()->trackCurrentUser(
             'procurement.po_list_viewed',
@@ -22,8 +24,24 @@ class PurchaseOrderController extends BaseController
             ['status_filter' => $status === '' ? 'all' : $status],
         );
 
+        if ($this->shouldExportCsv()) {
+            return $this->csvResponse(
+                'purchase_orders_' . date('Ymd_His') . '.csv',
+                ['ID', 'PO Number', 'PR ID', 'Supplier', 'Order Date', 'Status', 'Total Amount'],
+                array_map(static fn (array $row): array => [
+                    (string) ($row['id'] ?? ''),
+                    (string) ($row['po_number'] ?? ''),
+                    (string) ($row['purchase_request_id'] ?? ''),
+                    (string) ($row['supplier_name'] ?? ''),
+                    (string) ($row['order_date'] ?? ''),
+                    (string) ($row['status'] ?? ''),
+                    number_format((float) ($row['total_amount'] ?? 0), 2, '.', ''),
+                ], $purchaseOrders),
+            );
+        }
+
         return view('procurement/purchase_orders/index', [
-            'purchaseOrders' => RepositoryServices::purchaseOrderService()->list($status === '' ? null : $status),
+            'purchaseOrders' => $purchaseOrders,
             'status'         => $status,
         ]);
     }

@@ -16,6 +16,7 @@ $rowCount = max(5, count($existingItems));
 
 <?= $this->section('page_actions') ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests') ?>">Back to List</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests/' . $purchaseRequest['id'] . '/items.csv') ?>">Export Items CSV</a>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>

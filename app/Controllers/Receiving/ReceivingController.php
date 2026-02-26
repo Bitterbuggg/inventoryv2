@@ -4,14 +4,16 @@ namespace App\Controllers\Receiving;
 
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 use Config\RepositoryServices;
 use function auth;
 
 class ReceivingController extends BaseController
 {
-    public function index(): string
+    public function index(): string|ResponseInterface
     {
         $status = trim((string) $this->request->getGet('status'));
+        $receivings = RepositoryServices::receivingService()->list($status === '' ? null : $status);
 
         RepositoryServices::analyticsService()->trackCurrentUser(
             'receiving.list_viewed',
@@ -21,8 +23,22 @@ class ReceivingController extends BaseController
             ['status_filter' => $status === '' ? 'all' : $status],
         );
 
+        if ($this->shouldExportCsv()) {
+            return $this->csvResponse(
+                'receivings_' . date('Ymd_His') . '.csv',
+                ['ID', 'Receiving Number', 'PO Request ID', 'Received Date', 'Status'],
+                array_map(static fn (array $row): array => [
+                    (string) ($row['id'] ?? ''),
+                    (string) ($row['receiving_number'] ?? ''),
+                    (string) ($row['po_request_id'] ?? ''),
+                    (string) ($row['received_date'] ?? ''),
+                    (string) ($row['status'] ?? ''),
+                ], $receivings),
+            );
+        }
+
         return view('receiving/index', [
-            'receivings'            => RepositoryServices::receivingService()->list($status === '' ? null : $status),
+            'receivings'            => $receivings,
             'convertiblePoRequests' => RepositoryServices::receivingService()->listConvertiblePoRequests(),
             'status'                => $status,
         ]);
@@ -99,6 +115,35 @@ class ReceivingController extends BaseController
         return view('receiving/show', [
             'receiving' => $receiving,
         ]);
+    }
+
+    public function itemsCsv(int $id): RedirectResponse|ResponseInterface
+    {
+        $receiving = RepositoryServices::receivingService()->findWithItems($id);
+
+        if ($receiving === null) {
+            return redirect()->to('/receiving')->with('error', 'Receiving not found.');
+        }
+
+        $rows = $receiving['items'] ?? [];
+
+        return $this->csvResponse(
+            'receiving_items_' . ((string) ($receiving['receiving_number'] ?? $id)) . '.csv',
+            ['PO Item ID', 'Item', 'Unit', 'Received Qty', 'Accepted Qty', 'Rejected Qty', 'Batch', 'Lot', 'Expiry', 'Unit Cost', 'Line Total'],
+            array_map(static fn (array $row): array => [
+                (string) ($row['purchase_order_item_id'] ?? ''),
+                (string) ($row['item_name'] ?? ''),
+                (string) ($row['unit'] ?? ''),
+                (string) ($row['received_qty'] ?? '0'),
+                (string) ($row['accepted_qty'] ?? '0'),
+                (string) ($row['rejected_qty'] ?? '0'),
+                (string) ($row['batch_no'] ?? ''),
+                (string) ($row['lot_no'] ?? ''),
+                (string) ($row['expiry_date'] ?? ''),
+                number_format((float) ($row['unit_cost'] ?? 0), 2, '.', ''),
+                number_format((float) ($row['line_total'] ?? 0), 2, '.', ''),
+            ], $rows),
+        );
     }
 
     public function post(int $id): RedirectResponse

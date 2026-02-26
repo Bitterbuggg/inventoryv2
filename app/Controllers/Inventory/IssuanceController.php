@@ -4,14 +4,16 @@ namespace App\Controllers\Inventory;
 
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 use Config\RepositoryServices;
 use function auth;
 
 class IssuanceController extends BaseController
 {
-    public function index(): string
+    public function index(): string|ResponseInterface
     {
         $status = trim((string) $this->request->getGet('status'));
+        $issuances = RepositoryServices::issuanceService()->list($status === '' ? null : $status);
 
         RepositoryServices::analyticsService()->trackCurrentUser(
             'inventory.issuance_list_viewed',
@@ -21,8 +23,23 @@ class IssuanceController extends BaseController
             ['status_filter' => $status === '' ? 'all' : $status],
         );
 
+        if ($this->shouldExportCsv()) {
+            return $this->csvResponse(
+                'issuances_' . date('Ymd_His') . '.csv',
+                ['ID', 'Issuance Number', 'Requestor ID', 'Issue Date', 'Department', 'Status'],
+                array_map(static fn (array $row): array => [
+                    (string) ($row['id'] ?? ''),
+                    (string) ($row['issuance_number'] ?? ''),
+                    (string) ($row['requestor_id'] ?? ''),
+                    (string) ($row['issue_date'] ?? ''),
+                    (string) ($row['department'] ?? ''),
+                    (string) ($row['status'] ?? ''),
+                ], $issuances),
+            );
+        }
+
         return view('inventory/issuance/index', [
-            'issuances' => RepositoryServices::issuanceService()->list($status === '' ? null : $status),
+            'issuances' => $issuances,
             'status'    => $status,
         ]);
     }
@@ -86,6 +103,32 @@ class IssuanceController extends BaseController
         return view('inventory/issuance/show', [
             'issuance' => $issuance,
         ]);
+    }
+
+    public function itemsCsv(int $id): RedirectResponse|ResponseInterface
+    {
+        $issuance = RepositoryServices::issuanceService()->findWithItems($id);
+
+        if ($issuance === null) {
+            return redirect()->to('/inventory/issuance')->with('error', 'Issuance record not found.');
+        }
+
+        $rows = $issuance['items'] ?? [];
+
+        return $this->csvResponse(
+            'issuance_items_' . ((string) ($issuance['issuance_number'] ?? $id)) . '.csv',
+            ['ID', 'Item', 'Unit', 'Requested Qty', 'Issued Qty', 'Unit Cost', 'Line Total', 'Stock ID'],
+            array_map(static fn (array $row): array => [
+                (string) ($row['id'] ?? ''),
+                (string) ($row['item_name'] ?? ''),
+                (string) ($row['unit'] ?? ''),
+                (string) ($row['requested_qty'] ?? '0'),
+                (string) ($row['issued_qty'] ?? '0'),
+                number_format((float) ($row['unit_cost'] ?? 0), 2, '.', ''),
+                number_format((float) ($row['line_total'] ?? 0), 2, '.', ''),
+                (string) ($row['inventory_stock_id'] ?? ''),
+            ], $rows),
+        );
     }
 
     public function allocationsCsv(int $id)
