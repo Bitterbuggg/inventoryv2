@@ -65,6 +65,7 @@ $routes->group('inventory', ['filter' => 'auth'], static function (RouteCollecti
     $routes->post('issuance/(:num)/approve', 'Inventory\IssuanceApprovalController::approve/$1', ['filter' => 'role:admin,it_staff']);
     $routes->post('issuance/(:num)/reject', 'Inventory\IssuanceApprovalController::reject/$1', ['filter' => 'role:admin,it_staff']);
     $routes->post('issuance/(:num)/release', 'Inventory\IssuanceController::release/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->get('issuance/(:num)/allocations.csv', 'Inventory\IssuanceController::allocationsCsv/$1', ['filter' => 'role:admin,employee,it_staff']);
 });
 
 $routes->group('reports', ['filter' => 'auth'], static function (RouteCollection $routes): void {

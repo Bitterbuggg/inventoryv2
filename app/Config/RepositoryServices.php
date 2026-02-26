@@ -5,6 +5,7 @@ namespace Config;
 use App\Repositories\Contracts\Analytics\AnalyticsRepositoryInterface;
 use App\Repositories\Contracts\Auth\UserRepositoryInterface;
 use App\Repositories\Contracts\Inventory\InventoryStockRepositoryInterface as IssuanceInventoryStockRepositoryInterface;
+use App\Repositories\Contracts\Inventory\IssuanceItemAllocationRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceItemRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceRepositoryInterface;
 use App\Repositories\Contracts\Inventory\ReportingRepositoryInterface;
@@ -21,6 +22,7 @@ use App\Repositories\Contracts\Shared\AuditLogRepositoryInterface;
 use App\Repositories\EloquentLike\Analytics\AnalyticsRepository;
 use App\Repositories\EloquentLike\Auth\UserRepository;
 use App\Repositories\EloquentLike\Inventory\InventoryStockRepository as IssuanceInventoryStockRepository;
+use App\Repositories\EloquentLike\Inventory\IssuanceItemAllocationRepository;
 use App\Repositories\EloquentLike\Inventory\IssuanceItemRepository;
 use App\Repositories\EloquentLike\Inventory\IssuanceRepository;
 use App\Repositories\EloquentLike\Inventory\ReportingRepository;
@@ -69,6 +71,7 @@ class RepositoryServices
     private static ?ReceivingStockMovementRepositoryInterface $receivingStockMovementRepository = null;
 
     private static ?IssuanceRepositoryInterface $issuanceRepository = null;
+    private static ?IssuanceItemAllocationRepositoryInterface $issuanceItemAllocationRepository = null;
     private static ?IssuanceItemRepositoryInterface $issuanceItemRepository = null;
     private static ?IssuanceInventoryStockRepositoryInterface $issuanceInventoryStockRepository = null;
     private static ?IssuanceStockMovementRepositoryInterface $issuanceStockMovementRepository = null;
@@ -214,6 +217,15 @@ class RepositoryServices
         }
 
         return self::$issuanceItemRepository;
+    }
+
+    public static function issuanceItemAllocationRepository(): IssuanceItemAllocationRepositoryInterface
+    {
+        if (self::$issuanceItemAllocationRepository === null) {
+            self::$issuanceItemAllocationRepository = new IssuanceItemAllocationRepository();
+        }
+
+        return self::$issuanceItemAllocationRepository;
     }
 
     public static function issuanceInventoryStockRepository(): IssuanceInventoryStockRepositoryInterface
@@ -405,6 +417,7 @@ class RepositoryServices
             self::$issuanceService = new IssuanceService(
                 self::issuanceRepository(),
                 self::issuanceItemRepository(),
+                self::issuanceItemAllocationRepository(),
                 self::approvalRepository(),
                 self::auditService(),
             );
@@ -432,6 +445,7 @@ class RepositoryServices
             self::$issuanceReleaseService = new IssuanceReleaseService(
                 self::issuanceRepository(),
                 self::issuanceItemRepository(),
+                new IssuanceItemAllocationRepository(),
                 self::issuanceInventoryStockRepository(),
                 self::issuanceStockMovementRepository(),
                 self::inventoryAvailabilityService(),

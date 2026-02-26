@@ -88,6 +88,51 @@ class IssuanceController extends BaseController
         ]);
     }
 
+    public function allocationsCsv(int $id)
+    {
+        $issuance = RepositoryServices::issuanceService()->findWithItems($id);
+
+        if ($issuance === null) {
+            return redirect()->to('/inventory/issuance')->with('error', 'Issuance record not found.');
+        }
+
+        $rows = $issuance['allocations'] ?? [];
+        $filename = 'issuance_allocations_' . ((string) ($issuance['issuance_number'] ?? $id)) . '.csv';
+
+        $handle = fopen('php://temp', 'r+');
+        if ($handle === false) {
+            return redirect()->to('/inventory/issuance/' . $id)->with('error', 'Unable to generate CSV file.');
+        }
+
+        fputcsv($handle, ['Item', 'Unit', 'Batch', 'Lot', 'Expiry', 'Qty Issued', 'Unit Cost', 'Line Total']);
+
+        foreach ($rows as $row) {
+            fputcsv($handle, [
+                (string) ($row['item_name'] ?? ''),
+                (string) ($row['unit'] ?? ''),
+                (string) ($row['batch_no'] ?? ''),
+                (string) ($row['lot_no'] ?? ''),
+                (string) ($row['expiry_date'] ?? ''),
+                (string) ($row['qty_issued'] ?? '0'),
+                number_format((float) ($row['unit_cost'] ?? 0), 2, '.', ''),
+                number_format((float) ($row['line_total'] ?? 0), 2, '.', ''),
+            ]);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        if ($csv === false) {
+            return redirect()->to('/inventory/issuance/' . $id)->with('error', 'Unable to generate CSV file.');
+        }
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/csv; charset=UTF-8')
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->setBody($csv);
+    }
+
     public function submit(int $id): RedirectResponse
     {
         try {

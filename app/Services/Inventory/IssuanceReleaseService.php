@@ -2,6 +2,7 @@
 
 namespace App\Services\Inventory;
 
+use App\Repositories\Contracts\Inventory\IssuanceItemAllocationRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceItemRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceRepositoryInterface;
 use App\Repositories\Contracts\Inventory\InventoryStockRepositoryInterface;
@@ -14,6 +15,7 @@ class IssuanceReleaseService
     public function __construct(
         private readonly IssuanceRepositoryInterface $issuances,
         private readonly IssuanceItemRepositoryInterface $issuanceItems,
+        private readonly IssuanceItemAllocationRepositoryInterface $issuanceItemAllocations,
         private readonly InventoryStockRepositoryInterface $inventoryStocks,
         private readonly StockMovementRepositoryInterface $stockMovements,
         private readonly InventoryAvailabilityService $availability,
@@ -106,6 +108,20 @@ class IssuanceReleaseService
                         'performed_by'       => $actorId,
                         'performed_at'       => date('Y-m-d H:i:s'),
                         'remarks'            => 'Issuance release',
+                    ]);
+
+                    $this->issuanceItemAllocations->create([
+                        'issuance_id'        => $issuanceId,
+                        'issuance_item_id'   => (int) ($item['id'] ?? 0),
+                        'inventory_stock_id' => $stockId,
+                        'item_name'          => $itemName,
+                        'unit'               => $unit,
+                        'batch_no'           => $stock['batch_no'] ?? null,
+                        'lot_no'             => $stock['lot_no'] ?? null,
+                        'expiry_date'        => $stock['expiry_date'] ?? null,
+                        'qty_issued'         => $qty,
+                        'unit_cost'          => $unitCost,
+                        'line_total'         => round($qty * $unitCost, 2),
                     ]);
 
                     $issuedQty += $qty;

@@ -3,6 +3,7 @@
 namespace App\Services\Inventory;
 
 use App\Repositories\Contracts\Inventory\IssuanceItemRepositoryInterface;
+use App\Repositories\Contracts\Inventory\IssuanceItemAllocationRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceRepositoryInterface;
 use App\Repositories\Contracts\Procurement\ApprovalRepositoryInterface;
 use App\Services\Shared\AuditService;
@@ -12,6 +13,7 @@ class IssuanceService
     public function __construct(
         private readonly IssuanceRepositoryInterface $issuances,
         private readonly IssuanceItemRepositoryInterface $issuanceItems,
+        private readonly IssuanceItemAllocationRepositoryInterface $issuanceItemAllocations,
         private readonly ApprovalRepositoryInterface $approvals,
         private readonly AuditService $audit,
     ) {
@@ -43,6 +45,9 @@ class IssuanceService
         }
 
         $issuance['items'] = $this->issuanceItems->listByIssuance($issuanceId);
+        $issuance['allocations'] = $this->sortAllocationsByFefo(
+            $this->issuanceItemAllocations->listByIssuance($issuanceId)
+        );
 
         return $issuance;
     }
@@ -260,6 +265,44 @@ class IssuanceService
         $text = trim((string) $value);
 
         return $text === '' ? null : $text;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $allocations
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function sortAllocationsByFefo(array $allocations): array
+    {
+        usort($allocations, static function (array $left, array $right): int {
+            $leftExpiry = trim((string) ($left['expiry_date'] ?? ''));
+            $rightExpiry = trim((string) ($right['expiry_date'] ?? ''));
+
+            $leftHasExpiry = $leftExpiry !== '';
+            $rightHasExpiry = $rightExpiry !== '';
+
+            if ($leftHasExpiry && ! $rightHasExpiry) {
+                return -1;
+            }
+
+            if (! $leftHasExpiry && $rightHasExpiry) {
+                return 1;
+            }
+
+            if ($leftHasExpiry && $rightHasExpiry) {
+                $expiryCompare = strcmp($leftExpiry, $rightExpiry);
+                if ($expiryCompare !== 0) {
+                    return $expiryCompare;
+                }
+            }
+
+            $leftId = (int) ($left['id'] ?? 0);
+            $rightId = (int) ($right['id'] ?? 0);
+
+            return $leftId <=> $rightId;
+        });
+
+        return $allocations;
     }
 
     /**

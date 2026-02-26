@@ -15,11 +15,13 @@ $crumbs = [
 <?= $this->section('page_actions') ?>
 <a class="btn btn-outline" href="<?= site_url('inventory/issuance') ?>">Back to Issuance List</a>
 <a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>">Inventory Quantities</a>
+<a class="btn btn-outline" href="<?= site_url('inventory/issuance/' . $issuance['id'] . '/allocations.csv') ?>">Export Allocations CSV</a>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 <?php
 $itemRows = $issuance['items'] ?? [];
+$allocationRows = $issuance['allocations'] ?? [];
 $totalRequested = array_sum(array_map(static fn (array $row): float => (float) ($row['requested_qty'] ?? 0), $itemRows));
 $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($row['issued_qty'] ?? 0), $itemRows));
 ?>
@@ -135,6 +137,44 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
                                 <td><?= esc(number_format((float) ($item['unit_cost'] ?? 0), 2)) ?></td>
                                 <td><?= esc(number_format((float) ($item['line_total'] ?? 0), 2)) ?></td>
                                 <td><?= esc((string) ($item['inventory_stock_id'] ?? '')) ?></td>
+                            </tr>
+                        <?php endforeach ?>
+                    <?php endif ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card stack-md">
+        <h2>FEFO Allocations</h2>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Unit</th>
+                        <th>Batch</th>
+                        <th>Lot</th>
+                        <th>Expiry</th>
+                        <th>Qty Issued</th>
+                        <th>Unit Cost</th>
+                        <th>Line Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($allocationRows === []): ?>
+                        <tr><td colspan="8" class="empty-state">No allocation rows yet (available after release).</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($allocationRows as $allocation): ?>
+                            <tr>
+                                <td><?= esc((string) ($allocation['item_name'] ?? '')) ?></td>
+                                <td><?= esc((string) ($allocation['unit'] ?? '')) ?></td>
+                                <td><?= esc((string) ($allocation['batch_no'] ?? '')) ?></td>
+                                <td><?= esc((string) ($allocation['lot_no'] ?? '')) ?></td>
+                                <td><?= esc((string) ($allocation['expiry_date'] ?? '')) ?></td>
+                                <td><?= esc((string) ($allocation['qty_issued'] ?? '0')) ?></td>
+                                <td><?= esc(number_format((float) ($allocation['unit_cost'] ?? 0), 2)) ?></td>
+                                <td><?= esc(number_format((float) ($allocation['line_total'] ?? 0), 2)) ?></td>
                             </tr>
                         <?php endforeach ?>
                     <?php endif ?>

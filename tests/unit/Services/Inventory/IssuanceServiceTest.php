@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\Contracts\Inventory\IssuanceItemRepositoryInterface;
+use App\Repositories\Contracts\Inventory\IssuanceItemAllocationRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceRepositoryInterface;
 use App\Repositories\Contracts\Procurement\ApprovalRepositoryInterface;
 use App\Services\Inventory\IssuanceService;
@@ -16,6 +17,7 @@ final class IssuanceServiceTest extends CIUnitTestCase
     {
         $issuances     = $this->createMock(IssuanceRepositoryInterface::class);
         $issuanceItems = $this->createMock(IssuanceItemRepositoryInterface::class);
+        $allocations   = $this->createMock(IssuanceItemAllocationRepositoryInterface::class);
         $approvals     = $this->createMock(ApprovalRepositoryInterface::class);
         $audit         = $this->createMock(AuditService::class);
 
@@ -30,7 +32,7 @@ final class IssuanceServiceTest extends CIUnitTestCase
             ->method('addItems')
             ->with(55, $this->callback(static fn (array $rows): bool => count($rows) === 1 && $rows[0]['item_name'] === 'Paracetamol 500mg'));
 
-        $service = new IssuanceService($issuances, $issuanceItems, $approvals, $audit);
+        $service = new IssuanceService($issuances, $issuanceItems, $allocations, $approvals, $audit);
 
         $id = $service->createDraft([
             'requestor_id' => 10,
@@ -50,6 +52,7 @@ final class IssuanceServiceTest extends CIUnitTestCase
     {
         $issuances     = $this->createMock(IssuanceRepositoryInterface::class);
         $issuanceItems = $this->createMock(IssuanceItemRepositoryInterface::class);
+        $allocations   = $this->createMock(IssuanceItemAllocationRepositoryInterface::class);
         $approvals     = $this->createMock(ApprovalRepositoryInterface::class);
         $audit         = $this->createMock(AuditService::class);
 
@@ -75,7 +78,7 @@ final class IssuanceServiceTest extends CIUnitTestCase
             ->method('create')
             ->with($this->arrayHasKey('reference_type'));
 
-        $service = new IssuanceService($issuances, $issuanceItems, $approvals, $audit);
+        $service = new IssuanceService($issuances, $issuanceItems, $allocations, $approvals, $audit);
         $service->submit(9, 1);
 
         $this->assertTrue(true);
@@ -85,6 +88,7 @@ final class IssuanceServiceTest extends CIUnitTestCase
     {
         $issuances     = $this->createMock(IssuanceRepositoryInterface::class);
         $issuanceItems = $this->createMock(IssuanceItemRepositoryInterface::class);
+        $allocations   = $this->createMock(IssuanceItemAllocationRepositoryInterface::class);
         $approvals     = $this->createMock(ApprovalRepositoryInterface::class);
         $audit         = $this->createMock(AuditService::class);
 
@@ -93,7 +97,7 @@ final class IssuanceServiceTest extends CIUnitTestCase
             'status' => 'submitted',
         ]);
 
-        $service = new IssuanceService($issuances, $issuanceItems, $approvals, $audit);
+        $service = new IssuanceService($issuances, $issuanceItems, $allocations, $approvals, $audit);
 
         $this->expectException(DomainException::class);
         $service->submit(12, 1);
