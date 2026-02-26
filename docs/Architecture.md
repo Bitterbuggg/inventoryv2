@@ -172,7 +172,7 @@ Key Security Tools/Practices: CSRF protection, strict input validation, output e
 
 ## 8. Development & Testing Environment
 
-Local Setup Instructions: Install XAMPP + Composer, configure `.env`, run migrations/seeds via `php spark migrate` and `php spark db:seed`, then start Apache/MySQL and access via localhost
+Local Setup Instructions: Install XAMPP + Composer, configure `.env`, run migrations/seeds via `php spark migrate` and `php spark db:seed`, then start Apache/MySQL and access via `http://localhost/inventoryv2/public/` (active CI4 entrypoint). Legacy `ample` module has been removed from this repository.
 
 Testing Frameworks: PHPUnit + CodeIgniter 4 testing utilities (unit + integration)
 
@@ -194,11 +194,11 @@ Code Quality Tools: PHP_CodeSniffer or PHP-CS-Fixer, PHPStan (recommended), CI p
 
 Project Name: InventoryV2 Pharmacy Inventory System
 
-Repository URL: Local repository (`c:\Users\asphy\Desktop\nigga\inventoryv2`)
+Repository URL: Local repository (`c:\xampp\htdocs\inventoryv2`)
 
 Primary Contact/Team: InventoryV2 Engineering Team
 
-Date of Last Update: 2026-02-19
+Date of Last Update: 2026-02-26
 
 ## 11. Glossary / Acronyms
 

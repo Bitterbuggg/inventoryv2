@@ -57,6 +57,12 @@ database.default.DBDriver = MySQLi
 database.default.port = 3306
 ```
 
+## Legacy Removal
+
+- The legacy `ample` module has been removed from this repository.
+- Do not use old paths like `http://localhost/ample/`.
+- Use only the active CodeIgniter entrypoint: `http://localhost/inventoryv2/public/`.
+
 ## 5. Start XAMPP
 Start:
 - Apache
