@@ -1,69 +1,156 @@
-# CodeIgniter 4 Application Starter
+# InventoryV2 - Run Guide (XAMPP + Browser)
 
-## What is CodeIgniter?
+This document shows how to run the project quickly, and how to do full first-time setup.
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+## Quick Run (If Already Setup)
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+Use this if dependencies, database, and seed data were already done before.
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+1. Start XAMPP services:
+   - Apache
+   - MySQL
+2. Open browser:
+   - `http://localhost/inventoryv2/public/`
+3. Login:
+   - Admin: `admin@local.test` / `Admin@1234`
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+---
 
-## Installation & updates
+## Full First-Time Setup
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+## 1. Prerequisites
+- PHP 8.2+
+- Composer 2+
+- XAMPP (Apache + MySQL)
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+## 2. Open project folder
 
-## Setup
+```powershell
+cd C:\xampp\htdocs\inventoryv2
+```
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+## 3. Install dependencies
 
-## Important Change with index.php
+```powershell
+composer install
+```
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+## 4. Prepare `.env`
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+If missing:
 
-**Please** read the user guide for a better explanation of how CI4 works!
+```powershell
+Copy-Item env .env
+```
 
-## Repository Management
+Set values in `.env`:
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+```dotenv
+CI_ENVIRONMENT = development
+app.baseURL = 'http://localhost/inventoryv2/public/'
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+database.default.hostname = 127.0.0.1
+database.default.database = inventoryv2
+database.default.username = root
+database.default.password =
+database.default.DBDriver = MySQLi
+database.default.port = 3306
+```
 
-## Server Requirements
+## 5. Start XAMPP
+Start:
+- Apache
+- MySQL
 
-PHP version 8.2 or higher is required, with the following extensions installed:
+## 6. Create DB + run migrations
 
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+```powershell
+php spark db:create inventoryv2
+php spark migrate --all
+```
 
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - The end of life date for PHP 8.1 was December 31, 2025.
-> - If you are still using below PHP 8.2, you should upgrade immediately.
-> - The end of life date for PHP 8.2 will be December 31, 2026.
+## 7. Seed roles/users
 
-Additionally, make sure that the following extensions are enabled in your PHP:
+```powershell
+php spark db:seed AuthRbacSeeder
+```
 
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+## 8. Open browser
+- Home: `http://localhost/inventoryv2/public/`
+- Login: `http://localhost/inventoryv2/public/login`
+- Admin Dashboard: `http://localhost/inventoryv2/public/admin/dashboard`
+
+## 9. Test accounts
+- Admin: `admin@local.test` / `Admin@1234`
+- Employee: `employee@local.test` / `Employee@1234`
+- IT Staff: `itstaff@local.test` / `Itstaff@1234`
+
+## 10. Run tests (recommended)
+
+```powershell
+vendor\bin\phpunit
+```
+
+Expected: `OK (...)`
+
+---
+
+## Optional Local Server (No Apache)
+
+If you want to use CI built-in server:
+
+1. Set in `.env`:
+
+```dotenv
+app.baseURL = 'http://localhost:8080/'
+```
+
+2. Run:
+
+```powershell
+php spark serve
+```
+
+3. Open:
+
+- `http://localhost:8080/`
+
+---
+
+## Analytics Operations
+
+Manual commands:
+
+```powershell
+php spark analytics:aggregate
+php spark analytics:aggregate --days 7
+php spark analytics:prune
+php spark analytics:prune --raw-days 180 --metric-days 730
+```
+
+Windows scheduled tasks configured on this machine:
+- `InventoryV2_Analytics_Aggregate_Daily`
+- `InventoryV2_Analytics_Prune_Weekly`
+
+Verify:
+
+```powershell
+schtasks /Query /TN "InventoryV2_Analytics_Aggregate_Daily" /V /FO LIST
+schtasks /Query /TN "InventoryV2_Analytics_Prune_Weekly" /V /FO LIST
+```
+
+Logs:
+- `writable/logs/analytics_aggregate_task.log`
+- `writable/logs/analytics_prune_task.log`
+
+---
+
+## Troubleshooting
+- `Unknown database 'inventoryv2'`:
+  - Run `php spark db:create inventoryv2`
+- CSRF error on POST:
+  - Refresh page, then submit again
+- 403 on admin/report pages:
+  - Login with admin or `it_staff`
+- DB connection errors:
+  - Recheck `.env` DB credentials and confirm MySQL is running
