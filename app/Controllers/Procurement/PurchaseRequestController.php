@@ -46,9 +46,21 @@ class PurchaseRequestController extends BaseController
         ]);
     }
 
-    public function create(): string
+public function create()
     {
-        return view('procurement/purchase_requests/create');
+        // Connect to your database
+        $db = \Config\Database::connect();
+        
+        // Fetch unique item names currently in your inventory to populate the dropdown
+        $query = $db->table('inventory_stocks')->select('item_name')->distinct()->orderBy('item_name', 'ASC')->get();
+        $existingItems = $query->getResultArray();
+        
+        // Convert the database results into a simple array of strings
+        $itemsList = array_column($existingItems, 'item_name');
+
+        return view('procurement/purchase_requests/create', [
+            'dbItems' => $itemsList
+        ]);
     }
 
     public function edit(int $id): string|RedirectResponse

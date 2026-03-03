@@ -48,6 +48,15 @@ class PurchaseOrderController extends BaseController
 
     public function createFromPr(int $prId): RedirectResponse
     {
+        // 1. DATA SAFETY: Check if PO already exists before calling the service
+        $existingPOs = RepositoryServices::purchaseOrderService()->list(); 
+        $alreadyConverted = array_filter($existingPOs, static fn($po) => (int)$po['purchase_request_id'] === $prId);
+
+        if (!empty($alreadyConverted)) {
+            // HCI: Informative clean error message
+            return redirect()->back()->with('error', 'A Purchase Order already exists for this request.');
+        }
+
         $rules = [
             'supplier_name' => 'permit_empty|max_length[255]',
         ];
@@ -97,7 +106,6 @@ class PurchaseOrderController extends BaseController
     private function currentUserId(): int
     {
         $user = auth()->user();
-
         return (int) ($user->id ?? 0);
     }
 }
