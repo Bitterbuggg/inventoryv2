@@ -24,80 +24,62 @@ $predefinedUnits = [
 <?= $this->section('head') ?>
 <style>
     /* --- COMPACT HEADER LAYOUT --- */
-    .header-layout {
-        display: flex;
-        gap: 16px;
-        align-items: flex-end; 
-        flex-wrap: nowrap;
-    }
+    .header-layout { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
     .header-field-date { flex: 0 0 180px; }
-    .header-field-remarks { flex: 1; }
+    .header-field-remarks { flex: 1; min-width: 300px; }
     
     .form-control-header {
         width: 100%; height: 38px; padding: 6px 12px;
         border: 1px solid var(--color-border-strong); border-radius: 6px;
-        font-family: inherit; font-size: 0.85rem; box-sizing: border-box;
-        transition: border-color 0.2s;
+        font-family: inherit; font-size: 0.85rem; box-sizing: border-box; transition: border-color 0.2s;
     }
-    .form-control-header:focus { 
-        border-color: var(--color-brand-500); outline: none; 
-        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-    }
+    .form-control-header:focus { border-color: var(--color-brand-500); outline: none; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
     .field-label { display: block; font-weight: 700; font-size: 0.85rem; color: #1e293b; margin-bottom: 6px; }
 
     /* --- TABLE ALIGNMENT --- */
-    .table-wrap { overflow-x: auto; }
-    #items-table { width: 100%; min-width: 900px; border-collapse: collapse; }
-    #items-table tbody td { vertical-align: middle; border-bottom: 1px solid var(--color-border); }
+    .table-wrap { overflow-x: auto; width: 100%; }
+    #items-table { width: 100%; min-width: 900px; border-collapse: collapse; table-layout: fixed;}
+    #items-table th { padding: 10px 6px; font-size: 0.8rem; text-align: left; color: var(--color-text-muted); text-transform: uppercase; }
+    #items-table tbody td { vertical-align: middle; border-bottom: 1px solid var(--color-border); padding: 4px; }
 
     /* STRICT INPUT SIZING FOR ALIGNMENT */
     .table-control {
-        width: 100%; height: 38px; padding: 6px 12px; margin: 0;
+        width: 100%; height: 34px; padding: 4px 8px; margin: 0;
         border: 1px solid var(--color-border-strong); border-radius: 4px;
-        font-size: 0.85rem; font-family: inherit;
-        background: var(--color-surface); color: var(--color-text);
-        box-sizing: border-box;
+        font-size: 0.85rem; font-family: inherit; background: var(--color-surface); color: var(--color-text);
+        box-sizing: border-box; transition: border-color 0.2s;
     }
-    .table-control:focus {
-        border-color: var(--color-brand-500); outline: none;
-        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-    }
+    .table-control:focus { border-color: var(--color-brand-500); outline: none; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
 
     /* HYBRID INPUT GROUP */
-    .hybrid-group { display: flex; width: 100%; height: 38px; }
+    .hybrid-group { display: flex; width: 100%; height: 34px; }
     .hybrid-group select { flex-grow: 1; border-top-right-radius: 0; border-bottom-right-radius: 0; }
     .hybrid-group .btn-add-item {
-        flex: 0 0 40px; height: 38px; margin: 0; padding: 0;
+        flex: 0 0 36px; height: 34px; margin: 0; padding: 0;
         border: 1px solid var(--color-border-strong); border-left: none; border-radius: 0 4px 4px 0;
         background: var(--color-surface-alt); color: var(--color-brand-600);
         font-size: 1.25rem; font-weight: bold; cursor: pointer;
-        display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;
+        display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; box-sizing: border-box;
     }
     .hybrid-group .btn-add-item:hover { background: var(--color-brand-100); color: var(--color-brand-700); }
 
     /* ROW REMOVAL BUTTON */
-    .notes-group { display: flex; gap: 6px; align-items: center; }
+    .notes-group { display: flex; gap: 6px; align-items: center; height: 34px; }
     .btn-remove-row {
-        flex: 0 0 32px; height: 32px;
-        background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 4px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.2s ease;
+        flex: 0 0 34px; height: 100%; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 4px;
+        display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.2s ease; box-sizing: border-box;
     }
     .btn-remove-row:hover { background: #fecaca; color: #b91c1c; }
 
     /* Column Sizing */
-    .col-item { width: 32%; }
-    .col-unit { width: 14%; }
+    .col-item { width: 35%; }
+    .col-unit { width: 15%; }
     .col-qty { width: 12%; }
-    .col-cost { width: 16%; }
-    .col-notes { width: 26%; }
+    .col-cost { width: 14%; }
+    .col-notes { width: 24%; }
 
     /* --- MODAL STYLES --- */
-    .modal-overlay {
-        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center;
-        z-index: 9999; backdrop-filter: blur(2px);
-    }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(2px); }
     .modal-overlay.active { display: flex; }
     .modal-content { background: var(--color-surface); padding: 24px; border-radius: 8px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--color-border); padding-bottom: 8px; }
@@ -107,6 +89,9 @@ $predefinedUnits = [
     .modal-body .field { margin-bottom: 16px; }
     .modal-body input { width: 100%; padding: 8px; border: 1px solid var(--color-border-strong); border-radius: 4px; box-sizing: border-box; font-family: inherit;}
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+
+    /* File Input hidden */
+    #csv-file-input { display: none; }
 </style>
 <?= $this->endSection() ?>
 
@@ -143,24 +128,39 @@ $predefinedUnits = [
         </section>
 
         <section class="card stack-md">
-            <div class="stack-sm" style="margin-bottom: 8px;">
-                <h2 style="font-size: 1.25rem; margin: 0;">Requested Items</h2>
-                <p class="muted" style="margin: 0; font-size: 0.85rem;">Fill at least one row. Blank rows are automatically ignored.</p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid var(--color-border); padding-bottom: 8px; margin-bottom: 8px;">
+                <div class="stack-sm">
+                    <h2 style="font-size: 1.25rem; margin: 0;">Requested Items</h2>
+                    <p class="muted" style="margin: 0; font-size: 0.85rem;">Fill manually or import from a CSV (Excel) file. Format: <em>Item Name, Unit, Qty, Cost, Notes</em>.</p>
+                </div>
+                <div>
+                    <input type="file" id="csv-file-input" accept=".csv" />
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('csv-file-input').click()" style="font-weight: 700; color: #0f766e; border-color: #86efac; background: #f0fdf4;">
+                        &#x2913; Import CSV
+                    </button>
+                </div>
             </div>
 
             <div class="table-wrap">
                 <table class="table" id="items-table">
+                    <colgroup>
+                        <col class="col-item">
+                        <col class="col-unit">
+                        <col class="col-qty">
+                        <col class="col-cost">
+                        <col class="col-notes">
+                    </colgroup>
                     <thead>
                         <tr>
-                            <th class="col-item">Item Name</th>
-                            <th class="col-unit">Unit</th>
-                            <th class="col-qty">Req Qty</th>
-                            <th class="col-cost">Est. Unit Cost</th>
-                            <th class="col-notes">Notes</th>
+                            <th>Item Name</th>
+                            <th>Unit</th>
+                            <th>Req Qty</th>
+                            <th>Est. Unit Cost</th>
+                            <th>Notes</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php for ($i = 0; $i < 5; $i++): ?>
+                        <?php for ($i = 0; $i < 3; $i++): ?>
                             <tr>
                                 <td>
                                     <div class="hybrid-group">
@@ -184,7 +184,7 @@ $predefinedUnits = [
                                     </select>
                                 </td>
                                 <td>
-                                    <input type="number" step="1" min="1" name="requested_qty[]" class="table-control" placeholder="0" value="<?= esc((string) old('requested_qty.' . $i)) ?>">
+                                    <input type="number" step="0.001" min="0" name="requested_qty[]" class="table-control" placeholder="0" value="<?= esc((string) old('requested_qty.' . $i)) ?>">
                                 </td>
                                 <td>
                                     <input type="number" step="0.01" min="0" name="estimated_unit_cost[]" class="table-control" placeholder="0.00" value="<?= esc((string) old('estimated_unit_cost.' . $i)) ?>">
@@ -192,7 +192,7 @@ $predefinedUnits = [
                                 <td>
                                     <div class="notes-group">
                                         <input type="text" name="notes[]" class="table-control" placeholder="Optional" value="<?= esc((string) old('notes.' . $i)) ?>">
-                                        <button type="button" class="btn-remove-row" title="Remove Row" onclick="this.closest('tr').remove()">&times;</button>
+                                        <button type="button" class="btn-remove-row" title="Remove Row" onclick="removeRow(this)">&times;</button>
                                     </div>
                                 </td>
                             </tr>
@@ -201,7 +201,7 @@ $predefinedUnits = [
                     <tfoot>
                         <tr>
                             <td colspan="5" style="padding: 12px; text-align: center; border-top: 1px dashed var(--color-border-strong);">
-                                <button type="button" class="btn btn-outline" onclick="addNewRow()" style="font-weight: 700; font-size: 0.85rem;">+ Add Another Item</button>
+                                <button type="button" class="btn btn-outline" onclick="addNewRow()" style="font-weight: 700; font-size: 0.85rem;">+ Add Manual Row</button>
                             </td>
                         </tr>
                     </tfoot>
@@ -237,21 +237,21 @@ $predefinedUnits = [
                 <?php endforeach; ?>
             </select>
         </td>
-        <td>
-            <input type="number" step="1" min="1" name="requested_qty[]" class="table-control" placeholder="0">
-        </td>
-        <td>
-            <input type="number" step="0.01" min="0" name="estimated_unit_cost[]" class="table-control" placeholder="0.00">
-        </td>
+        <td><input type="number" step="0.001" min="0" name="requested_qty[]" class="table-control" placeholder="0"></td>
+        <td><input type="number" step="0.01" min="0" name="estimated_unit_cost[]" class="table-control" placeholder="0.00"></td>
         <td>
             <div class="notes-group">
                 <input type="text" name="notes[]" class="table-control" placeholder="Optional">
-                <button type="button" class="btn-remove-row" title="Remove Row" onclick="this.closest('tr').remove()">&times;</button>
+                <button type="button" class="btn-remove-row" title="Remove Row" onclick="removeRow(this)">&times;</button>
             </div>
         </td>
     </tr>
 </template>
 
+<script>
+    const systemItems = <?= json_encode($itemsList) ?>;
+    const systemUnits = <?= json_encode($predefinedUnits) ?>;
+</script>
 
 <div class="modal-overlay" id="addItemModal">
     <div class="modal-content">
@@ -265,7 +265,6 @@ $predefinedUnits = [
                 <label for="new_item_name" style="font-weight: 600; font-size: 0.85rem;">Item Name <span style="color:var(--color-danger);">*</span></label>
                 <input type="text" id="new_item_name" placeholder="e.g., Nitrile Gloves (Large)" style="padding: 10px; font-size: 1rem;">
             </div>
-            
             <div class="modal-actions">
                 <button type="button" class="btn btn-outline" onclick="closeAddItemModal()">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="saveNewItem()">Add & Select</button>
@@ -275,6 +274,13 @@ $predefinedUnits = [
 </div>
 
 <script>
+    // --- DELETE CONFIRMATION ---
+    function removeRow(btn) {
+        if(confirm("Are you sure you want to remove this item row?")) {
+            btn.closest('tr').remove();
+        }
+    }
+
     // --- MODAL LOGIC ---
     let activeSelectId = null;
 
@@ -290,55 +296,123 @@ $predefinedUnits = [
         activeSelectId = null;
     }
 
-    function saveNewItem() {
-        const newItemName = document.getElementById('new_item_name').value.trim();
+    function saveNewItem(itemNameOverride = null) {
+        // Can accept direct string or read from input
+        const newItemName = itemNameOverride ? itemNameOverride.trim() : document.getElementById('new_item_name').value.trim();
         if (newItemName === '') {
-            alert('Please enter an item name.');
-            return;
+            alert('Please enter an item name.'); return;
         }
 
-        const allDropdowns = document.querySelectorAll('.item-dropdown');
-        allDropdowns.forEach(dropdown => {
-            const newOption = document.createElement('option');
-            newOption.value = newItemName;
-            newOption.text = newItemName;
-            dropdown.add(newOption);
-        });
+        // Add to global JS array so future clones have it
+        if (!systemItems.includes(newItemName)) {
+            systemItems.push(newItemName);
+            
+            // Add to all existing dropdowns
+            const allDropdowns = document.querySelectorAll('.item-dropdown');
+            allDropdowns.forEach(dropdown => {
+                const newOption = document.createElement('option');
+                newOption.value = newItemName;
+                newOption.text = newItemName;
+                dropdown.add(newOption);
+            });
+        }
 
-        if (activeSelectId) {
+        if (activeSelectId && !itemNameOverride) {
             document.getElementById(activeSelectId).value = newItemName;
         }
-
         closeAddItemModal();
     }
 
-    document.getElementById('new_item_name').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault(); 
-            saveNewItem();
-        }
-    });
-
     // --- DYNAMIC ROW LOGIC ---
     function addNewRow() {
-        // Get the template
         const template = document.getElementById('item-row-template');
-        // Clone the content of the template
         const newRow = template.content.cloneNode(true);
-        
-        // Generate a unique ID for the dropdown so the modal knows where to return the data
         const uniqueId = 'item-select-' + Date.now();
         
-        // Find the select element and the button in our new clone and assign the ID
         const selectElement = newRow.querySelector('.item-dropdown');
         const addButton = newRow.querySelector('.btn-add-item');
         
         selectElement.id = uniqueId;
         addButton.setAttribute('onclick', `openAddItemModal('${uniqueId}')`);
         
-        // Append the newly configured row to the table body
         document.querySelector('#items-table tbody').appendChild(newRow);
+        return uniqueId; // Returns the ID so we can manipulate it if needed
     }
+
+    // --- CSV IMPORT LOGIC (SEAMLESS CLIENT-SIDE) ---
+    document.getElementById('csv-file-input').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const text = event.target.result;
+            const rows = text.split('\n');
+            let rowsAdded = 0;
+
+            // Remove empty default rows if they are blank to make room for imported ones
+            const tbody = document.querySelector('#items-table tbody');
+            const existingRows = tbody.querySelectorAll('tr');
+            existingRows.forEach(tr => {
+                const select = tr.querySelector('.item-dropdown');
+                if(select && select.value === '') tr.remove();
+            });
+
+            // Start at 1 to skip header row (assumes: Item, Unit, Qty, Cost, Notes)
+            for(let i = 1; i < rows.length; i++) {
+                // Handle basic comma separation (Doesn't handle quotes perfectly, but good for simple files)
+                const cols = rows[i].split(','); 
+                
+                if(cols.length >= 3 && cols[0].trim() !== '') {
+                    const parsedItem = cols[0].trim();
+                    const parsedUnit = cols[1].trim();
+                    const parsedQty = cols[2].trim();
+                    const parsedCost = cols[3] ? cols[3].trim() : '';
+                    const parsedNotes = cols[4] ? cols[4].trim() : '';
+
+                    // 1. Create a new row
+                    const newSelectId = addNewRow();
+                    const newTr = document.querySelector('#items-table tbody tr:last-child');
+
+                    // 2. Handle Item Name (Auto-add if missing)
+                    if (!systemItems.includes(parsedItem)) {
+                        saveNewItem(parsedItem); // Adds silently to all dropdowns
+                    }
+                    newTr.querySelector('.item-dropdown').value = parsedItem;
+
+                    // 3. Handle Unit Validation
+                    const unitDropdown = newTr.querySelector('select[name="unit[]"]');
+                    let unitMatch = '';
+                    // Case insensitive check
+                    systemUnits.forEach(u => { if(u.toLowerCase() === parsedUnit.toLowerCase()) unitMatch = u; });
+                    
+                    if(unitMatch) {
+                        unitDropdown.value = unitMatch;
+                    } else {
+                        // Fallback if unit mismatch
+                        unitDropdown.value = 'Piece'; 
+                        newTr.querySelector('input[name="notes[]"]').value = "Imported Unit Mismatch: " + parsedUnit;
+                    }
+
+                    // 4. Fill remaining data
+                    newTr.querySelector('input[name="requested_qty[]"]').value = parsedQty;
+                    newTr.querySelector('input[name="estimated_unit_cost[]"]').value = parsedCost;
+                    if(parsedNotes && !unitMatch) {
+                        newTr.querySelector('input[name="notes[]"]').value += " | " + parsedNotes;
+                    } else if (parsedNotes) {
+                        newTr.querySelector('input[name="notes[]"]').value = parsedNotes;
+                    }
+
+                    rowsAdded++;
+                }
+            }
+            
+            // Reset input so user can upload the same file again if they want
+            document.getElementById('csv-file-input').value = '';
+            alert(`Successfully imported ${rowsAdded} items from CSV.`);
+        };
+        reader.readAsText(file);
+    });
 </script>
 
 <?= $this->endSection() ?>
