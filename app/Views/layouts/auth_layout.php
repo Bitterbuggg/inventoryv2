@@ -44,5 +44,53 @@ $pageSubtitle = $pageSubtitle ?? null;
             </section>
         </section>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const postForms = document.querySelectorAll('form[method="post"], form[method="POST"]');
+
+            postForms.forEach((form) => {
+                form.addEventListener('submit', function (event) {
+                    if (event.defaultPrevented) {
+                        return;
+                    }
+
+                    if (form.dataset.submitting === 'true') {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    form.dataset.submitting = 'true';
+
+                    const submitControls = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+                    submitControls.forEach((control) => {
+                        control.disabled = true;
+                    });
+
+                    const submitter = event.submitter;
+                    if (submitter instanceof HTMLButtonElement) {
+                        submitter.dataset.originalLabel = submitter.dataset.originalLabel ?? submitter.innerHTML;
+                        submitter.innerHTML = submitter.dataset.busyLabel ?? 'Processing...';
+                    }
+
+                    if (submitter instanceof HTMLInputElement) {
+                        submitter.dataset.originalLabel = submitter.dataset.originalLabel ?? submitter.value;
+                        submitter.value = submitter.dataset.busyLabel ?? 'Processing...';
+                    }
+                });
+            });
+
+            window.addEventListener('pageshow', function () {
+                const lockedForms = document.querySelectorAll('form[data-submitting="true"]');
+                lockedForms.forEach((form) => {
+                    delete form.dataset.submitting;
+                    const submitControls = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+                    submitControls.forEach((control) => {
+                        control.disabled = false;
+                    });
+                });
+            });
+        });
+    </script>
 </body>
 </html>
