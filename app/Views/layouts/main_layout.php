@@ -358,16 +358,6 @@ if ($canOps) {
                         control.disabled = true;
                     });
 
-                    const submitter = event.submitter;
-                    if (submitter instanceof HTMLButtonElement) {
-                        submitter.dataset.originalLabel = submitter.dataset.originalLabel ?? submitter.innerHTML;
-                        submitter.innerHTML = submitter.dataset.busyLabel ?? 'Processing...';
-                    }
-
-                    if (submitter instanceof HTMLInputElement) {
-                        submitter.dataset.originalLabel = submitter.dataset.originalLabel ?? submitter.value;
-                        submitter.value = submitter.dataset.busyLabel ?? 'Processing...';
-                    }
                 });
             });
 
