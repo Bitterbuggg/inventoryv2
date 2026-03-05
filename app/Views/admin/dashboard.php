@@ -281,11 +281,11 @@ $moduleStatus = [
                     <span class="action-desc">Distribution Audit</span>
                 </div>
             </a>
-            <a href="<?= site_url('analytics/dashboard') ?>" class="action-card">
+            <a href="<?= site_url('analytics/activity-logs') ?>" class="action-card">
                 <div class="action-icon-box"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg></div>
                 <div class="text-wrap">
-                    <span class="action-label">Analytics</span>
-                    <span class="action-desc">Performance</span>
+                    <span class="action-label">Activity Logs</span>
+                    <span class="action-desc">Analytics</span>
                 </div>
             </a>
         </div>

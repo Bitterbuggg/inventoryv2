@@ -81,6 +81,7 @@ $routes->group('reports', ['filter' => 'auth'], static function (RouteCollection
 });
 
 $routes->group('analytics', ['filter' => 'auth'], static function (RouteCollection $routes): void {
+    $routes->get('activity-logs', 'Analytics\AnalyticsController::activityLogs', ['filter' => 'role:admin,it_staff']);
     $routes->get('dashboard', 'Analytics\AnalyticsController::dashboard', ['filter' => 'role:admin,it_staff']);
     $routes->get('events', 'Analytics\AnalyticsController::events', ['filter' => 'role:admin,it_staff']);
     $routes->get('metrics', 'Analytics\AnalyticsController::metrics', ['filter' => 'role:admin,it_staff']);

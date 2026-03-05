@@ -40,6 +40,9 @@ $isActivePath = static function (string $target) use ($currentPath): bool {
     }
 
     $cleanPath = str_replace('index.php/', '', $currentPath);
+    if ($target === 'analytics/activity-logs' && str_starts_with($cleanPath, 'analytics/')) {
+        return true;
+    }
 
     return $cleanPath === $target || str_starts_with($cleanPath, $target . '/');
 };
@@ -104,9 +107,7 @@ if ($canOps) {
             ['path' => 'reports/issuances', 'label' => 'Issuances'],
             ['path' => 'reports/low-stock', 'label' => 'Low Stock'],
             ['path' => 'reports/fast-moving', 'label' => 'Fast Moving'],
-            ['path' => 'analytics/dashboard', 'label' => 'Analytics Dashboard'],
-            ['path' => 'analytics/events', 'label' => 'Events'],
-            ['path' => 'analytics/metrics', 'label' => 'Metrics'],
+            ['path' => 'analytics/activity-logs', 'label' => 'Activity Logs'],
         ],
     ];
 }
