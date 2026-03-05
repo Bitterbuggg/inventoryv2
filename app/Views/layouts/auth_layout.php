@@ -47,9 +47,9 @@ $pageSubtitle = $pageSubtitle ?? null;
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const postForms = document.querySelectorAll('form[method="post"], form[method="POST"]');
+            const forms = document.querySelectorAll('form');
 
-            postForms.forEach((form) => {
+            forms.forEach((form) => {
                 form.addEventListener('submit', function (event) {
                     if (event.defaultPrevented) {
                         return;
@@ -91,6 +91,29 @@ $pageSubtitle = $pageSubtitle ?? null;
                 });
             });
         });
+
+        (function () {
+            const defaultClickLockMs = 800;
+
+            document.addEventListener('click', function (event) {
+                const button = event.target.closest('button, input[type="button"], input[type="submit"], input[type="reset"]');
+                if (!button || button.dataset.allowMultiClick === 'true') {
+                    return;
+                }
+
+                const lockMs = Number(button.dataset.clickLockMs ?? defaultClickLockMs);
+                const now = Date.now();
+                const lastClickAt = Number(button.dataset.lastClickAt ?? 0);
+
+                if (now - lastClickAt < lockMs) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return;
+                }
+
+                button.dataset.lastClickAt = String(now);
+            }, true);
+        })();
     </script>
 </body>
 </html>

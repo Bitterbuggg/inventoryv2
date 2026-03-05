@@ -334,12 +334,12 @@ if ($canOps) {
         })();
 
         // ==========================================
-        // 4. PREVENT DOUBLE SUBMIT ON POST FORMS
+        // 4. PREVENT DOUBLE SUBMIT ON ALL FORMS
         // ==========================================
         document.addEventListener('DOMContentLoaded', function () {
-            const postForms = document.querySelectorAll('form[method="post"], form[method="POST"]');
+            const forms = document.querySelectorAll('form');
 
-            postForms.forEach((form) => {
+            forms.forEach((form) => {
                 form.addEventListener('submit', function (event) {
                     if (event.defaultPrevented) {
                         return;
@@ -382,6 +382,32 @@ if ($canOps) {
                 });
             });
         });
+
+        // ==========================================
+        // 5. PREVENT RAPID BUTTON SPAM CLICKS
+        // ==========================================
+        (function () {
+            const defaultClickLockMs = 800;
+
+            document.addEventListener('click', function (event) {
+                const button = event.target.closest('button, input[type="button"], input[type="submit"], input[type="reset"]');
+                if (!button || button.dataset.allowMultiClick === 'true') {
+                    return;
+                }
+
+                const lockMs = Number(button.dataset.clickLockMs ?? defaultClickLockMs);
+                const now = Date.now();
+                const lastClickAt = Number(button.dataset.lastClickAt ?? 0);
+
+                if (now - lastClickAt < lockMs) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return;
+                }
+
+                button.dataset.lastClickAt = String(now);
+            }, true);
+        })();
     </script>
 </body>
 </html>
