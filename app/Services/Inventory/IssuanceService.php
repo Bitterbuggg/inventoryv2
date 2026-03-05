@@ -239,17 +239,27 @@ class IssuanceService
                 continue;
             }
 
-            $requestedQty = (float) ($item['requested_qty'] ?? 0);
+            $requestedQtyRaw = $item['requested_qty'] ?? 0;
+
+            if (! is_numeric($requestedQtyRaw)) {
+                throw new \DomainException('Requested quantity must be a valid number.');
+            }
+
+            $requestedQty = (float) $requestedQtyRaw;
 
             if ($requestedQty <= 0) {
                 throw new \DomainException('Requested quantity must be greater than zero.');
+            }
+
+            if (abs($requestedQty - round($requestedQty)) > 0.00001) {
+                throw new \DomainException('Requested quantity must be a whole number.');
             }
 
             $normalized[] = [
                 'item_name'          => $itemName,
                 'unit'               => trim((string) ($item['unit'] ?? 'unit')) ?: 'unit',
                 'inventory_stock_id' => null,
-                'requested_qty'      => $requestedQty,
+                'requested_qty'      => (float) round($requestedQty),
                 'issued_qty'         => 0,
                 'unit_cost'          => 0,
                 'line_total'         => 0,

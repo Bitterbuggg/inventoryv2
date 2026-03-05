@@ -190,4 +190,46 @@ final class ReceivingServiceTest extends CIUnitTestCase
 
         $service->post(55, 9);
     }
+
+    public function testListConvertiblePoRequestsExcludesPoRequestsWithActiveReceiving(): void
+    {
+        $receivings = $this->createMock(ReceivingRepositoryInterface::class);
+        $items      = $this->createMock(ReceivingItemRepositoryInterface::class);
+        $poRequests = $this->createMock(PoRequestRepositoryInterface::class);
+        $orders     = $this->createMock(PurchaseOrderRepositoryInterface::class);
+        $posting    = $this->createMock(InventoryPostingService::class);
+        $db         = $this->createMock(BaseConnection::class);
+        $audit      = $this->createMock(AuditService::class);
+
+        $poRequests->method('list')
+            ->with(['status' => 'approved'])
+            ->willReturn([
+                ['id' => 201, 'status' => 'approved'],
+                ['id' => 202, 'status' => 'approved'],
+                ['id' => 203, 'status' => 'approved'],
+            ]);
+
+        $receivings->method('findByPoRequest')
+            ->willReturnMap([
+                [201, ['id' => 1, 'status' => 'draft']],
+                [202, ['id' => 2, 'status' => 'voided']],
+                [203, null],
+            ]);
+
+        $service = new ReceivingService(
+            $receivings,
+            $items,
+            $poRequests,
+            $orders,
+            new ReceivingValidationService(),
+            $posting,
+            $db,
+            $audit,
+        );
+
+        $result = $service->listConvertiblePoRequests();
+        $ids = array_map(static fn (array $row): int => (int) ($row['id'] ?? 0), $result);
+
+        $this->assertSame([202, 203], $ids);
+    }
 }

@@ -211,6 +211,30 @@ final class IssuanceWorkflowTest extends CIUnitTestCase
         $this->assertNotEmpty($failedLogs);
     }
 
+    public function testCreateIssuanceRejectsDecimalRequestedQty(): void
+    {
+        $employee = $this->findUserByEmail('employee@local.test');
+        auth('session')->login($employee);
+
+        $response = $this->withSession(session()->get())->post('/inventory/issuance', $this->csrfPayload([
+            'issue_date'    => '2026-02-20',
+            'department'    => 'Pharmacy',
+            'purpose'       => 'Decimal quantity test',
+            'remarks'       => 'Should fail',
+            'item_name'     => ['Paracetamol 500mg'],
+            'unit'          => ['box'],
+            'requested_qty' => ['1.5'],
+            'item_remarks'  => [''],
+        ]));
+        $response->assertRedirect();
+
+        /** @var IssuanceModel $issuanceModel */
+        $issuanceModel = model(IssuanceModel::class);
+        $rows          = $issuanceModel->where('requestor_id', (int) $employee->id)->findAll();
+
+        $this->assertSame([], $rows);
+    }
+
     private function findUserByEmail(string $email): User
     {
         $user = model(UserModel::class)->findByCredentials(['email' => $email]);

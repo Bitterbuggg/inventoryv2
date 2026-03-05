@@ -58,7 +58,25 @@ class ReceivingService
      */
     public function listConvertiblePoRequests(): array
     {
-        return $this->poRequests->list(['status' => 'approved']);
+        $approvedPoRequests = $this->poRequests->list(['status' => 'approved']);
+        $convertible = [];
+
+        foreach ($approvedPoRequests as $poRequest) {
+            $poRequestId = (int) ($poRequest['id'] ?? 0);
+
+            if ($poRequestId <= 0) {
+                continue;
+            }
+
+            $existingReceiving = $this->receivings->findByPoRequest($poRequestId);
+            if ($existingReceiving !== null && ($existingReceiving['status'] ?? '') !== 'voided') {
+                continue;
+            }
+
+            $convertible[] = $poRequest;
+        }
+
+        return $convertible;
     }
 
     /**

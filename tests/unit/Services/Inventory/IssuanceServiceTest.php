@@ -102,4 +102,28 @@ final class IssuanceServiceTest extends CIUnitTestCase
         $this->expectException(DomainException::class);
         $service->submit(12, 1);
     }
+
+    public function testCreateDraftRejectsDecimalRequestedQty(): void
+    {
+        $issuances     = $this->createMock(IssuanceRepositoryInterface::class);
+        $issuanceItems = $this->createMock(IssuanceItemRepositoryInterface::class);
+        $allocations   = $this->createMock(IssuanceItemAllocationRepositoryInterface::class);
+        $approvals     = $this->createMock(ApprovalRepositoryInterface::class);
+        $audit         = $this->createMock(AuditService::class);
+
+        $service = new IssuanceService($issuances, $issuanceItems, $allocations, $approvals, $audit);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('whole number');
+
+        $service->createDraft([
+            'requestor_id' => 10,
+            'issue_date'   => '2026-02-20',
+            'items'        => [[
+                'item_name'     => 'Paracetamol 500mg',
+                'unit'          => 'box',
+                'requested_qty' => '1.5',
+            ]],
+        ]);
+    }
 }
