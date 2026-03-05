@@ -197,6 +197,46 @@ final class ReceivingWorkflowTest extends CIUnitTestCase
         $this->assertNull($receiving);
     }
 
+    public function testCreateReceivingRejectsDecimalQuantities(): void
+    {
+        $context = $this->buildPendingPoRequestContext();
+
+        $this->withSession(session()->get())->post(
+            '/procurement/po-requests/' . $context['po_request_id'] . '/approve',
+            $this->csrfPayload([]),
+        );
+
+        /** @var PurchaseOrderItemModel $poItemModel */
+        $poItemModel = model(PurchaseOrderItemModel::class);
+        $poItems     = $poItemModel->where('purchase_order_id', $context['purchase_order_id'])->findAll();
+        $this->assertNotEmpty($poItems);
+
+        $response = $this->withSession(session()->get())->post('/receiving', $this->csrfPayload([
+            'po_request_id'          => $context['po_request_id'],
+            'received_date'          => '2026-02-20',
+            'delivery_reference'     => 'DR-DEC',
+            'remarks'                => 'Decimal qty should fail',
+            'purchase_order_item_id' => array_column($poItems, 'id'),
+            'item_name'              => array_column($poItems, 'item_name'),
+            'unit'                   => array_column($poItems, 'unit'),
+            'received_qty'           => array_fill(0, count($poItems), '1.5'),
+            'accepted_qty'           => array_fill(0, count($poItems), '1.5'),
+            'rejected_qty'           => array_fill(0, count($poItems), '0'),
+            'batch_no'               => array_fill(0, count($poItems), 'BATCH-DEC'),
+            'lot_no'                 => array_fill(0, count($poItems), 'LOT-DEC'),
+            'expiry_date'            => array_fill(0, count($poItems), '2027-12-31'),
+            'unit_cost'              => array_map(static fn (array $item): string => (string) $item['unit_cost'], $poItems),
+            'item_remarks'           => array_fill(0, count($poItems), 'decimal'),
+        ]));
+        $response->assertRedirect();
+
+        /** @var ReceivingModel $receivingModel */
+        $receivingModel = model(ReceivingModel::class);
+        $receiving      = $receivingModel->where('po_request_id', $context['po_request_id'])->first();
+
+        $this->assertNull($receiving);
+    }
+
     /**
      * @return array{po_request_id: int, purchase_order_id: int}
      */

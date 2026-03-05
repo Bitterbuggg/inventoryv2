@@ -131,7 +131,7 @@ class ReportingController extends BaseController
 
     public function lowStock(): string|ResponseInterface
     {
-        $threshold = (float) ($this->request->getGet('threshold') ?? 10);
+        $threshold = (int) ($this->request->getGet('threshold') ?? 10);
         $rows = RepositoryServices::reportingService()->lowStock($threshold);
 
         $this->trackReportView('low_stock', [

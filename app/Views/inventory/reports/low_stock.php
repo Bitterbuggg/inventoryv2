@@ -88,7 +88,7 @@ $nearExpiryRows = count(array_filter(
     <section class="card stack-md">
         <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('reports/low-stock') ?>">
             <label for="threshold">Set Warning Threshold</label>
-            <input id="threshold" type="number" step="0.001" min="0" name="threshold" value="<?= esc((string) $thresholdValue) ?>" style="width: 100px;">
+            <input id="threshold" type="number" step="1" min="0" name="threshold" value="<?= esc((string) $thresholdValue) ?>" style="width: 100px;">
             <button type="submit" class="btn btn-outline">Apply Server Query</button>
         </form>
 

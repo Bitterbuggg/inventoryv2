@@ -184,7 +184,7 @@ $predefinedUnits = [
                                     </select>
                                 </td>
                                 <td>
-                                    <input type="number" step="0.001" min="0" name="requested_qty[]" class="table-control" placeholder="0" value="<?= esc((string) old('requested_qty.' . $i)) ?>">
+                                    <input type="number" step="1" min="1" name="requested_qty[]" class="table-control" placeholder="0" value="<?= esc((string) old('requested_qty.' . $i)) ?>">
                                 </td>
                                 <td>
                                     <input type="number" step="0.01" min="0" name="estimated_unit_cost[]" class="table-control" placeholder="0.00" value="<?= esc((string) old('estimated_unit_cost.' . $i)) ?>">
@@ -237,7 +237,7 @@ $predefinedUnits = [
                 <?php endforeach; ?>
             </select>
         </td>
-        <td><input type="number" step="0.001" min="0" name="requested_qty[]" class="table-control" placeholder="0"></td>
+        <td><input type="number" step="1" min="1" name="requested_qty[]" class="table-control" placeholder="0"></td>
         <td><input type="number" step="0.01" min="0" name="estimated_unit_cost[]" class="table-control" placeholder="0.00"></td>
         <td>
             <div class="notes-group">
@@ -395,7 +395,7 @@ $predefinedUnits = [
                     }
 
                     // 4. Fill remaining data
-                    newTr.querySelector('input[name="requested_qty[]"]').value = parsedQty;
+                    newTr.querySelector('input[name="requested_qty[]"]').value = parseInt(parsedQty, 10) || 0;
                     newTr.querySelector('input[name="estimated_unit_cost[]"]').value = parsedCost;
                     if(parsedNotes && !unitMatch) {
                         newTr.querySelector('input[name="notes[]"]').value += " | " + parsedNotes;
@@ -412,6 +412,23 @@ $predefinedUnits = [
             alert(`Successfully imported ${rowsAdded} items from CSV.`);
         };
         reader.readAsText(file);
+    });
+
+    document.getElementById('items-table').addEventListener('input', function (e) {
+        if (e.target && e.target.name === 'requested_qty[]') {
+            const value = e.target.value.trim();
+            if (value === '') {
+                return;
+            }
+
+            const parsed = Number(value);
+            if (!Number.isFinite(parsed)) {
+                e.target.value = '';
+                return;
+            }
+
+            e.target.value = String(Math.max(0, Math.trunc(parsed)));
+        }
     });
 </script>
 

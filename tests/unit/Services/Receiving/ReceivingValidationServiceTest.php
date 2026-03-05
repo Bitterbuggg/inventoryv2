@@ -107,4 +107,29 @@ final class ReceivingValidationServiceTest extends CIUnitTestCase
         $this->assertNotEmpty($errors);
         $this->assertStringContainsString('expiry date cannot be in the past', $errors[0]);
     }
+
+    public function testValidateItemsFailsWhenQuantitiesContainDecimals(): void
+    {
+        $service = new ReceivingValidationService();
+
+        $items = [[
+            'purchase_order_item_id' => 15,
+            'received_qty'           => 2.5,
+            'accepted_qty'           => 2.5,
+            'rejected_qty'           => 0,
+        ]];
+
+        $poItemsById = [
+            15 => [
+                'id'           => 15,
+                'ordered_qty'  => 10,
+                'received_qty' => 0,
+            ],
+        ];
+
+        $errors = $service->validateItems($items, $poItemsById);
+
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('whole number', $errors[0]);
+    }
 }

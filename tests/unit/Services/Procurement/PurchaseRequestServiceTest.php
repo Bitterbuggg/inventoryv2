@@ -160,4 +160,27 @@ final class PurchaseRequestServiceTest extends CIUnitTestCase
         $this->expectException(DomainException::class);
         $service->submit(7);
     }
+
+    public function testCreateRejectsDecimalRequestedQuantity(): void
+    {
+        $requests  = $this->createMock(PurchaseRequestRepositoryInterface::class);
+        $approvals = $this->createMock(ApprovalRepositoryInterface::class);
+
+        $service = new PurchaseRequestService($requests, $approvals);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('whole number');
+
+        $service->create([
+            'requested_by' => 10,
+            'request_date' => '2026-02-20',
+            'items'        => [
+                [
+                    'item_name'     => 'Paracetamol',
+                    'requested_qty' => '2.5',
+                    'unit'          => 'box',
+                ],
+            ],
+        ]);
+    }
 }

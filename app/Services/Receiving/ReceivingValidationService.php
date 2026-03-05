@@ -42,8 +42,18 @@ class ReceivingValidationService
                 continue;
             }
 
+            if (! $this->isWholeNumber($receivedQty)) {
+                $errors[] = $prefix . 'received quantity must be a whole number.';
+                continue;
+            }
+
             if ($acceptedQty < 0 || $rejectedQty < 0) {
                 $errors[] = $prefix . 'accepted and rejected quantities cannot be negative.';
+                continue;
+            }
+
+            if (! $this->isWholeNumber($acceptedQty) || ! $this->isWholeNumber($rejectedQty)) {
+                $errors[] = $prefix . 'accepted and rejected quantities must be whole numbers.';
                 continue;
             }
 
@@ -97,5 +107,10 @@ class ReceivingValidationService
         if ($errors !== []) {
             throw new \DomainException($errors[0]);
         }
+    }
+
+    private function isWholeNumber(float $value): bool
+    {
+        return abs($value - round($value)) <= 0.00001;
     }
 }

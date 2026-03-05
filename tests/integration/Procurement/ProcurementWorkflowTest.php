@@ -188,6 +188,30 @@ final class ProcurementWorkflowTest extends CIUnitTestCase
         $this->assertSame('Bandage', $items[1]['item_name']);
     }
 
+    public function testCreatePurchaseRequestRejectsDecimalRequestedQty(): void
+    {
+        $employee = $this->findUserByEmail('employee@local.test');
+        auth('session')->login($employee);
+
+        $response = $this->withSession(session()->get())->post('/procurement/purchase-requests', $this->csrfPayload([
+            'request_date'         => '2026-02-20',
+            'needed_date'          => '2026-02-25',
+            'remarks'              => 'Decimal qty should fail',
+            'item_name'            => ['Paracetamol 500mg'],
+            'requested_qty'        => ['1.5'],
+            'unit'                 => ['box'],
+            'estimated_unit_cost'  => ['75.50'],
+            'notes'                => [''],
+        ]));
+        $response->assertRedirect();
+
+        /** @var PurchaseRequestModel $purchaseRequestModel */
+        $purchaseRequestModel = model(PurchaseRequestModel::class);
+        $rows = $purchaseRequestModel->where('requested_by', (int) $employee->id)->findAll();
+
+        $this->assertSame([], $rows);
+    }
+
     private function findUserByEmail(string $email): User
     {
         $user = model(UserModel::class)->findByCredentials(['email' => $email]);

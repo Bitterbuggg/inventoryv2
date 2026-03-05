@@ -167,6 +167,28 @@ Logs:
 
 ---
 
+## One-Time Quantity Cleanup
+
+Use this command to normalize historical decimal quantity values to whole numbers (non-monetary qty columns only).
+
+Preview first (no changes):
+
+```powershell
+php spark maintenance:normalize-qty
+```
+
+Apply updates (transactional):
+
+```powershell
+php spark maintenance:normalize-qty --apply
+```
+
+Notes:
+- Rounds qty values using SQL `ROUND(..., 0)`.
+- Targets only quantity fields (not monetary fields like unit cost).
+
+---
+
 ## Troubleshooting
 - `Unknown database 'inventoryv2'`:
   - Run `php spark db:create inventoryv2`

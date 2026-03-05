@@ -231,10 +231,20 @@ class PurchaseRequestService
                 continue;
             }
 
-            $qty = (float) ($item['requested_qty'] ?? 0);
+            $rawQty = $item['requested_qty'] ?? 0;
+
+            if (! is_numeric($rawQty)) {
+                throw new DomainException('Requested quantity must be a valid number.');
+            }
+
+            $qty = (float) $rawQty;
 
             if ($qty <= 0) {
                 throw new DomainException('Requested quantity must be greater than zero.');
+            }
+
+            if (abs($qty - round($qty)) > 0.00001) {
+                throw new DomainException('Requested quantity must be a whole number.');
             }
 
             $unit = trim((string) ($item['unit'] ?? 'unit')) ?: 'unit';
@@ -248,7 +258,7 @@ class PurchaseRequestService
 
             $normalized[] = [
                 'item_name'           => $itemName,
-                'requested_qty'       => $qty,
+                'requested_qty'       => (float) round($qty),
                 'approved_qty'        => null,
                 'unit'                => $unit,
                 'estimated_unit_cost' => $this->nullableNumeric($item['estimated_unit_cost'] ?? null),
