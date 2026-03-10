@@ -7,7 +7,7 @@ $pageTitle = 'Admin Dashboard';
 $pageSubtitle = 'Operational snapshot aligned to your current workflow modules.';
 
 $moduleStatus = [
-    ['name' => 'Auth and RBAC', 'note' => 'Shield login, signup', 'color' => '#1e293b'], 
+    ['name' => 'Auth and RBAC', 'note' => 'Shield login, admin user creation', 'color' => '#1e293b'], 
     ['name' => 'Procurement', 'note' => 'PR, approvals, PO', 'color' => '#0ea5e9'],    
     ['name' => 'Receiving', 'note' => 'Draft, validate, post', 'color' => 'var(--color-accent-amber-500)'], 
     ['name' => 'Inventory and Reports', 'note' => 'Issuance, analytics', 'color' => 'var(--color-success-700)'], 

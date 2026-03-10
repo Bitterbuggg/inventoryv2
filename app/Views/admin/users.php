@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 $title = 'Admin Users - InventoryV2';
 $pageTitle = 'Manage Users';
-$pageSubtitle = 'Assign role groups for route access and workflow permissions. Each user keeps one active role.';
+$pageSubtitle = 'Manage user accounts. Role selection is available only when creating users.';
 $crumbs = [
     ['label' => 'Admin Dashboard', 'url' => site_url('admin/dashboard')],
     ['label' => 'Manage Users'],
 ];
-
-$availableRoles = ['admin', 'employee', 'it_staff'];
 
 $usersList = $users ?? [];
 $totalUsers = count($usersList);
@@ -37,6 +35,7 @@ foreach ($usersList as $userRow) {
 <?= $this->extend('layouts/main_layout') ?>
 
 <?= $this->section('page_actions') ?>
+<a class="btn btn-primary" href="<?= site_url('admin/users/create') ?>">Create User</a>
 <a class="btn btn-outline" href="<?= site_url('admin/users?export=csv') ?>">Export CSV</a>
 <?= $this->endSection() ?>
 
@@ -68,7 +67,6 @@ foreach ($usersList as $userRow) {
     </section>
 
     <section class="card stack-md">
-        <p class="muted">Assigning a role replaces the user's previous role assignment.</p>
         <div class="table-wrap">
             <table class="table">
                 <thead>
@@ -77,7 +75,7 @@ foreach ($usersList as $userRow) {
                         <th>Username</th>
                         <th>Email</th>
                         <th>Groups</th>
-                        <th>Assign Group</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -98,13 +96,6 @@ foreach ($usersList as $userRow) {
                             }
                         }
 
-                        $currentRole = 'employee';
-                        foreach ($availableRoles as $role) {
-                            if (in_array($role, $userGroups, true)) {
-                                $currentRole = $role;
-                                break;
-                            }
-                        }
                         ?>
                         <tr>
                             <td><?= esc($userId) ?></td>
@@ -112,15 +103,15 @@ foreach ($usersList as $userRow) {
                             <td><?= esc($email) ?></td>
                             <td><?= esc(implode(', ', $userGroups)) ?></td>
                             <td>
-                                <form class="inline-form" method="post" action="<?= site_url('admin/users/' . $userId . '/role') ?>">
-                                    <?= csrf_field() ?>
-                                    <select name="role" aria-label="Assign role group">
-                                        <option value="admin" <?= $currentRole === 'admin' ? 'selected' : '' ?>>admin</option>
-                                        <option value="employee" <?= $currentRole === 'employee' ? 'selected' : '' ?>>employee</option>
-                                        <option value="it_staff" <?= $currentRole === 'it_staff' ? 'selected' : '' ?>>it_staff</option>
-                                    </select>
-                                    <button type="submit" class="btn btn-primary">Assign</button>
-                                </form>
+                                <div class="button-group-compact">
+                                    <a href="<?= site_url('admin/users/' . $userId . '/edit') ?>" class="btn btn-outline btn-small">Edit</a>
+                                    <?php if (! in_array('admin', $userGroups, true)): ?>
+                                        <form class="inline-form" method="post" action="<?= site_url('admin/users/' . $userId . '/delete') ?>" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                            <?= csrf_field() ?>
+                                            <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach ?>

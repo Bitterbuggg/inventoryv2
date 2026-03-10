@@ -10,13 +10,36 @@ use function auth;
 
 class SignupController extends BaseController
 {
-    public function index(): string
+    public function __construct()
     {
+        helper('auth');
+    }
+
+    public function index(): string|RedirectResponse
+    {
+        if (! auth()->loggedIn()) {
+            return redirect()->to('/login');
+        }
+
+        $user = auth()->user();
+        if ($user === null || ! in_array('admin', $user->getGroups() ?? [], true)) {
+            return redirect()->to('/')->with('error', 'Only administrators can create new accounts.');
+        }
+
         return view('auth/signup');
     }
 
     public function store(): RedirectResponse
     {
+        if (! auth()->loggedIn()) {
+            return redirect()->to('/login');
+        }
+
+        $user = auth()->user();
+        if ($user === null || ! in_array('admin', $user->getGroups() ?? [], true)) {
+            return redirect()->to('/')->with('error', 'Only administrators can create new accounts.');
+        }
+
         $rules = [
             'username'         => 'required|min_length[3]|max_length[30]|regex_match[/\A[a-zA-Z0-9\.]+\z/]',
             'email'            => 'required|valid_email|max_length[254]',

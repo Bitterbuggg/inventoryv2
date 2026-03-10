@@ -43,7 +43,7 @@ class AuthGroups extends ShieldAuthGroups
         ],
         'it_staff' => [
             'title'       => 'IT Dev/Staff',
-            'description' => 'Technical support and controlled administrative access.',
+            'description' => 'Technical support, troubleshooting, and read-only operational visibility.',
         ],
     ];
 
@@ -55,16 +55,21 @@ class AuthGroups extends ShieldAuthGroups
     public array $permissions = [
         'dashboard.view_admin'       => 'Can access admin dashboard',
         'auth.manage_users'          => 'Can manage user roles and assignments',
+        'auth.support_users'         => 'Can reset passwords and unlock accounts (not manage roles)',
         'procurement.pr.create'      => 'Can create purchase requests',
         'procurement.pr.approve'     => 'Can approve or reject purchase requests',
         'procurement.po.create'      => 'Can generate purchase orders from approved requests',
         'procurement.por.manage'     => 'Can manage PO request transitions',
+        'procurement.view'           => 'Can view purchase requests and orders',
         'receiving.convert'          => 'Can convert approved PO requests to receiving records',
+        'receiving.view'             => 'Can view receiving records',
         'inventory.quantity.update'  => 'Can post receiving quantities to inventory stocks',
         'inventory.issuance.create'  => 'Can create and submit inventory issuances',
         'inventory.issuance.approve' => 'Can approve, reject, and release issuances',
         'reports.view'               => 'Can view inventory and movement reports',
         'audit.view'                 => 'Can view workflow and audit logs',
+        'workflow.cancel_draft'      => 'Can cancel draft records to unstick workflow',
+        'system.diagnostics'         => 'Can access system health and diagnostics',
     ];
 
     /**
@@ -92,16 +97,15 @@ class AuthGroups extends ShieldAuthGroups
             'inventory.issuance.create',
         ],
         'it_staff' => [
+            'auth.support_users',
             'procurement.pr.create',
-            'procurement.pr.approve',
-            'procurement.po.create',
-            'procurement.por.manage',
-            'receiving.convert',
-            'inventory.quantity.update',
+            'procurement.view',
+            'receiving.view',
             'inventory.issuance.create',
-            'inventory.issuance.approve',
             'reports.view',
             'audit.view',
+            'workflow.cancel_draft',
+            'system.diagnostics',
         ],
     ];
 }

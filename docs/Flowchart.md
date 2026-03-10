@@ -55,12 +55,12 @@ graph TD
 | Role | Main Responsibilities |
 |------|------------------------|
 | Admin | Manages users/roles, approves operational requests, oversees procurement/receiving/issuance, monitors reports |
-| IT Staff | Performs operational workflow actions (approvals, receiving, reporting, analytics) but does not manage admin users/roles |
+| IT Staff | Technical support and troubleshooting - views all modules for diagnostics, assists users with draft creation, resets passwords, accesses reports and audit logs. Does NOT perform operational approvals or financial decisions. |
 | Employee | Creates and submits purchase and issuance requests, tracks status, follows correction feedback |
 
 ### Simple role summary
-- **Admin:** Full control, including user-role administration.
-- **IT Staff:** Operational controller for day-to-day flow.
+- **Admin:** Full control, including user-role administration and all operational approvals.
+- **IT Staff:** Technical support with read-only visibility for troubleshooting - no operational approvals.
 - **Employee:** Request creator and requester of stock.
 
 ---

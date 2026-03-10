@@ -253,10 +253,15 @@ app/
 |-----------|-------|----------|--------------|
 | Create PR | ✅ | ✅ | ✅ |
 | Submit PR | ✅ | ✅ | ✅ |
-| Approve PR | ✅ | ❌ | ✅ (if granted) |
-| Generate PO | ✅ | ❌ | ✅ (if granted) |
-| Approve PO Request | ✅ | ❌ | ✅ (if granted) |
-| Cancel PR/PO | ✅ | Limited (own draft PR) | ✅ (if granted) |
+| View PRs/POs | ✅ | Limited | ✅ (view-only) |
+| Approve PR | ✅ | ❌ | ❌ |
+| Generate PO | ✅ | ❌ | ❌ |
+| Issue PO | ✅ | ❌ | ❌ |
+| Create PO Request | ✅ | ❌ | ❌ |
+| Approve PO Request | ✅ | ❌ | ❌ |
+| Cancel Draft PR | ✅ | ✅ (own drafts) | ✅ (via workflow.cancel_draft) |
+
+**Note:** IT Staff role is now focused on technical support and troubleshooting. They can create PRs to assist users and view all procurement data, but cannot perform operational approvals or create purchase orders.
 
 ---
 

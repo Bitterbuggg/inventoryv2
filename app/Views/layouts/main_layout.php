@@ -133,6 +133,11 @@ if ($canOps) {
             <div class="side-user">
                 <p class="side-user-name"><?= esc($displayName) ?></p>
                 <p class="side-user-role"><?= esc($roleLabel) ?></p>
+                <?php if ($user !== null): ?>
+                    <a href="/auth/sessions" style="margin-top: 8px; font-size: 0.85rem; color: #0ea5e9; text-decoration: none; display: inline-block;">
+                        📋 Manage Sessions
+                    </a>
+                <?php endif ?>
             </div>
 
             <nav class="side-nav" aria-label="Primary navigation">

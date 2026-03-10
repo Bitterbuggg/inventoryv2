@@ -482,14 +482,25 @@ approvals references purchase_request or issuance by (reference_type, reference_
 
 ## 10. Role-Based Access Summary
 
-- `admin`
-  - full access including admin users, procurement approvals, receiving, reports, analytics
-- `employee`
-  - can create/submit PR and issuance, can view inventory quantities
-  - cannot access admin, receiving posting, approvals, reports, analytics dashboards
-- `it_staff`
-  - operational role similar to admin for procurement ops, receiving, reports, analytics
-  - no admin user management routes
+- **`admin`**
+  - Full access including admin users, procurement approvals, receiving, reports, analytics
+  - Can approve PRs, create POs, post receiving, approve issuances
+  - Complete operational control and user/role management
+  
+- **`employee`**
+  - Can create/submit PR and issuance, can view inventory quantities
+  - Cannot access admin, receiving posting, approvals, reports, analytics dashboards
+  - Request creator role with limited visibility
+  
+- **`it_staff`**
+  - Technical support and troubleshooting role with read-only operational visibility
+  - Can view all modules (procurement, receiving, inventory) but cannot perform operational actions
+  - Can assist users by creating draft PRs and issuances
+  - Can access reports and audit logs for troubleshooting
+  - Can reset passwords and unlock accounts (not manage roles)
+  - Can cancel stuck draft records to unstick workflow
+  - **Cannot** approve PRs, create POs, approve PO requests, post receiving, or approve issuances
+  - Limited support role - no admin user management or financial/operational approvals
 
 ## 11. Quality and Safety Controls Built Into the Process
 

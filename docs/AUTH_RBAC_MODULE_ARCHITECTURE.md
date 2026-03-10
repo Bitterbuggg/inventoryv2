@@ -93,16 +93,28 @@ app/
 ### Required Seed Data
 - Roles: `admin`, `employee`, `IT dev/staff`
 - Permissions:
-  - `auth.manage_users`
-  - `dashboard.view_admin`
-  - `procurement.pr.create`
-  - `procurement.pr.approve`
-  - `procurement.po.create`
-  - `receiving.convert`
-  - `inventory.quantity.update`
-  - `inventory.issuance.create`
-  - `reports.view`
-  - `audit.view`
+  - **Admin & User Management**
+    - `auth.manage_users` - Manage user roles and assignments
+    - `auth.support_users` - Reset passwords and unlock accounts
+    - `dashboard.view_admin` - Access admin dashboard
+  - **Procurement Operations**
+    - `procurement.pr.create` - Create purchase requests
+    - `procurement.pr.approve` - Approve/reject purchase requests
+    - `procurement.po.create` - Generate purchase orders
+    - `procurement.por.manage` - Manage PO request transitions
+    - `procurement.view` - View purchase requests and orders
+  - **Receiving Operations**
+    - `receiving.convert` - Convert PO requests to receiving
+    - `receiving.view` - View receiving records
+  - **Inventory Operations**
+    - `inventory.quantity.update` - Post receiving to inventory
+    - `inventory.issuance.create` - Create and submit issuances
+    - `inventory.issuance.approve` - Approve/reject/release issuances
+  - **Reporting & Support**
+    - `reports.view` - View inventory and movement reports
+    - `audit.view` - View workflow and audit logs
+    - `workflow.cancel_draft` - Cancel draft records
+    - `system.diagnostics` - System health and diagnostics
 
 ---
 

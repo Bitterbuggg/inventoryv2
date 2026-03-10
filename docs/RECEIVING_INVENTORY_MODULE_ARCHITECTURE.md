@@ -210,11 +210,14 @@ app/
 
 | Operation | Admin | Employee | IT dev/staff |
 |-----------|-------|----------|--------------|
-| Create Receiving Draft | ✅ | ❌ | ✅ (if granted) |
-| Validate Receiving | ✅ | ❌ | ✅ (if granted) |
-| Post Receiving | ✅ | ❌ | ✅ (if granted) |
-| Void Receiving | ✅ | ❌ | ✅ (if granted) |
-| View Inventory Quantities | ✅ | Limited | ✅ |
+| View Receiving Records | ✅ | ❌ | ✅ (read-only) |
+| Create Receiving Draft | ✅ | ❌ | ❌ |
+| Validate Receiving | ✅ | ❌ | ❌ |
+| Post Receiving | ✅ | ❌ | ❌ |
+| Void Receiving | ✅ | ❌ | ❌ |
+| View Inventory Quantities | ✅ | ✅ (limited) | ✅ |
+
+**Note:** IT Staff role is now focused on technical support. They can view receiving records and inventory quantities for troubleshooting purposes, but cannot create, post, or void receiving transactions.
 
 ---
 

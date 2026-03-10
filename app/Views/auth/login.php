@@ -24,6 +24,4 @@ $pageSubtitle = 'Use your approved account credentials.';
 
     <button type="submit" class="btn btn-primary btn-block">Sign In</button>
 </form>
-
-<p class="muted">No account yet? <a href="<?= site_url('signup') ?>">Create account</a></p>
 <?= $this->endSection() ?>

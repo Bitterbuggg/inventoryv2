@@ -128,7 +128,7 @@ $inventoryEvents = count(array_filter($eventRows, static fn (array $row): bool =
             <article class="kpi-card">
                 <p class="kpi-label">Auth</p>
                 <p class="kpi-value"><?= esc((string) $authEvents) ?></p>
-                <p class="kpi-note">Login, signup, and role events.</p>
+                <p class="kpi-note">Login and account administration events.</p>
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Procurement</p>

@@ -13,13 +13,16 @@ class AuthenticationService
 {
     private ?string $lastError = null;
     private readonly Auth|AuthenticatorInterface $authenticator;
+    private ?SessionManager $sessionManager = null;
 
     public function __construct(
         private readonly UserRepositoryInterface $users,
         Auth|AuthenticatorInterface|null $authenticator = null,
+        ?SessionManager $sessionManager = null,
     )
     {
-        $this->authenticator = $authenticator ?? auth('session');
+        $this->authenticator    = $authenticator ?? auth('session');
+        $this->sessionManager   = $sessionManager ?? new SessionManager();
     }
 
     /**
@@ -84,6 +87,76 @@ class AuthenticationService
     public function logout(): void
     {
         $this->authenticator->logout();
+    }
+
+    /**
+     * Add a session without logging out the current user
+     * This allows multiple concurrent login sessions
+     */
+    public function addSession(string $identifier, string $password, string $sessionName = ''): bool
+    {
+        $identifier = trim($identifier);
+
+        if ($identifier === '' || $password === '') {
+            $this->lastError = 'Identifier and password are required.';
+
+            return false;
+        }
+
+        // Store the current session state
+        $currentUser = auth()->user();
+
+        // Attempt to login with the new credentials
+        $credentialField = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $result          = $this->authenticator->attempt([
+            $credentialField => $identifier,
+            'password'       => $password,
+        ]);
+
+        if (! $result->isOK()) {
+            $this->lastError = $result->reason() ?? 'Login failed.';
+
+            return false;
+        }
+
+        // Get the newly logged-in user
+        $newUser = auth()->user();
+
+        if ($newUser === null) {
+            $this->lastError = 'Failed to retrieve user after login.';
+
+            return false;
+        }
+
+        // Create a session record in the database
+        if ($sessionName === '') {
+            $sessionName = "{$newUser->username} ({$newUser->email})";
+        }
+
+        $sessionToken = $this->sessionManager->createSession(
+            $newUser->id,
+            $sessionName,
+            service('request')->getIPAddress(),
+            $_SERVER['HTTP_USER_AGENT'] ?? null
+        );
+
+        if ($sessionToken === false) {
+            $this->lastError = 'Failed to create session record.';
+
+            return false;
+        }
+
+        $this->lastError = null;
+
+        return true;
+    }
+
+    /**
+     * Get the session manager instance
+     */
+    public function getSessionManager(): SessionManager
+    {
+        return $this->sessionManager;
     }
 
     public function getLastError(): ?string

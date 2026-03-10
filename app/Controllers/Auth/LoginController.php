@@ -73,6 +73,18 @@ class LoginController extends BaseController
             $user === null ? null : (int) ($user->id ?? 0),
         );
 
+        // Create a session record for multi-session support
+        if ($user !== null) {
+            $sessionManager = $service->getSessionManager();
+            $sessionName = "{$user->username} ({$user->email})";
+            $sessionManager->createSession(
+                $user->id,
+                $sessionName,
+                service('request')->getIPAddress(),
+                $_SERVER['HTTP_USER_AGENT'] ?? null
+            );
+        }
+
         return $this->redirectByRole();
     }
 
