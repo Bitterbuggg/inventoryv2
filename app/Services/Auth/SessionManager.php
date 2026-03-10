@@ -221,4 +221,12 @@ class SessionManager
     {
         return $this->sessionModel->find($sessionId);
     }
+
+    /**
+     * Deactivate a specific session without logout logic
+     */
+    public function deactivateSession(int $sessionId): bool
+    {
+        return $this->sessionModel->deactivateSession($sessionId);
+    }
 }

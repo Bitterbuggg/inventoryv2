@@ -63,27 +63,30 @@ class CreateMultiSessionsTable extends Migration
         $this->forge->addKey('user_id');
         $this->forge->addKey('is_active');
         $this->forge->addKey(['user_id', 'is_active']);
-        $this->forge->createTable('multi_sessions');
-
-        // Add default values and foreign key using raw SQL
-        $this->db->query('
-            ALTER TABLE `multi_sessions`
-            MODIFY COLUMN `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-            MODIFY COLUMN `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        ');
-
-        // Add foreign key if users table exists
+        
         try {
-            $this->db->query('
-                ALTER TABLE `multi_sessions`
-                ADD CONSTRAINT `fk_multi_sessions_user_id`
-                FOREIGN KEY (`user_id`)
-                REFERENCES `users`(`id`)
-                ON DELETE CASCADE
-                ON UPDATE CASCADE
-            ');
+            $this->forge->createTable('multi_sessions');
         } catch (\Exception $e) {
-            // Foreign key might already exist, continue
+            // Table might already exist
+            if (strpos($e->getMessage(), 'already exists') === false) {
+                throw $e;
+            }
+        }
+
+        // Add foreign key for MySQL only
+        if ($this->db->DBDriver === 'MySQLi') {
+            try {
+                $this->db->query('
+                    ALTER TABLE `' . $this->db->getPrefix() . 'multi_sessions`
+                    ADD CONSTRAINT `fk_multi_sessions_user_id`
+                    FOREIGN KEY (`user_id`)
+                    REFERENCES `users`(`id`)
+                    ON DELETE CASCADE
+                    ON UPDATE CASCADE
+                ');
+            } catch (\Exception $e) {
+                // Foreign key might already exist, continue
+            }
         }
     }
 

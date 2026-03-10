@@ -71,7 +71,7 @@ If blocking issue occurs:
 - 2026-02-20: Smoke HTTP checks passed for `/login`, `/admin/dashboard`, `/inventory/issuance`, `/reports/stock-balance` (all HTTP 200 after admin login).
 - 2026-02-20: Smoke issuance flow passed: created issuance `#1`, submitted, approved, released.
 - 2026-02-20: DB verification for issuance `#1` -> `status=released`, `stock_movements count=1`, `audit_logs issuance.released count=1`.
-- 2026-02-20: `.env` switched to production mode and validated (`CI_ENVIRONMENT = production`), backup saved as `.env.bak_20260220_110238`.
+- 2026-02-20: `.env` switched to production mode and validated (`CI_ENVIRONMENT = production`).
 - 2026-02-20: Maintenance window owner/monitoring owner recorded as Requester (local execution window).
 - Known issues shared: none identified in this run.
 - 2026-02-20: Analytics hardening completed (Phase F4): added `analytics:aggregate` and `analytics:prune` commands.

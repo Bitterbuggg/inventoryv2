@@ -21,20 +21,32 @@ class LogoutController extends BaseController
             $user === null ? null : (int) ($user->id ?? 0),
         );
 
-        // Silently deactivate the current session record
+        // Deactivate the current session
         if ($user !== null) {
-            try {
-                $sessionManager = new SessionManager();
-                $sessionId = $sessionManager->getCurrentSessionId();
-                if ($sessionId !== null) {
-                    $sessionManager->deactivateSession($sessionId);
+            $sessionManager = new SessionManager();
+            $sessionId = $sessionManager->getCurrentSessionId();
+            
+            if ($sessionId !== null) {
+                $sessionManager->deactivateSession($sessionId);
+                
+                // Get remaining active sessions for this user
+                $remaining = $sessionManager->getUserActiveSessions($user->id);
+                
+                if (count($remaining) > 0) {
+                    // Switch to another active session
+                    $nextSession = $remaining[0];
+                    $sessionManager->switchSession($nextSession['id']);
+                    
+                    // Full logout first to clear Shield state
+                    RepositoryServices::authenticationService()->logout();
+                    
+                    // Then the MultiSessionFilter will restore the next user on next request
+                    return redirect()->to('/')->with('message', 'Logged out this account. Switched to another.');
                 }
-            } catch (\Throwable) {
-                // Silent fail - session tracking is optional
             }
         }
 
-        // Always perform full logout
+        // No more sessions, perform full logout
         RepositoryServices::authenticationService()->logout();
 
         return redirect()->to('/login')->with('message', 'You have been logged out.');

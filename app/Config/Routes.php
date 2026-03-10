@@ -19,6 +19,7 @@ $routes->group('admin', ['filter' => 'auth'], static function (RouteCollection $
     $routes->post('users', 'Admin\UserController::store', ['filter' => 'role:admin']);
     $routes->get('users/(:num)/edit', 'Admin\UserController::edit/$1', ['filter' => 'role:admin']);
     $routes->post('users/(:num)', 'Admin\UserController::update/$1', ['filter' => 'role:admin']);
+    $routes->post('users/(:num)/role', 'Admin\UserController::role/$1', ['filter' => 'role:admin']);
     $routes->post('users/(:num)/delete', 'Admin\UserController::delete/$1', ['filter' => 'role:admin']);
 });
 
@@ -32,9 +33,9 @@ $routes->group('procurement', ['filter' => 'auth'], static function (RouteCollec
     $routes->post('purchase-requests/(:num)/submit', 'Procurement\PurchaseRequestController::submit/$1', ['filter' => 'role:admin,employee,it_staff']);
     $routes->post('purchase-requests/(:num)/cancel', 'Procurement\PurchaseRequestController::cancel/$1', ['filter' => 'role:admin,employee,it_staff']);
 
-    $routes->get('approvals/pending', 'Procurement\PurchaseApprovalController::pending', ['filter' => 'role:admin']);
-    $routes->post('approvals/(:num)/approve', 'Procurement\PurchaseApprovalController::approve/$1', ['filter' => 'role:admin']);
-    $routes->post('approvals/(:num)/reject', 'Procurement\PurchaseApprovalController::reject/$1', ['filter' => 'role:admin']);
+        $routes->get('approvals/pending', 'Procurement\PurchaseApprovalController::pending', ['filter' => 'role:admin,it_staff']);
+        $routes->post('approvals/(:num)/approve', 'Procurement\PurchaseApprovalController::approve/$1', ['filter' => 'role:admin,it_staff']);
+        $routes->post('approvals/(:num)/reject', 'Procurement\PurchaseApprovalController::reject/$1', ['filter' => 'role:admin,it_staff']);
 
     $routes->get('purchase-orders', 'Procurement\PurchaseOrderController::index', ['filter' => 'role:admin']);
     $routes->post('purchase-orders/from-pr/(:num)', 'Procurement\PurchaseOrderController::createFromPr/$1', ['filter' => 'role:admin']);
@@ -47,14 +48,14 @@ $routes->group('procurement', ['filter' => 'auth'], static function (RouteCollec
 });
 
 $routes->group('receiving', ['filter' => 'auth'], static function (RouteCollection $routes): void {
-    $routes->get('/', 'Receiving\ReceivingController::index', ['filter' => 'role:admin']);
-    $routes->get('create/from-po-request/(:num)', 'Receiving\ReceivingController::createFromPoRequest/$1', ['filter' => 'role:admin']);
-    $routes->post('/', 'Receiving\ReceivingController::store', ['filter' => 'role:admin']);
-    $routes->get('(:num)', 'Receiving\ReceivingController::show/$1', ['filter' => 'role:admin']);
-    $routes->get('(:num)/items.csv', 'Receiving\ReceivingController::itemsCsv/$1', ['filter' => 'role:admin']);
-    $routes->post('(:num)/post', 'Receiving\ReceivingController::post/$1', ['filter' => 'role:admin']);
-    $routes->post('(:num)/void', 'Receiving\ReceivingController::void/$1', ['filter' => 'role:admin']);
-    $routes->post('(:num)/validate', 'Receiving\ReceivingValidationController::validateDraft/$1', ['filter' => 'role:admin']);
+    $routes->get('/', 'Receiving\ReceivingController::index', ['filter' => 'role:admin,it_staff']);
+    $routes->get('create/from-po-request/(:num)', 'Receiving\ReceivingController::createFromPoRequest/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('/', 'Receiving\ReceivingController::store', ['filter' => 'role:admin,it_staff']);
+    $routes->get('(:num)', 'Receiving\ReceivingController::show/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->get('(:num)/items.csv', 'Receiving\ReceivingController::itemsCsv/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('(:num)/post', 'Receiving\ReceivingController::post/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('(:num)/void', 'Receiving\ReceivingController::void/$1', ['filter' => 'role:admin,it_staff']);
+    $routes->post('(:num)/validate', 'Receiving\ReceivingValidationController::validateDraft/$1', ['filter' => 'role:admin,it_staff']);
 });
 
 $routes->group('inventory', ['filter' => 'auth'], static function (RouteCollection $routes): void {

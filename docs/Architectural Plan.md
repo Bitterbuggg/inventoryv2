@@ -445,8 +445,7 @@ Procurement Module -> Approved PO Request -> Receiving Module -> Inventory Quant
 ### Next Steps
 1. **Review Documentation**:  
    - **📋 [Architecture Reference](Architecture.md)** - baseline architecture and constraints
-   - **[System Workflow Flowchart](PHARMACY_SYSTEM_WORKFLOW_FLOWCHART.md)** - role-based flow and end-to-end process diagrams
-   - **[Workflow Summary (Condensed)](PHARMACY_SYSTEM_WORKFLOW_FLOWCHART_CONDENSED.md)** - stakeholder-friendly overview
+   - **[System Workflow Flowchart](Flowchart.md)** - role-based flow and end-to-end process diagrams
    - [Foundation + Auth/RBAC Module](AUTH_RBAC_MODULE_ARCHITECTURE.md) - first implementation target
    - [Procurement Module](PROCUREMENT_MODULE_ARCHITECTURE.md) - PR to PO lifecycle
    - [Receiving + Inventory Quantity Module](RECEIVING_INVENTORY_MODULE_ARCHITECTURE.md) - stock intake

@@ -15,31 +15,13 @@ class SignupController extends BaseController
         helper('auth');
     }
 
-    public function index(): string|RedirectResponse
+    public function index(): string
     {
-        if (! auth()->loggedIn()) {
-            return redirect()->to('/login');
-        }
-
-        $user = auth()->user();
-        if ($user === null || ! in_array('admin', $user->getGroups() ?? [], true)) {
-            return redirect()->to('/')->with('error', 'Only administrators can create new accounts.');
-        }
-
         return view('auth/signup');
     }
 
     public function store(): RedirectResponse
     {
-        if (! auth()->loggedIn()) {
-            return redirect()->to('/login');
-        }
-
-        $user = auth()->user();
-        if ($user === null || ! in_array('admin', $user->getGroups() ?? [], true)) {
-            return redirect()->to('/')->with('error', 'Only administrators can create new accounts.');
-        }
-
         $rules = [
             'username'         => 'required|min_length[3]|max_length[30]|regex_match[/\A[a-zA-Z0-9\.]+\z/]',
             'email'            => 'required|valid_email|max_length[254]',
@@ -54,7 +36,7 @@ class SignupController extends BaseController
                 null,
                 null,
                 null,
-                ['errors_count' => count($this->validator->getErrors())],
+                ['errors_count' => count($this->validator->getErrors())]
             );
 
             return redirect()
@@ -78,7 +60,7 @@ class SignupController extends BaseController
                 null,
                 null,
                 null,
-                ['reason' => 'domain_exception'],
+                ['reason' => 'domain_exception']
             );
 
             return redirect()
@@ -89,7 +71,7 @@ class SignupController extends BaseController
 
         $service->login(
             (string) $this->request->getPost('email'),
-            (string) $this->request->getPost('password'),
+            (string) $this->request->getPost('password')
         );
 
         $user = auth()->user();
@@ -97,7 +79,7 @@ class SignupController extends BaseController
             'auth.signup_success',
             'auth',
             'user',
-            $user === null ? null : (int) ($user->id ?? 0),
+            $user === null ? null : (int) ($user->id ?? 0)
         );
 
         return redirect()->to('/');

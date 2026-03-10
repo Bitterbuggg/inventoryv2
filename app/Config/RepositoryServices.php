@@ -38,7 +38,6 @@ use App\Repositories\EloquentLike\Receiving\StockMovementRepository as Receiving
 use App\Repositories\EloquentLike\Shared\AuditLogRepository;
 use App\Services\Analytics\AnalyticsService;
 use App\Services\Auth\AuthenticationService;
-use App\Services\Auth\AuthorizationService;
 use App\Services\Inventory\InventoryAvailabilityService;
 use App\Services\Inventory\IssuanceApprovalService;
 use App\Services\Inventory\IssuanceReleaseService;
@@ -80,7 +79,6 @@ class RepositoryServices
     private static ?AuditLogRepositoryInterface $auditLogRepository = null;
 
     private static ?AuthenticationService $authenticationService = null;
-    private static ?AuthorizationService $authorizationService = null;
     private static ?AnalyticsService $analyticsService = null;
 
     private static ?PurchaseRequestService $purchaseRequestService = null;
@@ -191,16 +189,6 @@ class RepositoryServices
         return self::$receivingStockMovementRepository;
     }
 
-    public static function inventoryStockRepository(): ReceivingInventoryStockRepositoryInterface
-    {
-        return self::receivingInventoryStockRepository();
-    }
-
-    public static function stockMovementRepository(): ReceivingStockMovementRepositoryInterface
-    {
-        return self::receivingStockMovementRepository();
-    }
-
     public static function issuanceRepository(): IssuanceRepositoryInterface
     {
         if (self::$issuanceRepository === null) {
@@ -271,15 +259,6 @@ class RepositoryServices
         }
 
         return self::$authenticationService;
-    }
-
-    public static function authorizationService(): AuthorizationService
-    {
-        if (self::$authorizationService === null) {
-            self::$authorizationService = new AuthorizationService(self::userRepository());
-        }
-
-        return self::$authorizationService;
     }
 
     public static function analyticsService(): AnalyticsService

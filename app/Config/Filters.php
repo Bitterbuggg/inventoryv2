@@ -38,6 +38,7 @@ class Filters extends BaseFilters
         'auth'          => SessionAuth::class,
         'session'       => SessionAuth::class,
         'role'          => \App\Filters\RoleFilter::class,
+        'multisession'  => \App\Filters\MultiSessionFilter::class,
     ];
 
     /**
@@ -76,6 +77,7 @@ class Filters extends BaseFilters
         'before' => [
             // 'honeypot',
             'csrf',
+            'multisession',
             // 'invalidchars',
         ],
         'after' => [

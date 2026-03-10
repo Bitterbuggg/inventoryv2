@@ -204,5 +204,36 @@ class UserController extends BaseController
 
         return redirect()->to('/admin/users')->with('message', 'User account deleted successfully.');
     }
+
+    public function role(int $userId): RedirectResponse
+    {
+        $user = model(UserModel::class)->find($userId);
+
+        if ($user === null) {
+            return redirect()->to('/admin/users')->with('error', 'User not found.');
+        }
+
+        $newRole = (string) $this->request->getPost('role');
+        $validRoles = ['admin', 'employee', 'it_staff'];
+
+        if (! in_array($newRole, $validRoles, true)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Invalid role selected.');
+        }
+
+        // Assign new role (using syncGroups which replaces existing roles)
+        RepositoryServices::userRepository()->assignGroup($userId, $newRole);
+
+        $currentUser = auth()->user();
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'admin.assign_user_role',
+            'admin',
+            'user',
+            $currentUser === null ? null : (int) ($currentUser->id ?? 0),
+        );
+
+        return redirect()->to('/admin/users')->with('message', "User role updated to {$newRole}.");
+    }
 }
 
