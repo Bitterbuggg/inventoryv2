@@ -130,6 +130,50 @@ Use these only for maintenance or QA.
 Multi-session local domains guide:
 - docs/MULTI_SESSION_LOCAL_DOMAINS_SETUP.md
 
+### Multi-session domains (admin/employee/itstaff on one browser)
+
+If your hosts entries use `127.0.0.1`, make sure your dev server is also bound to IPv4.
+
+1. Add these entries to `C:\Windows\System32\drivers\etc\hosts`:
+
+```text
+127.0.0.1   admin.local.test
+127.0.0.1   employee.local.test
+127.0.0.1   itstaff.local.test
+```
+
+2. Start the app on IPv4 (recommended for this setup):
+
+```powershell
+php -S 127.0.0.1:8080 -t public
+```
+
+3. Open these URLs in separate tabs:
+- http://admin.local.test:8080/
+- http://employee.local.test:8080/
+- http://itstaff.local.test:8080/
+
+4. Verify resolution if needed:
+
+```powershell
+ping admin.local.test
+ping employee.local.test
+ping itstaff.local.test
+```
+
+5. If site cannot be reached:
+- Flush DNS cache: `ipconfig /flushdns`
+- Check port binding: `Get-NetTCPConnection -LocalPort 8080 -State Listen`
+- If listener is only `::1` (IPv6), either:
+   - keep using `php -S 127.0.0.1:8080 -t public`, or
+   - add IPv6 hosts entries:
+
+```text
+::1   admin.local.test
+::1   employee.local.test
+::1   itstaff.local.test
+```
+
 Run automated tests:
 
 ```powershell
