@@ -99,7 +99,8 @@ class Filters extends BaseFilters
      * @var array<string, list<string>>
      */
     public array $methods = [
-        'POST' => ['csrf'],
+        // CSRF is already enforced globally in $globals['before'].
+        // Avoid duplicate execution that can invalidate tokens in the same request.
     ];
 
     /**

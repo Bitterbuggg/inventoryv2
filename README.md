@@ -12,7 +12,7 @@ Use this if dependencies, database, and seed data were already done before.
 2. Open browser:
    - `http://localhost/inventoryv2/public/`
 3. Login:
-   - Admin: `admin@local.test` / `Admin@1234`
+   - Admin: `admin@local.test` / seeded default password (see `app/Database/Seeds/AuthRbacSeeder.php`)
 
 ---
 
@@ -96,9 +96,12 @@ php spark db:seed AuthRbacSeeder
 - Admin Dashboard: `http://localhost/inventoryv2/public/admin/dashboard`
 
 ## 9. Test accounts
-- Admin: `admin@local.test` / `Admin@1234`
-- Employee: `employee@local.test` / `Employee@1234`
-- IT Staff: `itstaff@local.test` / `Itstaff@1234`
+- Admin: `admin@local.test` / seeded default password
+- Employee: `employee@local.test` / seeded default password
+- IT Staff: `itstaff@local.test` / seeded default password
+
+Security note:
+- Rotate all seeded/default passwords immediately after first login in non-local environments.
 
 ## 10. Run tests (recommended)
 
@@ -213,3 +216,6 @@ Notes:
   - Login with admin or `it_staff`
 - DB connection errors:
   - Recheck `.env` DB credentials and confirm MySQL is running
+
+
+

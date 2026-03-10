@@ -10,9 +10,12 @@ Validate end-to-end pharmacy workflow on the current baseline before deployment.
 - Date: `2026-02-20`
 
 ## Test Accounts
-- Admin: `admin@local.test` / `Admin@1234`
-- Employee: `employee@local.test` / `Employee@1234`
-- IT Staff: `itstaff@local.test` / `Itstaff@1234`
+- Admin: `admin@local.test` / seeded default password
+- Employee: `employee@local.test` / seeded default password
+- IT Staff: `itstaff@local.test` / seeded default password
+
+Security note:
+- Rotate all seeded/default passwords immediately after first successful login.
 
 ## Pre-UAT Reset
 1. Run `php spark migrate:refresh --all`

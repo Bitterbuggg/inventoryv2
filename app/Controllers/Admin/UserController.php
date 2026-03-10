@@ -56,7 +56,7 @@ class UserController extends BaseController
     {
         $rules = [
             'username'         => 'required|min_length[3]|max_length[30]|regex_match[/\A[a-zA-Z0-9\.]+\z/]|is_unique[users.username]',
-            'email'            => 'required|valid_email|max_length[254]|is_unique[users.email]',
+            'email'            => 'required|valid_email|max_length[254]',
             'password'         => 'required|min_length[8]|max_length[255]',
             'password_confirm' => 'required|matches[password]',
             'role'             => 'required|in_list[admin,employee,it_staff]',
@@ -67,6 +67,14 @@ class UserController extends BaseController
                 ->back()
                 ->withInput()
                 ->with('errors', $this->validator->getErrors());
+        }
+
+        $email = strtolower(trim((string) $this->request->getPost('email')));
+        if (RepositoryServices::userRepository()->findByIdentifier($email) !== null) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('errors', ['email' => 'Email already exists.']);
         }
 
         $service = RepositoryServices::authenticationService();
@@ -125,7 +133,15 @@ class UserController extends BaseController
         ];
 
         if ((string) $user->email !== $this->request->getPost('email')) {
-            $rules['email'] .= '|is_unique[users.email]';
+            $newEmail = strtolower(trim((string) $this->request->getPost('email')));
+            $existing = RepositoryServices::userRepository()->findByIdentifier($newEmail);
+
+            if ($existing !== null && (int) ($existing->id ?? 0) !== (int) ($user->id ?? 0)) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('errors', ['email' => 'Email already exists.']);
+            }
         }
 
         if ((string) $user->username !== $this->request->getPost('username')) {
