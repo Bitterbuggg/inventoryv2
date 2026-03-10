@@ -74,7 +74,11 @@ class App extends BaseConfig
      *
      * @var list<string>
      */
-    public array $allowedHostnames = [];
+    public array $allowedHostnames = [
+        'admin.local.test',
+        'employee.local.test',
+        'itstaff.local.test',
+    ];
 
     /**
      * --------------------------------------------------------------------------

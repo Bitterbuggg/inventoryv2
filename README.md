@@ -12,7 +12,7 @@ Use this if dependencies, database, and seed data were already done before.
 2. Open browser:
    - `http://localhost/inventoryv2/public/`
 3. Login:
-   - Admin: `admin@local.test` / seeded default password (see `app/Database/Seeds/AuthRbacSeeder.php`)
+   - Admin: `admin@local.test` / `Admin@1234`
 
 ---
 
@@ -96,12 +96,47 @@ php spark db:seed AuthRbacSeeder
 - Admin Dashboard: `http://localhost/inventoryv2/public/admin/dashboard`
 
 ## 9. Test accounts
-- Admin: `admin@local.test` / seeded default password
-- Employee: `employee@local.test` / seeded default password
-- IT Staff: `itstaff@local.test` / seeded default password
+- Admin: `admin@local.test` / `Admin@1234`
+- Employee: `employee@local.test` / `Employee@1234`
+- IT Staff: `itstaff@local.test` / `Itstaff@1234`
 
 Security note:
 - Rotate all seeded/default passwords immediately after first login in non-local environments.
+
+---
+
+## Multi-Session Testing (Optional)
+
+Test multiple roles simultaneously in separate browser tabs without session conflicts.
+
+### Setup (One-time):
+
+1. **Edit hosts file as Administrator**:
+   - Open: `C:\Windows\System32\drivers\etc\hosts`
+   - Add these lines:
+   ```
+   127.0.0.1   admin.local.test
+   127.0.0.1   employee.local.test
+   127.0.0.1   itstaff.local.test
+   ```
+
+2. **Start server** (use `0.0.0.0` to accept all local domains):
+   ```powershell
+   php spark serve --host=0.0.0.0 --port=8080
+   ```
+
+### Usage:
+
+Open different tabs with different domains and login:
+- **Tab 1 (Admin)**: `http://admin.local.test:8080/` → Login: `admin@local.test` / `Admin@1234`
+- **Tab 2 (Employee)**: `http://employee.local.test:8080/` → Login: `employee@local.test` / `Employee@1234`
+- **Tab 3 (IT Staff)**: `http://itstaff.local.test:8080/` → Login: `itstaff@local.test` / `Itstaff@1234`
+
+Each domain maintains its own session - test different roles simultaneously!
+
+**Note**: If using XAMPP, update `.env` to include the port in your `baseURL`, or configure virtual hosts.
+
+📖 **Detailed guide**: See [docs/MULTI_SESSION_LOCAL_DOMAINS_SETUP.md](docs/MULTI_SESSION_LOCAL_DOMAINS_SETUP.md)
 
 ## 10. Run tests (recommended)
 
