@@ -35,6 +35,15 @@ cd C:\xampp\htdocs\inventoryv2
 composer install
 ```
 
+## 3.1 Ensure writable cache directory exists
+
+Some commands (including `php spark`) fail if `writable/cache` is missing.
+
+```powershell
+New-Item -ItemType Directory -Path writable\cache -Force | Out-Null
+if (-not (Test-Path writable\cache\index.html)) { New-Item -ItemType File -Path writable\cache\index.html | Out-Null }
+```
+
 ## 4. Prepare `.env`
 
 If missing:
@@ -192,6 +201,12 @@ Notes:
 ## Troubleshooting
 - `Unknown database 'inventoryv2'`:
   - Run `php spark db:create inventoryv2`
+- `php spark` fails with `Cache unable to write to ...\writable\cache\`:
+  - Ensure `writable\cache` exists
+  - Ensure the current user can write to `writable\cache`
+- PHPUnit errors like `The required PHP extension "sqlite3" is not loaded`:
+  - Enable `extension=sqlite3` in your active CLI `php.ini` (example: `C:\xampp\php\php.ini`)
+  - Verify with `php -m | findstr /i sqlite`
 - CSRF error on POST:
   - Refresh page, then submit again
 - 403 on admin/report pages:
