@@ -38,7 +38,6 @@ class Filters extends BaseFilters
         'auth'          => SessionAuth::class,
         'session'       => SessionAuth::class,
         'role'          => \App\Filters\RoleFilter::class,
-        'multisession'  => \App\Filters\MultiSessionFilter::class,
     ];
 
     /**

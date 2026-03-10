@@ -12,16 +12,6 @@ $routes->get('signup', 'Auth\SignupController::index');
 $routes->post('signup', 'Auth\SignupController::store');
 $routes->post('logout', 'Auth\LogoutController::destroy', ['filter' => 'auth']);
 
-// Multi-session management routes
-$routes->group('auth/sessions', ['filter' => 'auth'], static function (RouteCollection $routes): void {
-    $routes->get('/', 'Auth\SessionController::index');
-    $routes->post('switch/(:num)', 'Auth\SessionController::switch/$1');
-    $routes->post('logout/(:num)', 'Auth\SessionController::logout/$1');
-    $routes->post('logout-all', 'Auth\SessionController::logoutAll');
-    $routes->get('add-new', 'Auth\SessionController::addNew');
-    $routes->post('add', 'Auth\SessionController::store');
-});
-
 $routes->group('admin', ['filter' => 'auth'], static function (RouteCollection $routes): void {
     $routes->get('dashboard', 'Admin\DashboardController::index', ['filter' => 'role:admin']);
     $routes->get('users', 'Admin\UserController::index', ['filter' => 'role:admin']);
