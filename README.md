@@ -1,58 +1,49 @@
-# InventoryV2 - Run Guide (XAMPP + Browser)
+# InventoryV2 - Easy Run Guide
 
-This document shows how to run the project quickly, and how to do full first-time setup.
+This guide is for non-IT users.
 
-## Quick Run (If Already Setup)
+## A. Daily Use (If setup is already done)
 
-Use this if dependencies, database, and seed data were already done before.
+Do these steps only:
 
-1. Start XAMPP services:
+1. Open XAMPP and start:
    - Apache
    - MySQL
-2. Open browser:
-   - `http://localhost/inventoryv2/public/`
-3. Login:
-   - Admin: `admin@local.test` / `Admin@1234`
+2. Open this link in your browser:
+   - http://localhost/inventoryv2/public/
+3. Sign in:
+   - Email: admin@local.test
+   - Password: Admin@1234
 
 ---
 
-## Full First-Time Setup
+## B. First-Time Setup (One time only)
 
-## 1. Prerequisites
+### 1. Install requirements first
+
+- XAMPP
 - PHP 8.2+
 - Composer 2+
-- XAMPP (Apache + MySQL)
 
-## 2. Open project folder
+### 2. Open project folder in PowerShell
 
 ```powershell
 cd C:\xampp\htdocs\inventoryv2
 ```
 
-## 3. Install dependencies
+### 3. Install project dependencies
 
 ```powershell
 composer install
 ```
 
-## 3.1 Ensure writable cache directory exists
-
-Some commands (including `php spark`) fail if `writable/cache` is missing.
-
-```powershell
-New-Item -ItemType Directory -Path writable\cache -Force | Out-Null
-if (-not (Test-Path writable\cache\index.html)) { New-Item -ItemType File -Path writable\cache\index.html | Out-Null }
-```
-
-## 4. Prepare `.env`
-
-If missing:
+### 4. Create .env file
 
 ```powershell
 Copy-Item env .env
 ```
 
-Set values in `.env`:
+Open .env and make sure these lines exist:
 
 ```dotenv
 CI_ENVIRONMENT = development
@@ -66,129 +57,86 @@ database.default.DBDriver = MySQLi
 database.default.port = 3306
 ```
 
-## Legacy Removal
+### 5. Start XAMPP
 
-- The legacy `ample` module has been removed from this repository.
-- Do not use old paths like `http://localhost/ample/`.
-- Use only the active CodeIgniter entrypoint: `http://localhost/inventoryv2/public/`.
-
-## 5. Start XAMPP
-Start:
+Start both:
 - Apache
 - MySQL
 
-## 6. Create DB + run migrations
+### 6. Create database and tables
 
 ```powershell
 php spark db:create inventoryv2
 php spark migrate --all
 ```
 
-## 7. Seed roles/users
+### 7. Create default user accounts
 
 ```powershell
 php spark db:seed AuthRbacSeeder
 ```
 
-## 8. Open browser
-- Home: `http://localhost/inventoryv2/public/`
-- Login: `http://localhost/inventoryv2/public/login`
-- Admin Dashboard: `http://localhost/inventoryv2/public/admin/dashboard`
+### 8. Open the system
 
-## 9. Test accounts
-- Admin: `admin@local.test` / `Admin@1234`
-- Employee: `employee@local.test` / `Employee@1234`
-- IT Staff: `itstaff@local.test` / `Itstaff@1234`
+- Main page: http://localhost/inventoryv2/public/
+- Login page: http://localhost/inventoryv2/public/login
 
-Security note:
-- Rotate all seeded/default passwords immediately after first login in non-local environments.
+Sample accounts:
+- Admin: admin@local.test / Admin@1234
+- Employee: employee@local.test / Employee@1234
+- IT Staff: itstaff@local.test / Itstaff@1234
+
+Important: Change these passwords before real use.
 
 ---
 
-## Multi-Session Testing (Optional)
+## C. Export CSV
 
-Test multiple roles simultaneously in separate browser tabs without session conflicts.
+1. Open the page you need (Procurement, Receiving, Inventory, Reports, Analytics, or Admin Users).
+2. Apply filters if needed.
+3. Click Export CSV.
+4. Save the downloaded file.
 
-### Setup (One-time):
+---
 
-1. **Edit hosts file as Administrator**:
-   - Open: `C:\Windows\System32\drivers\etc\hosts`
-   - Add these lines:
-   ```
-   127.0.0.1   admin.local.test
-   127.0.0.1   employee.local.test
-   127.0.0.1   itstaff.local.test
-   ```
+## D. Common Problems (Quick Fix)
 
-2. **Start server** (use `0.0.0.0` to accept all local domains):
-   ```powershell
-   php spark serve --host=0.0.0.0 --port=8080
-   ```
+Database not found:
+- Run: php spark db:create inventoryv2
 
-### Usage:
+If php spark fails because writable/cache is missing:
 
-Open different tabs with different domains and login:
-- **Tab 1 (Admin)**: `http://admin.local.test:8080/` → Login: `admin@local.test` / `Admin@1234`
-- **Tab 2 (Employee)**: `http://employee.local.test:8080/` → Login: `employee@local.test` / `Employee@1234`
-- **Tab 3 (IT Staff)**: `http://itstaff.local.test:8080/` → Login: `itstaff@local.test` / `Itstaff@1234`
+```powershell
+New-Item -ItemType Directory -Path writable\cache -Force | Out-Null
+if (-not (Test-Path writable\cache\index.html)) { New-Item -ItemType File -Path writable\cache\index.html | Out-Null }
+```
 
-Each domain maintains its own session - test different roles simultaneously!
+CSRF error after form submit:
+- Refresh the page and submit again.
 
-**Note**: If using XAMPP, update `.env` to include the port in your `baseURL`, or configure virtual hosts.
+403 on admin/report pages:
+- Login as Admin or IT Staff account.
 
-📖 **Detailed guide**: See [docs/MULTI_SESSION_LOCAL_DOMAINS_SETUP.md](docs/MULTI_SESSION_LOCAL_DOMAINS_SETUP.md)
+Database connection error:
+- Check MySQL is running.
+- Recheck .env database values.
 
-## 10. Run tests (recommended)
+---
+
+## E. IT-Only (Advanced)
+
+Use these only for maintenance or QA.
+
+Multi-session local domains guide:
+- docs/MULTI_SESSION_LOCAL_DOMAINS_SETUP.md
+
+Run automated tests:
 
 ```powershell
 vendor\bin\phpunit
 ```
 
-Expected: `OK (...)`
-
----
-
-## CSV Export Process
-
-CSV export is available on list/report/detail pages through the **Export CSV** buttons in each page action bar.
-
-1. Open the target module page (for example: Procurement, Receiving, Inventory, Reports, Analytics, or Admin Users).
-2. Apply any filters you need (status, date range, keyword, module, etc.).
-3. Click the page's **Export CSV** button.
-4. Save the downloaded CSV file.
-
-Notes:
-- Exports include only the current server-side filter scope.
-- Detail pages expose item/history exports where applicable (example: issuance items, receiving items, stock movements).
-- Some pages provide multiple export datasets (example: Analytics Metrics has trends and daily metrics exports).
-
----
-
-## Optional Local Server (No Apache)
-
-If you want to use CI built-in server:
-
-1. Set in `.env`:
-
-```dotenv
-app.baseURL = 'http://localhost:8080/'
-```
-
-2. Run:
-
-```powershell
-php spark serve
-```
-
-3. Open:
-
-- `http://localhost:8080/`
-
----
-
-## Analytics Operations
-
-Manual commands:
+Analytics commands:
 
 ```powershell
 php spark analytics:aggregate
@@ -197,60 +145,9 @@ php spark analytics:prune
 php spark analytics:prune --raw-days 180 --metric-days 730
 ```
 
-Windows scheduled tasks configured on this machine:
-- `InventoryV2_Analytics_Aggregate_Daily`
-- `InventoryV2_Analytics_Prune_Weekly`
-
-Verify:
-
-```powershell
-schtasks /Query /TN "InventoryV2_Analytics_Aggregate_Daily" /V /FO LIST
-schtasks /Query /TN "InventoryV2_Analytics_Prune_Weekly" /V /FO LIST
-```
-
-Logs:
-- `writable/logs/analytics_aggregate_task.log`
-- `writable/logs/analytics_prune_task.log`
-
----
-
-## One-Time Quantity Cleanup
-
-Use this command to normalize historical decimal quantity values to whole numbers (non-monetary qty columns only).
-
-Preview first (no changes):
+Quantity cleanup:
 
 ```powershell
 php spark maintenance:normalize-qty
-```
-
-Apply updates (transactional):
-
-```powershell
 php spark maintenance:normalize-qty --apply
 ```
-
-Notes:
-- Rounds qty values using SQL `ROUND(..., 0)`.
-- Targets only quantity fields (not monetary fields like unit cost).
-
----
-
-## Troubleshooting
-- `Unknown database 'inventoryv2'`:
-  - Run `php spark db:create inventoryv2`
-- `php spark` fails with `Cache unable to write to ...\writable\cache\`:
-  - Ensure `writable\cache` exists
-  - Ensure the current user can write to `writable\cache`
-- PHPUnit errors like `The required PHP extension "sqlite3" is not loaded`:
-  - Enable `extension=sqlite3` in your active CLI `php.ini` (example: `C:\xampp\php\php.ini`)
-  - Verify with `php -m | findstr /i sqlite`
-- CSRF error on POST:
-  - Refresh page, then submit again
-- 403 on admin/report pages:
-  - Login with admin or `it_staff`
-- DB connection errors:
-  - Recheck `.env` DB credentials and confirm MySQL is running
-
-
-
