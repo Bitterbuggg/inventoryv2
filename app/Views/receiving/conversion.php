@@ -109,6 +109,10 @@ $todayDate = date('Y-m-d');
             <?= csrf_field() ?>
             <input type="hidden" name="po_request_id" value="<?= esc((string) ($po_request['id'] ?? 0)) ?>">
 
+            <div class="status-callout status-callout-info">
+                <strong>Receiving rule:</strong> For each row, ensure Accepted + Rejected equals Received. Batch, lot, and expiry are mandatory for traceability.
+            </div>
+
             <div class="form-section stack-md">
                 <div class="stack-sm" style="border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
                     <h2 style="margin: 0; font-size: 1.25rem;">Receiving Header</h2>

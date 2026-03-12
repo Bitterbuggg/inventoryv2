@@ -89,7 +89,7 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
                 </form>
                 <form class="inline-form" method="post" action="<?= site_url('inventory/issuance/' . $issuance['id'] . '/reject') ?>">
                     <?= csrf_field() ?>
-                    <input type="text" name="reason" placeholder="Rejection reason" required>
+                    <input type="text" name="reason" placeholder="Rejection reason (required)" required aria-label="Rejection reason">
                     <button type="submit" class="btn btn-danger">Reject</button>
                 </form>
             <?php endif ?>
@@ -99,7 +99,7 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
             <?php endif ?>
 
             <?php if (($issuance['status'] ?? '') === 'approved' && $isAdmin): ?>
-                <form class="inline-form" method="post" action="<?= site_url('inventory/issuance/' . $issuance['id'] . '/release') ?>">
+                <form class="inline-form" method="post" action="<?= site_url('inventory/issuance/' . $issuance['id'] . '/release') ?>" data-confirm="Release this issuance now? Stock will be deducted and FEFO allocations will be finalized." data-confirm-title="Release Issuance">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-primary">Release</button>
                 </form>
@@ -110,13 +110,19 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
             <?php endif ?>
 
             <?php if (in_array((string) ($issuance['status'] ?? ''), ['draft', 'submitted'], true)): ?>
-                <form class="inline-form" method="post" action="<?= site_url('inventory/issuance/' . $issuance['id'] . '/cancel') ?>">
+                <form class="inline-form" method="post" action="<?= site_url('inventory/issuance/' . $issuance['id'] . '/cancel') ?>" data-confirm="Cancel this issuance request? This action cannot be undone." data-confirm-title="Cancel Issuance">
                     <?= csrf_field() ?>
                     <input type="text" name="reason" placeholder="Cancel reason (optional)">
                     <button type="submit" class="btn btn-danger">Cancel</button>
                 </form>
             <?php endif ?>
         </div>
+
+        <?php if (($issuance['status'] ?? '') === 'approved' && $isAdmin): ?>
+            <div class="status-callout status-callout-warning">
+                <strong>Release reminder:</strong> Releasing this issuance immediately deducts stock using FEFO and creates stock movement history.
+            </div>
+        <?php endif ?>
     </section>
 
     <section class="card stack-md">

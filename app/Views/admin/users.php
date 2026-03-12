@@ -131,7 +131,11 @@ foreach ($usersList as $userRow) {
                                     <?php endif; ?>
 
                                     <?php if (! in_array('admin', $userGroups, true)): ?>
-                                        <form class="inline-form" method="post" action="<?= site_url('admin/users/' . $userId . '/delete') ?>" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                        <form class="inline-form"
+                                              method="post"
+                                              action="<?= site_url('admin/users/' . $userId . '/delete') ?>"
+                                              data-confirm="Delete this user account? This action cannot be undone."
+                                              data-confirm-title="Delete User">
                                             <?= csrf_field() ?>
                                             <button type="submit" class="btn btn-danger btn-small">Delete</button>
                                         </form>
@@ -145,4 +149,5 @@ foreach ($usersList as $userRow) {
         </div>
     </section>
 </div>
+
 <?= $this->endSection() ?>

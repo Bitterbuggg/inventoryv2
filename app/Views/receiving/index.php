@@ -162,18 +162,19 @@ $convertibleCount = count($convertiblePoRequests ?? []);
 
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
             <div style="display: flex; gap: 8px; flex: 1; max-width: 400px;">
-                <input type="text" id="instant-search-input" placeholder="Search Receiving #, PO #, or ID..." autocomplete="off" style="flex: 1;">
+                <input type="text" id="instant-search-input" placeholder="Search by receiving number, PO request, or ID..." autocomplete="off" aria-label="Search receiving records" style="flex: 1;">
                 <button type="button" class="btn btn-outline" id="btn-clear-search">Clear</button>
             </div>
             
             <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('receiving') ?>" style="margin: 0;">
-                <select id="status" name="status" style="padding: 6px 12px; font-size: 0.85rem;">
-                    <option value="">DB Sync: All</option>
-                    <?php foreach (['draft', 'posted', 'voided'] as $option): ?>
-                        <option value="<?= esc($option) ?>" <?= (($status ?? '') === $option) ? 'selected' : '' ?>><?= esc($option) ?></option>
+                <?php $receivingStatusLabels = ['draft' => 'Draft', 'posted' => 'Posted', 'voided' => 'Voided']; ?>
+                <select id="status" name="status" aria-label="Filter receiving by status" style="padding: 6px 12px; font-size: 0.85rem;">
+                    <option value="">All Statuses</option>
+                    <?php foreach ($receivingStatusLabels as $option => $label): ?>
+                        <option value="<?= esc($option) ?>" <?= (($status ?? '') === $option) ? 'selected' : '' ?>><?= esc($label) ?></option>
                     <?php endforeach ?>
-                </select>
-                <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">Sync</button>
+                    </select>
+                <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">Filter</button>
             </form>
         </div>
 

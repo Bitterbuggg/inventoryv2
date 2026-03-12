@@ -74,18 +74,21 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
         </div>
 
         <?php if (($receiving['status'] ?? '') === 'draft'): ?>
+            <div class="status-callout status-callout-warning">
+                <strong>Draft state:</strong> Validate checks data consistency. Posting will finalize stock movement and cannot be undone.
+            </div>
             <div class="toolbar">
                 <form class="inline-form" method="post" action="<?= site_url('receiving/' . $receiving['id'] . '/validate') ?>">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-outline">Run Draft Validation</button>
                 </form>
-                <form class="inline-form" method="post" action="<?= site_url('receiving/' . $receiving['id'] . '/post') ?>">
+                <form class="inline-form" method="post" action="<?= site_url('receiving/' . $receiving['id'] . '/post') ?>" data-confirm="Post this receiving now? This will finalize stock updates." data-confirm-title="Post Receiving">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-primary">Post Receiving</button>
                 </form>
-                <form class="inline-form" method="post" action="<?= site_url('receiving/' . $receiving['id'] . '/void') ?>">
+                <form class="inline-form" method="post" action="<?= site_url('receiving/' . $receiving['id'] . '/void') ?>" data-confirm="Void this draft receiving? This action cannot be undone." data-confirm-title="Void Draft Receiving">
                     <?= csrf_field() ?>
-                    <input type="text" name="reason" placeholder="Void reason" required>
+                    <input type="text" name="reason" placeholder="Void reason (required)" required aria-label="Void reason">
                     <button type="submit" class="btn btn-danger">Void Draft</button>
                 </form>
             </div>

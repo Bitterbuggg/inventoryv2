@@ -111,18 +111,19 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
 
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
             <div style="display: flex; gap: 8px; flex: 1; max-width: 400px;">
-                <input type="text" id="instant-search-input" placeholder="Search PO Req #, PO ID, or Req ID..." autocomplete="off" style="flex: 1;">
+                <input type="text" id="instant-search-input" placeholder="Search by PO request number, PO ID, or request ID..." autocomplete="off" aria-label="Search PO requests" style="flex: 1;">
                 <button type="button" class="btn btn-outline" id="btn-clear-search">Clear</button>
             </div>
             
             <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('procurement/po-requests') ?>" style="margin: 0;">
-                <select id="status" name="status" style="padding: 6px 12px; font-size: 0.85rem;">
-                    <option value="">DB Sync: All</option>
-                    <?php foreach (['pending', 'approved', 'rejected', 'converted_to_receiving', 'closed'] as $option): ?>
-                        <option value="<?= esc($option) ?>" <?= (($status ?? '') === $option) ? 'selected' : '' ?>><?= esc($option) ?></option>
+                <?php $poRequestStatusLabels = ['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected', 'converted_to_receiving' => 'Converted to Receiving']; ?>
+                <select id="status" name="status" aria-label="Filter PO requests by status" style="padding: 6px 12px; font-size: 0.85rem;">
+                    <option value="">All Statuses</option>
+                    <?php foreach ($poRequestStatusLabels as $option => $label): ?>
+                        <option value="<?= esc($option) ?>" <?= (($status ?? '') === $option) ? 'selected' : '' ?>><?= esc($label) ?></option>
                     <?php endforeach ?>
-                </select>
-                <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">Sync</button>
+                    </select>
+                <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">Filter</button>
             </form>
         </div>
 

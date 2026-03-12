@@ -19,10 +19,13 @@ $crumbs = [
 
 <?= $this->section('content') ?>
 <div class="card stack-md max-width-sm">
+    <div class="status-callout status-callout-info">
+        <strong>Profile update:</strong> Keep username/email unique. Role and permissions are managed from the users list.
+    </div>
     <form method="post" action="<?= site_url('admin/users/' . $userId) ?>" class="stack-md">
         <?= csrf_field() ?>
 
-        <div class="field">
+        <div class="field field-required">
             <label for="username">Username</label>
             <input id="username" name="username" autocomplete="username" placeholder="john.doe" value="<?= esc((string) old('username', $username)) ?>" required>
             <?php if (isset($errors['username'])): ?>
@@ -30,7 +33,7 @@ $crumbs = [
             <?php endif; ?>
         </div>
 
-        <div class="field">
+        <div class="field field-required">
             <label for="email">Email</label>
             <input id="email" type="email" name="email" autocomplete="email" placeholder="john@company.local" value="<?= esc((string) old('email', $email)) ?>" required>
             <?php if (isset($errors['email'])): ?>

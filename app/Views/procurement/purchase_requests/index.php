@@ -162,15 +162,25 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                 <input type="text" id="instant-search-input" placeholder="Search PR Number or Requestor..." autocomplete="off" style="flex: 1;">
                 <button type="button" class="btn btn-outline" id="btn-clear-search">Clear</button>
             </div>
-            
+
+            <?php
+            $statusLabels = [
+                'draft'           => 'Draft',
+                'submitted'       => 'Submitted',
+                'approved'        => 'Approved',
+                'rejected'        => 'Rejected',
+                'cancelled'       => 'Cancelled',
+                'converted_to_po' => 'Converted to PO',
+            ];
+            ?>
             <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('procurement/purchase-requests') ?>" style="margin: 0;">
-                <select id="status" name="status" style="padding: 6px 12px; font-size: 0.85rem;">
-                    <option value="">All</option>
-                    <?php foreach (['draft', 'submitted', 'approved', 'rejected', 'cancelled', 'converted_to_po'] as $option): ?>
-                        <option value="<?= esc($option) ?>" <?= (($status ?? '') === $option) ? 'selected' : '' ?>><?= esc($option) ?></option>
+                <select id="status" name="status" aria-label="Filter by status" style="padding: 6px 12px; font-size: 0.85rem;">
+                    <option value="">All Statuses</option>
+                    <?php foreach ($statusLabels as $val => $lbl): ?>
+                        <option value="<?= esc($val) ?>" <?= (($status ?? '') === $val) ? 'selected' : '' ?>><?= esc($lbl) ?></option>
                     <?php endforeach ?>
                 </select>
-                <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">Apply Filter</button>
+                <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">Filter</button>
             </form>
         </div>
 
@@ -199,7 +209,15 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                     </thead>
                     <tbody>
                         <?php if (($rows ?? []) === []): ?>
-                            <tr class="no-records-row"><td colspan="7" class="empty-state">No purchase requests found.</td></tr>
+                            <tr class="no-records-row">
+                                <td colspan="7">
+                                    <div class="empty-state-block">
+                                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                        <strong>No purchase requests found</strong>
+                                        <p>No requests match your current filter. <a href="<?= site_url('procurement/purchase-requests/create') ?>">Create a new request</a> or adjust the filter above.</p>
+                                    </div>
+                                </td>
+                            </tr>
                         <?php else: ?>
                             <?php foreach ($rows as $request): ?>
                                 <tr class="pr-row" style="display: none;" data-status="<?= esc(strtolower((string) ($request['status'] ?? ''))) ?>">
@@ -218,16 +236,22 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                                     <button type="submit" class="btn-table btn-submit-blue">Submit</button>
                                                 </form>
                                                 <a class="btn-table btn-edit-outline" href="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/edit') ?>">Edit</a>
-                                                <form method="post" onsubmit="return confirm('Cancel this draft?');" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
+                                                    <form method="post"
+                                                          data-confirm="Cancel this draft request? This cannot be undone."
+                                                          data-confirm-title="Cancel Draft"
+                                                          action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
                                                     <?= csrf_field() ?>
                                                     <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
                                                 </form>
 
-                                            <?php elseif (($request['status'] ?? '') === 'submitted'): ?>
-                                                <form method="post" onsubmit="return confirm('Cancel this submitted request?');" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
-                                                    <?= csrf_field() ?>
-                                                    <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
-                                                </form>
+                                                <?php elseif (($request['status'] ?? '') === 'submitted'): ?>
+                                                    <form method="post"
+                                                          data-confirm="Cancel this submitted request? It will need to be re-submitted for approval."
+                                                          data-confirm-title="Cancel Submitted Request"
+                                                          action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
+                                                        <?= csrf_field() ?>
+                                                        <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
+                                                    </form>
 
                                             <?php elseif (($request['status'] ?? '') === 'approved' && $canCreatePo): ?>
                                                 <form method="post" action="<?= site_url('procurement/purchase-orders/from-pr/' . $request['id']) ?>" style="margin:0">
@@ -462,4 +486,5 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
 
     });
 </script>
+
 <?= $this->endSection() ?>

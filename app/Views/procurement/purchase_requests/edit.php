@@ -101,6 +101,9 @@ $predefinedUnits = [
 <?php $currentStatus = (string) ($purchaseRequest['status'] ?? 'draft'); ?>
 
 <div class="stack-lg">
+    <div class="status-callout status-callout-info">
+        <strong>Edit guidance:</strong> You can update draft rows safely. At least one valid item row is required before saving.
+    </div>
     <section class="card stack-md">
         <div class="kpi-grid">
             <article class="kpi-card">
@@ -308,13 +311,16 @@ $predefinedUnits = [
     // --- SMART REMOVAL LOGIC ---
     function smartRemoveRow(buttonElement, containsSavedData) {
         if (containsSavedData) {
-            // Confirm with user if it's a pre-loaded item
-            const userConfirmed = confirm("Warning: This item contains saved data.\n\nAre you sure you want to remove it from the draft?");
-            if (!userConfirmed) {
-                return; // Cancel deletion
+            // Visual cue when removing a pre-loaded row from draft
+            const row = buttonElement.closest('tr');
+            if (row) {
+                row.style.backgroundColor = '#fff7ed';
+                row.style.transition = 'background-color 0.25s ease';
+                setTimeout(function () { row.style.backgroundColor = ''; }, 300);
             }
         }
-        // Proceed with removing the row (works instantly for new dynamic rows)
+
+        // Proceed with removing the row
         buttonElement.closest('tr').remove();
     }
 

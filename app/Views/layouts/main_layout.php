@@ -232,6 +232,15 @@ if ($canOps) {
         </div>
     </div>
 
+    <?= view('components/shared/confirm_modal', [
+        'id' => 'confirm-modal',
+        'title' => 'Confirm Action',
+        'description' => 'Please confirm this action.',
+        'confirmLabel' => 'Confirm',
+        'cancelLabel' => 'Cancel',
+        'variant' => 'warning',
+    ]) ?>
+
     <script>
         // ==========================================
         // 1. MOBILE MENU TOGGLE 
@@ -399,6 +408,157 @@ if ($canOps) {
                 button.dataset.lastClickAt = String(now);
             }, true);
         })();
-    </script>
+
+            // ==========================================
+            // 6. AUTO-DISMISS ALERTS
+            // ==========================================
+            (function () {
+                document.querySelectorAll('.alert[data-auto-dismiss]').forEach(function (alert) {
+                    const ms = parseInt(alert.dataset.autoDismiss, 10) || 5000;
+
+                    const dismiss = function () {
+                        alert.classList.add('alert-dismissing');
+                        setTimeout(function () { alert.remove(); }, 350);
+                    };
+
+                    setTimeout(dismiss, ms);
+                });
+
+                // Manual close button for all alerts
+                document.addEventListener('click', function (e) {
+                    const btn = e.target.closest('.alert-close');
+                    if (btn) {
+                        const alert = btn.closest('.alert');
+                        if (alert) {
+                            alert.classList.add('alert-dismissing');
+                            setTimeout(function () { alert.remove(); }, 350);
+                        }
+                    }
+                });
+            })();
+
+            // ==========================================
+            // 7. GLOBAL MODAL CONTROLLER
+            // ==========================================
+            (function () {
+                let _pendingForm  = null;
+                let _pendingModal = null;
+
+                // Open a modal by element reference or selector
+                window.openModal = function (modal) {
+                    if (typeof modal === 'string') modal = document.getElementById(modal);
+                    if (!modal) return;
+                    modal.hidden = false;
+                    modal.setAttribute('aria-hidden', 'false');
+                    _pendingModal = modal;
+                    // Focus the cancel button first (safe default focus)
+                    const cancelBtn = modal.querySelector('[data-modal-cancel]');
+                    if (cancelBtn) cancelBtn.focus();
+                };
+
+                window.closeModal = function (modal) {
+                    if (typeof modal === 'string') modal = document.getElementById(modal);
+                    if (!modal) return;
+                    modal.hidden = true;
+                    modal.setAttribute('aria-hidden', 'true');
+                    _pendingModal = null;
+                    _pendingForm  = null;
+                };
+
+                // Handle confirm button → submit pending form
+                document.addEventListener('click', function (e) {
+                    const confirmBtn = e.target.closest('[data-modal-confirm]');
+                    if (confirmBtn) {
+                        const modal = confirmBtn.closest('[data-component="confirm-modal"]');
+                        if (modal) {
+                            modal.hidden = true;
+                            modal.setAttribute('aria-hidden', 'true');
+                        }
+                        if (_pendingForm) {
+                            _pendingForm.dataset.confirmed = 'true';
+                            _pendingForm.requestSubmit ? _pendingForm.requestSubmit() : _pendingForm.submit();
+                            _pendingForm  = null;
+                            _pendingModal = null;
+                        }
+                    }
+                });
+
+                // Handle cancel button → close modal
+                document.addEventListener('click', function (e) {
+                    const cancelBtn = e.target.closest('[data-modal-cancel]');
+                    if (cancelBtn) {
+                        const modal = cancelBtn.closest('[data-component="confirm-modal"]');
+                        if (modal) closeModal(modal);
+                        _pendingForm  = null;
+                        _pendingModal = null;
+                    }
+                });
+
+                // Click on backdrop (outside dialog) → close
+                document.addEventListener('click', function (e) {
+                    if (_pendingModal && e.target === _pendingModal) {
+                        closeModal(_pendingModal);
+                        _pendingForm = null;
+                    }
+                });
+
+                // ESC key → close modal
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape' && _pendingModal) {
+                        closeModal(_pendingModal);
+                        _pendingForm = null;
+                    }
+                });
+
+                // Intercept forms with data-confirm attribute
+                document.addEventListener('submit', function (e) {
+                    const form = e.target;
+                    if (!form.dataset.confirm || form.dataset.confirmed === 'true') return;
+
+                    e.preventDefault();
+
+                    // Find the linked modal or the page's default confirm modal
+                    const modalId = form.dataset.confirmModal || 'confirm-modal';
+                    const modal   = document.getElementById(modalId);
+                    if (!modal) {
+                        // Fallback to native confirm if no modal found
+                        if (window.confirm(form.dataset.confirm)) {
+                            form.dataset.confirmed = 'true';
+                            form.requestSubmit ? form.requestSubmit() : form.submit();
+                        }
+                        return;
+                    }
+
+                    // Update modal text dynamically if specified
+                    const titleEl = modal.querySelector('[id$="-title"]');
+                    const descEl  = modal.querySelector('.modal-desc');
+                    if (titleEl && form.dataset.confirmTitle) titleEl.textContent = form.dataset.confirmTitle;
+                    if (descEl  && form.dataset.confirm)      descEl.textContent  = form.dataset.confirm;
+
+                    _pendingForm = form;
+                    openModal(modal);
+                }, true);
+            })();
+
+            // ==========================================
+            // 8. PASSWORD VISIBILITY TOGGLE
+            // ==========================================
+            (function () {
+                document.addEventListener('click', function (e) {
+                    const btn = e.target.closest('[data-pw-toggle]');
+                    if (!btn) return;
+                    const inputId = btn.dataset.pwToggle;
+                    const input   = document.getElementById(inputId);
+                    if (!input) return;
+                    const isHidden = input.type === 'password';
+                    input.type = isHidden ? 'text' : 'password';
+                    btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+                    const eyeIcon   = btn.querySelector('.icon-eye');
+                    const eyeOff    = btn.querySelector('.icon-eye-off');
+                    if (eyeIcon) eyeIcon.style.display = isHidden ? 'none' : '';
+                    if (eyeOff)  eyeOff.style.display  = isHidden ? '' : 'none';
+                });
+            })();
+        </script>
 </body>
 </html>

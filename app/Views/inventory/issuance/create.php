@@ -231,10 +231,11 @@ $predefinedUnits = ['Box', 'Piece', 'Vial', 'Bottle', 'Pack', 'Roll', 'Tablet', 
 </script>
 
 <script>
-    // --- DELETE CONFIRMATION ---
+    // --- ROW REMOVE ---
     function removeRow(btn) {
-        if(confirm("Are you sure you want to remove this item row?")) {
-            btn.closest('tr').remove();
+        const row = btn.closest('tr');
+        if (row) {
+            row.remove();
         }
     }
 

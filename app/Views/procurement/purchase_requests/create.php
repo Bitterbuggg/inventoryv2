@@ -101,6 +101,9 @@ $predefinedUnits = [
 
 <?= $this->section('content') ?>
 <div class="stack-lg">
+    <div class="status-callout status-callout-info">
+        <strong>Request guidance:</strong> Fill at least one item row with item, unit, and requested quantity. Blank rows are ignored when saving.
+    </div>
     
     <form method="post" action="<?= site_url('procurement/purchase-requests') ?>" class="stack-lg" id="pr-form">
         <?= csrf_field() ?>
@@ -276,8 +279,9 @@ $predefinedUnits = [
 <script>
     // --- DELETE CONFIRMATION ---
     function removeRow(btn) {
-        if(confirm("Are you sure you want to remove this item row?")) {
-            btn.closest('tr').remove();
+        const row = btn.closest('tr');
+        if (row) {
+            row.remove();
         }
     }
 

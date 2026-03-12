@@ -113,18 +113,19 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
 
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
             <div style="display: flex; gap: 8px; flex: 1; max-width: 400px;">
-                <input type="text" id="instant-search-input" placeholder="Search PO Number, PR ID, or Supplier..." autocomplete="off" style="flex: 1;">
+                    <input type="text" id="instant-search-input" placeholder="Search by PO number, supplier, or PO ID..." autocomplete="off" aria-label="Search purchase orders" style="flex: 1;">
                 <button type="button" class="btn btn-outline" id="btn-clear-search">Clear</button>
             </div>
             
             <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('procurement/purchase-orders') ?>" style="margin: 0;">
-                <select id="status" name="status" style="padding: 6px 12px; font-size: 0.85rem;">
-                    <option value="">DB Sync: All</option>
-                    <?php foreach (['draft', 'issued', 'partially_received', 'fully_received', 'cancelled'] as $option): ?>
-                        <option value="<?= esc($option) ?>" <?= (($status ?? '') === $option) ? 'selected' : '' ?>><?= esc($option) ?></option>
-                    <?php endforeach ?>
+                    <?php $poStatusLabels = ['draft' => 'Draft', 'issued' => 'Issued', 'partially_received' => 'Partially Received', 'fully_received' => 'Fully Received', 'cancelled' => 'Cancelled']; ?>
+                    <select id="status" name="status" aria-label="Filter purchase orders by status" style="padding: 6px 12px; font-size: 0.85rem;">
+                        <option value="">All Statuses</option>
+                        <?php foreach ($poStatusLabels as $option => $label): ?>
+                            <option value="<?= esc($option) ?>" <?= (($status ?? '') === $option) ? 'selected' : '' ?>><?= esc($label) ?></option>
+                        <?php endforeach ?>
                 </select>
-                <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">Sync</button>
+                        <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">Filter</button>
             </form>
         </div>
 

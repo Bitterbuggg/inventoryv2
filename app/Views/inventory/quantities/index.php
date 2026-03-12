@@ -73,7 +73,7 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
 
     <section class="card stack-md">
         <form class="inline-form" id="instant-search-form" style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <input type="text" id="instant-search-input" placeholder="Search ID, name, or batch..." autocomplete="off" style="flex: 1; min-width: 220px;">
+            <input type="text" id="instant-search-input" placeholder="Search by stock ID, item name, generic name, lot, or batch..." autocomplete="off" aria-label="Search inventory quantities" style="flex: 1; min-width: 220px;">
             
             <select id="filter-stock-status" style="width: auto; padding: 6px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text);">
                 <option value="all">All Stock Levels</option>
@@ -125,7 +125,15 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
                     </thead>
                     <tbody>
                         <?php if (($rows ?? []) === []): ?>
-                            <tr class="no-records-row"><td colspan="11" class="empty-state">No inventory stocks found.</td></tr>
+                            <tr class="no-records-row">
+                                <td colspan="11">
+                                    <div class="empty-state-block">
+                                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+                                        <strong>No inventory stocks found</strong>
+                                        <p>No stock records are available yet for this filter.</p>
+                                    </div>
+                                </td>
+                            </tr>
                         <?php else: ?>
                             <?php foreach ($rows as $stock): ?>
                                 <?php 

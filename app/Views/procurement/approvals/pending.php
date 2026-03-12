@@ -124,7 +124,7 @@ $prApprovals = count(array_filter($rows, static fn (array $row): bool => (string
                 <p class="kpi-note">Linked to PR flow.</p>
             </article>
             <article class="kpi-card">
-                <p class="kpi-label">Filtered Scope</p>
+                <p class="kpi-label">Scope</p>
                 <p class="kpi-value" id="kpi-pr-only">PR Only</p>
                 <p class="kpi-note">Procurement approvals only.</p>
             </article>
@@ -138,8 +138,8 @@ $prApprovals = count(array_filter($rows, static fn (array $row): bool => (string
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <div style="display: flex; gap: 8px; flex: 1; max-width: 400px;">
-                <input type="text" id="instant-search-input" placeholder="Search Reference # or ID..." autocomplete="off" style="flex: 1;">
+            <div style="display: flex; gap: 8px; flex: 1; max-width: 420px;">
+                <input type="text" id="instant-search-input" placeholder="Search by reference type, ID, or PR number..." autocomplete="off" aria-label="Search approvals" style="flex: 1;">
                 <button type="button" class="btn btn-outline" id="btn-clear-search">Clear</button>
             </div>
         </div>
