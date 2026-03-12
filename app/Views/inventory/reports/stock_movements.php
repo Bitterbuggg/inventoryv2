@@ -97,17 +97,18 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
 
         <div id="full-movements-container">
             <div class="table-wrap">
-                <table class="table" id="movements-table" style="table-layout: fixed; width: 100%; min-width: 1000px;">
+                <table class="table" id="movements-table" style="table-layout: fixed; width: 100%;">
                     <colgroup>
-                        <col style="width: 60px;">  
-                        <col style="width: 130px;"> 
-                        <col style="width: 150px;"> <col style="width: 140px;"> 
-                        <col style="width: 25%;">   
-                        <col style="width: 80px;">  
-                        <col style="width: 90px;">  
-                        <col style="width: 90px;">  
-                        <col style="width: 100px;"> 
-                        <col style="width: 150px;"> 
+                        <col style="width: 4%;">
+                        <col style="width: 11%;">
+                        <col style="width: 10%;">
+                        <col style="width: 10%;">
+                        <col style="width: 24%;">
+                        <col style="width: 6%;">
+                        <col style="width: 8%;">
+                        <col style="width: 8%;">
+                        <col style="width: 8%;">
+                        <col style="width: 11%;">
                     </colgroup>
                     <thead>
                         <tr>
@@ -139,12 +140,12 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
                                         </span>
                                     </td>
                                     <td style="font-size: 0.85rem; color: var(--color-text-muted); word-break: break-word;"><?= esc((string) $row['reference_type']) ?> #<?= esc((string) $row['reference_id']) ?></td>
-                                    <td style="font-weight: 500; word-break: break-word;"><?= esc((string) $row['item_name']) ?></td>
+                                    <td style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= esc((string) $row['item_name']) ?>"><?= esc((string) $row['item_name']) ?></td>
                                     <td style="font-size: 0.85rem; color: var(--color-text-muted);"><?= esc((string) $row['unit']) ?></td>
                                     <td style="text-align: right; color: var(--color-success); font-weight: 600;"><?= esc((string) $row['qty_in']) ?></td>
                                     <td style="text-align: right; color: var(--color-danger); font-weight: 600;"><?= esc((string) $row['qty_out']) ?></td>
                                     <td style="text-align: right; font-weight: bold;"><?= esc((string) $row['balance_after']) ?></td>
-                                    <td style="font-size: 0.85rem; white-space: nowrap;"><?= esc((string) $row['performed_at']) ?></td>
+                                    <td style="font-size: 0.85rem;"><?= esc((string) $row['performed_at']) ?></td>
                                 </tr>
                             <?php endforeach ?>
                         <?php endif ?>

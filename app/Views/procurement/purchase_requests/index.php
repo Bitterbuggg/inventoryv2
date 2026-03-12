@@ -71,11 +71,14 @@ $canCreatePo = $isAdmin
     .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--color-text-muted); }
 
     /* --- HCI UNIFIED ACTION BUTTONS --- */
-    .action-row { display: flex; gap: 6px; align-items: center; justify-content: flex-start; flex-wrap: wrap; }
+    .action-row { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: nowrap; }
+
+    .btn-link-view { font-size: 0.78rem; color: var(--color-text-muted); text-decoration: none; font-weight: 500; padding: 4px 0; white-space: nowrap; }
+    .btn-link-view:hover { color: var(--color-brand-700); text-decoration: underline; }
     
     .btn-table {
-        padding: 5px 12px !important;
-        font-size: 0.75rem !important;
+        padding: 4px 10px !important;
+        font-size: 0.7rem !important;
         font-weight: 700 !important;
         border-radius: 4px !important;
         text-transform: uppercase !important;
@@ -86,6 +89,7 @@ $canCreatePo = $isAdmin
         text-decoration: none !important;
         align-items: center;
         justify-content: center;
+        white-space: nowrap;
     }
 
     .btn-submit-blue { background: #0369a1 !important; color: white !important; }
@@ -172,15 +176,15 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
 
         <div id="full-events-container">
             <div class="table-wrap">
-                <table class="table" id="pr-table" style="table-layout: fixed; width: 100%; min-width: 1000px;">
+                <table class="table" id="pr-table" style="table-layout: fixed; width: 100%;">
                     <colgroup>
-                        <col style="width: 60px;">  
-                        <col style="width: 16%;">   
+                        <col style="width: 5%;">  
                         <col style="width: 14%;">   
                         <col style="width: 12%;">   
-                        <col style="width: 15%;">   
-                        <col style="width: auto;">    
-                        <col style="width: 250px;"> 
+                        <col style="width: 10%;">   
+                        <col style="width: 11%;">   
+                        <col style="width: 16%;">    
+                        <col style="width: 32%;"> 
                     </colgroup>
                     <thead>
                         <tr>
@@ -190,7 +194,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                             <th class="sortable date" data-col="3">Date</th>
                             <th class="sortable" data-col="4" id="status-header" title="Click to cycle status filters!">Status <span style="font-size: 0.75rem; font-weight: normal; opacity: 0.7;">(All)</span></th>
                             <th>Remarks</th>
-                            <th>Actions</th>
+                            <th style="text-align: right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -200,51 +204,51 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                             <?php foreach ($rows as $request): ?>
                                 <tr class="pr-row" style="display: none;" data-status="<?= esc(strtolower((string) ($request['status'] ?? ''))) ?>">
                                     <td><?= esc((string) $request['id']) ?></td>
-                                    <td style="font-family: var(--font-mono); font-weight: 600; color: var(--color-brand-700); font-size: 0.85rem; word-break: break-all;"><?= esc((string)$request['pr_number']) ?></td>
+                                    <td><a href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>" style="font-family: var(--font-mono); font-weight: 600; color: var(--color-brand-700); font-size: 0.85rem; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'"><?= esc((string)$request['pr_number']) ?></a></td>
                                     <td><strong><?= esc((string) $request['requested_by']) ?></strong></td>
                                     <td style="white-space: nowrap; font-size: 0.85rem;"><?= esc((string) $request['request_date']) ?></td>
                                     <td><?= view('components/shared/table_status_badge', ['status' => $request['status'] ?? 'unknown']) ?></td>
-                                    <td style="color: var(--color-text-muted); font-size: 0.85rem; word-break: break-all;"><?= esc((string) ($request['remarks'] ?? '')) ?></td>
+                                    <td style="color: var(--color-text-muted); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= esc((string) ($request['remarks'] ?? '')) ?>"><?= esc((string) ($request['remarks'] ?? '')) ?></td>
                                     <td>
                                         <div class="action-row">
-                                            <a class="btn-table btn-edit-outline" href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>">View</a>
+                                            <a class="btn-link-view" href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>">View</a>
                                             <?php if (($request['status'] ?? '') === 'draft'): ?>
-                                                <form method="post" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/submit') ?>" style="margin: 0;">
+                                                <form method="post" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/submit') ?>" style="margin:0">
                                                     <?= csrf_field() ?>
                                                     <button type="submit" class="btn-table btn-submit-blue">Submit</button>
                                                 </form>
                                                 <a class="btn-table btn-edit-outline" href="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/edit') ?>">Edit</a>
-                                                <form method="post" onsubmit="return confirm('Cancel this draft?');" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin: 0;">
+                                                <form method="post" onsubmit="return confirm('Cancel this draft?');" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
                                                     <?= csrf_field() ?>
                                                     <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
                                                 </form>
 
                                             <?php elseif (($request['status'] ?? '') === 'submitted'): ?>
-                                                <form method="post" onsubmit="return confirm('Cancel this submitted request?');" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin: 0;">
+                                                <form method="post" onsubmit="return confirm('Cancel this submitted request?');" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
                                                     <?= csrf_field() ?>
-                                                    <button type="submit" class="btn-table btn-cancel-red">Cancel Request</button>
+                                                    <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
                                                 </form>
 
                                             <?php elseif (($request['status'] ?? '') === 'approved' && $canCreatePo): ?>
-                                                <form method="post" action="<?= site_url('procurement/purchase-orders/from-pr/' . $request['id']) ?>" style="margin: 0;">
+                                                <form method="post" action="<?= site_url('procurement/purchase-orders/from-pr/' . $request['id']) ?>" style="margin:0">
                                                     <?= csrf_field() ?>
                                                     <div class="create-po-group">
                                                         <input type="text" name="supplier_name" class="create-po-input" placeholder="Supplier...">
-                                                        <button type="submit" class="btn-po-blue">Create PO</button>
+                                                        <button type="submit" class="btn-po-blue">PO</button>
                                                     </div>
                                                 </form>
 
                                             <?php elseif (($request['status'] ?? '') === 'approved'): ?>
-                                                <span class="muted" style="font-size: 0.75rem;">Awaiting admin approval to create PO</span>
+                                                <span class="muted" style="font-size: 0.75rem;">Awaiting PO</span>
 
                                             <?php elseif (($request['status'] ?? '') === 'converted_to_po'): ?>
                                                 <?php if ($canOps): ?>
-                                                    <a href="<?= site_url('procurement/purchase-orders') ?>" class="btn-table po-nav-btn">VIEW PO &rarr;</a>
+                                                    <a href="<?= site_url('procurement/purchase-orders') ?>" class="btn-table po-nav-btn">PO &rarr;</a>
                                                 <?php else: ?>
-                                                    <span class="muted" style="font-size: 0.75rem;">Converted to PO</span>
+                                                    <span class="muted" style="font-size: 0.75rem;">Converted</span>
                                                 <?php endif ?>
                                             <?php else: ?>
-                                                <span class="muted" style="font-size: 0.75rem;">No actions</span>
+                                                <span class="muted" style="font-size: 0.75rem;">&mdash;</span>
                                             <?php endif ?>
                                         </div>
                                     </td>
@@ -454,6 +458,8 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
 
             showPage(1);
         }
+
+
     });
 </script>
 <?= $this->endSection() ?>

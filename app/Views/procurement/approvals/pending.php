@@ -53,7 +53,7 @@ $crumbs = [
     .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--color-text-muted); }
 
     /* --- HCI COMPLIANT ACTION INPUTS --- */
-    .action-container { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .action-container { display: flex; gap: 6px; align-items: stretch; flex-direction: column; }
     
     .approval-input-group {
         display: inline-flex;
@@ -146,13 +146,13 @@ $prApprovals = count(array_filter($rows, static fn (array $row): bool => (string
 
         <div id="full-events-container">
             <div class="table-wrap" style="overflow-x: auto;">
-                <table class="table" id="approvals-table" style="table-layout: fixed; width: 100%; min-width: 900px;">
+                <table class="table" id="approvals-table" style="table-layout: fixed; width: 100%;">
                     <colgroup>
-                        <col style="width: 70px;">  
-                        <col style="width: 25%;">   
+                        <col style="width: 5%;">  
+                        <col style="width: 30%;">   
+                        <col style="width: 8%;">   
                         <col style="width: 12%;">   
-                        <col style="width: 15%;">   
-                        <col style="width: auto;">    
+                        <col style="width: 45%;">    
                     </colgroup>
                     <thead>
                         <tr>
