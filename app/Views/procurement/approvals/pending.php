@@ -104,7 +104,6 @@ $rows = $approvals ?? [];
 $totalPending = count($rows);
 $level1Pending = count(array_filter($rows, static fn (array $row): bool => (string) ($row['approval_level'] ?? '') === '1'));
 $prApprovals = count(array_filter($rows, static fn (array $row): bool => (string) ($row['reference_type'] ?? '') === 'purchase_request'));
-$issuanceApprovals = count(array_filter($rows, static fn (array $row): bool => (string) ($row['reference_type'] ?? '') === 'issuance'));
 ?>
 <div class="stack-lg">
     <section class="card stack-md">
@@ -125,9 +124,9 @@ $issuanceApprovals = count(array_filter($rows, static fn (array $row): bool => (
                 <p class="kpi-note">Linked to PR flow.</p>
             </article>
             <article class="kpi-card">
-                <p class="kpi-label">Issuances</p>
-                <p class="kpi-value" id="kpi-issuance"><?= esc((string) $issuanceApprovals) ?></p>
-                <p class="kpi-note">Linked to issuance flow.</p>
+                <p class="kpi-label">Filtered Scope</p>
+                <p class="kpi-value" id="kpi-pr-only">PR Only</p>
+                <p class="kpi-note">Procurement approvals only.</p>
             </article>
         </div>
     </section>
@@ -176,6 +175,36 @@ $issuanceApprovals = count(array_filter($rows, static fn (array $row): bool => (
                                     <td style="font-family: var(--font-mono); font-weight: 600; color: var(--color-brand-700); font-size: 0.85rem;">
                                         <span style="font-family: var(--font-sans); font-size: 0.7rem; text-transform: uppercase; display: block; opacity: 0.6; font-weight: 500;"><?= esc(str_replace('_', ' ', (string)$approval['reference_type'])) ?></span>
                                         #<?= esc((string) $approval['reference_id']) ?>
+                                        <?php $pr = $approval['purchase_request'] ?? null; ?>
+                                        <?php if (is_array($pr)): ?>
+                                            <details style="margin-top: 6px; font-family: var(--font-sans); font-size: 0.75rem;">
+                                                <summary style="cursor: pointer; color: var(--color-brand-700); font-weight: 600;">View PR Details</summary>
+                                                <div style="margin-top: 6px; line-height: 1.45; color: var(--color-text-muted);">
+                                                    <div style="margin-bottom: 6px;">
+                                                        <a href="<?= site_url('procurement/purchase-requests/' . (int) ($approval['reference_id'] ?? 0)) ?>" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.72rem;">Open Full Request</a>
+                                                    </div>
+                                                    <div><strong>PR:</strong> <?= esc((string) ($pr['pr_number'] ?? '-')) ?></div>
+                                                    <div><strong>Date:</strong> <?= esc((string) ($pr['request_date'] ?? '-')) ?></div>
+                                                    <div><strong>Requested By:</strong> <?= esc((string) ($pr['requested_by'] ?? '-')) ?></div>
+                                                    <?php $items = is_array($pr['items'] ?? null) ? $pr['items'] : []; ?>
+                                                    <div><strong>Items:</strong> <?= esc((string) count($items)) ?></div>
+                                                    <?php if ($items !== []): ?>
+                                                        <ul style="margin: 6px 0 0 16px; padding: 0;">
+                                                            <?php foreach (array_slice($items, 0, 4) as $item): ?>
+                                                                <li>
+                                                                    <?= esc((string) ($item['item_name'] ?? '')) ?>
+                                                                    (<?= esc((string) ((int) round((float) ($item['requested_qty'] ?? 0)))) ?>
+                                                                    <?= esc((string) ($item['unit'] ?? 'unit')) ?>)
+                                                                </li>
+                                                            <?php endforeach ?>
+                                                        </ul>
+                                                        <?php if (count($items) > 4): ?>
+                                                            <div style="margin-top: 4px;">+<?= esc((string) (count($items) - 4)) ?> more items</div>
+                                                        <?php endif ?>
+                                                    <?php endif ?>
+                                                </div>
+                                            </details>
+                                        <?php endif ?>
                                     </td>
                                     <td><span class="badge" style="background: var(--color-surface-alt); font-size: 0.75rem;"><?= esc((string) $approval['approval_level']) ?></span></td>
                                     <td><?= view('components/shared/table_status_badge', ['status' => $approval['decision'] ?? 'pending']) ?></td>
@@ -234,12 +263,12 @@ $issuanceApprovals = count(array_filter($rows, static fn (array $row): bool => (
             const kpiTotal = document.getElementById('kpi-total');
             const kpiL1 = document.getElementById('kpi-l1');
             const kpiPr = document.getElementById('kpi-pr');
-            const kpiIssuance = document.getElementById('kpi-issuance');
+            const kpiPrOnly = document.getElementById('kpi-pr-only');
 
             const searchInput = document.getElementById('instant-search-input');
             const clearBtn = document.getElementById('btn-clear-search');
 
-            const typeCycle = ['All', 'purchase_request', 'issuance'];
+            const typeCycle = ['All', 'purchase_request'];
             let cycleIndex = 0;
             let currentTypeFilter = 'All';
 
@@ -262,19 +291,20 @@ $issuanceApprovals = count(array_filter($rows, static fn (array $row): bool => (
             }
 
             function updateKPIs() {
-                let countL1 = 0, countPR = 0, countIss = 0;
+                let countL1 = 0, countPR = 0;
                 currentRows.forEach(row => {
                     const type = row.getAttribute('data-type');
                     const level = row.children[2].innerText.trim();
                     if (level === '1') countL1++;
                     if (type === 'purchase_request') countPR++;
-                    if (type === 'issuance') countIss++;
                 });
                 
                 kpiTotal.innerText = currentRows.length;
                 kpiL1.innerText = countL1;
                 kpiPr.innerText = countPR;
-                kpiIssuance.innerText = countIss;
+                if (kpiPrOnly) {
+                    kpiPrOnly.innerText = 'PR Only';
+                }
                 totalIndicator.innerText = currentRows.length;
             }
 

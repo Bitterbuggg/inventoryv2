@@ -14,8 +14,35 @@ class PurchaseApprovalController extends BaseController
     {
         RepositoryServices::analyticsService()->trackCurrentUser('procurement.approvals_viewed', 'procurement');
 
+        $approvals = RepositoryServices::approvalService()->listPending();
+
+        $approvals = array_map(static function (array $approval): array {
+            $referenceType = (string) ($approval['reference_type'] ?? '');
+            $referenceId = (int) ($approval['reference_id'] ?? 0);
+
+            if ($referenceType !== 'purchase_request' || $referenceId <= 0) {
+                return $approval;
+            }
+
+            $purchaseRequest = RepositoryServices::purchaseRequestService()->findWithItems($referenceId);
+
+            if ($purchaseRequest === null) {
+                return $approval;
+            }
+
+            $approval['purchase_request'] = [
+                'pr_number' => $purchaseRequest['pr_number'] ?? null,
+                'request_date' => $purchaseRequest['request_date'] ?? null,
+                'requested_by' => $purchaseRequest['requested_by'] ?? null,
+                'remarks' => $purchaseRequest['remarks'] ?? null,
+                'items' => $purchaseRequest['items'] ?? [],
+            ];
+
+            return $approval;
+        }, $approvals);
+
         return view('procurement/approvals/pending', [
-            'approvals' => RepositoryServices::approvalService()->listPending(),
+            'approvals' => $approvals,
         ]);
     }
 

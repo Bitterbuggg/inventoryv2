@@ -8,6 +8,13 @@ $pageSubtitle = 'Create, submit, and track purchase requests by workflow status.
 $crumbs = [
     ['label' => 'Purchase Requests'],
 ];
+
+$user = function_exists('auth') ? auth()->user() : null;
+$isAdmin = $user !== null && method_exists($user, 'inGroup') && $user->inGroup('admin');
+$isItStaff = $user !== null && method_exists($user, 'inGroup') && $user->inGroup('it_staff');
+$canOps = $isAdmin || $isItStaff;
+$canCreatePo = $isAdmin
+    || ($user !== null && method_exists($user, 'can') && $user->can('procurement.po.create'));
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -102,9 +109,11 @@ $crumbs = [
 <a class="btn btn-primary" href="<?= site_url('procurement/purchase-requests/create') ?>">Create Request</a>
 <?php $purchaseRequestExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests') . '?' . $purchaseRequestExportQuery ?>">Export CSV</a>
+<?php if ($canOps): ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>">Pending Approvals</a>
 <a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>">Purchase Orders</a>
 <a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>">PO Requests</a>
+<?php endif ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -198,6 +207,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                     <td style="color: var(--color-text-muted); font-size: 0.85rem; word-break: break-all;"><?= esc((string) ($request['remarks'] ?? '')) ?></td>
                                     <td>
                                         <div class="action-row">
+                                            <a class="btn-table btn-edit-outline" href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>">View</a>
                                             <?php if (($request['status'] ?? '') === 'draft'): ?>
                                                 <form method="post" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/submit') ?>" style="margin: 0;">
                                                     <?= csrf_field() ?>
@@ -215,7 +225,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                                     <button type="submit" class="btn-table btn-cancel-red">Cancel Request</button>
                                                 </form>
 
-                                            <?php elseif (($request['status'] ?? '') === 'approved'): ?>
+                                            <?php elseif (($request['status'] ?? '') === 'approved' && $canCreatePo): ?>
                                                 <form method="post" action="<?= site_url('procurement/purchase-orders/from-pr/' . $request['id']) ?>" style="margin: 0;">
                                                     <?= csrf_field() ?>
                                                     <div class="create-po-group">
@@ -224,8 +234,15 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                                     </div>
                                                 </form>
 
+                                            <?php elseif (($request['status'] ?? '') === 'approved'): ?>
+                                                <span class="muted" style="font-size: 0.75rem;">Awaiting admin approval to create PO</span>
+
                                             <?php elseif (($request['status'] ?? '') === 'converted_to_po'): ?>
-                                                <a href="<?= site_url('procurement/purchase-orders') ?>" class="btn-table po-nav-btn">VIEW PO &rarr;</a>
+                                                <?php if ($canOps): ?>
+                                                    <a href="<?= site_url('procurement/purchase-orders') ?>" class="btn-table po-nav-btn">VIEW PO &rarr;</a>
+                                                <?php else: ?>
+                                                    <span class="muted" style="font-size: 0.75rem;">Converted to PO</span>
+                                                <?php endif ?>
                                             <?php else: ?>
                                                 <span class="muted" style="font-size: 0.75rem;">No actions</span>
                                             <?php endif ?>

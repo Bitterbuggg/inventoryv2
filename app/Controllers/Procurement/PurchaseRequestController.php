@@ -46,7 +46,27 @@ class PurchaseRequestController extends BaseController
         ]);
     }
 
-public function create()
+    public function show(int $id): string|RedirectResponse
+    {
+        $purchaseRequest = RepositoryServices::purchaseRequestService()->findWithItems($id);
+
+        if ($purchaseRequest === null) {
+            return redirect()->to('/procurement/purchase-requests')->with('error', 'Purchase request not found.');
+        }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.pr_details_viewed',
+            'procurement',
+            'purchase_request',
+            $id,
+        );
+
+        return view('procurement/purchase_requests/show', [
+            'purchaseRequest' => $purchaseRequest,
+        ]);
+    }
+
+    public function create()
     {
         // Connect to your database
         $db = \Config\Database::connect();

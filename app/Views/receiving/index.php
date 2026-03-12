@@ -183,8 +183,9 @@ $convertibleCount = count($convertiblePoRequests ?? []);
                     <col style="width: 80px;">  
                     <col style="width: 25%;">   
                     <col style="width: 20%;">   
-                    <col style="width: 150px;"> 
-                    <col style="width: 150px;"> 
+                    <col style="width: 18%;">   
+                    <col style="width: 130px;"> 
+                    <col style="width: 130px;"> 
                     <col style="width: 100px;"> 
                 </colgroup>
                 <thead>
@@ -192,20 +193,22 @@ $convertibleCount = count($convertiblePoRequests ?? []);
                         <th class="sortable numeric" data-col="0">ID</th>
                         <th class="sortable" data-col="1">Receiving Number</th>
                         <th class="sortable" data-col="2">PO Request</th>
-                        <th class="sortable date" data-col="3">Received Date</th>
-                        <th class="sortable" data-col="4" id="status-header" title="Click to cycle status filters!">Status (All)</th>
+                        <th class="sortable" data-col="3">Delivery Ref</th>
+                        <th class="sortable date" data-col="4">Received Date</th>
+                        <th class="sortable" data-col="5" id="status-header" title="Click to cycle status filters!">Status (All)</th>
                         <th style="text-align: center;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (($receivings ?? []) === []): ?>
-                        <tr class="no-records-row"><td colspan="6" class="empty-state">No receiving records found.</td></tr>
+                        <tr class="no-records-row"><td colspan="7" class="empty-state">No receiving records found.</td></tr>
                     <?php else: ?>
                         <?php foreach ($receivings as $receiving): ?>
                             <tr class="rec-row" style="display: none;" data-status="<?= esc(strtolower((string) ($receiving['status'] ?? ''))) ?>">
                                 <td><?= esc((string) $receiving['id']) ?></td>
                                 <td style="font-family: var(--font-mono); font-weight: 500; color: var(--color-brand-700);"><?= esc((string) $receiving['receiving_number']) ?></td>
                                 <td style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-text-muted);">#<?= esc((string) $receiving['po_request_id']) ?></td>
+                                <td style="font-size: 0.85rem;"><?= esc((string) ($receiving['delivery_reference'] ?? '-')) ?></td>
                                 <td style="font-size: 0.85rem;"><?= esc((string) $receiving['received_date']) ?></td>
                                 <td><?= view('components/shared/table_status_badge', ['status' => $receiving['status'] ?? 'unknown']) ?></td>
                                 <td style="text-align: center;">
@@ -265,9 +268,10 @@ $convertibleCount = count($convertiblePoRequests ?? []);
                     const id = row.children[0].innerText.toLowerCase();
                     const recNum = row.children[1].innerText.toLowerCase();
                     const poReq = row.children[2].innerText.toLowerCase();
+                    const deliveryRef = row.children[3].innerText.toLowerCase();
                     const statusVal = row.getAttribute('data-status');
 
-                    const matchesText = query === '' || id.includes(query) || recNum.includes(query) || poReq.includes(query);
+                    const matchesText = query === '' || id.includes(query) || recNum.includes(query) || poReq.includes(query) || deliveryRef.includes(query);
                     
                     let matchesStatus = true;
                     if (currentStatusFilter !== 'All') {

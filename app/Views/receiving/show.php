@@ -40,12 +40,12 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Accepted Qty</p>
-                <p class="kpi-value"><?= esc(number_format($totalAccepted, 2)) ?></p>
+                <p class="kpi-value"><?= esc(number_format($totalAccepted, 0)) ?></p>
                 <p class="kpi-note">Total accepted quantity.</p>
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Rejected Qty</p>
-                <p class="kpi-value"><?= esc(number_format($totalRejected, 2)) ?></p>
+                <p class="kpi-value"><?= esc(number_format($totalRejected, 0)) ?></p>
                 <p class="kpi-note">Total rejected quantity.</p>
             </article>
         </div>
@@ -64,6 +64,10 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
                 <span class="detail-value"><?= esc((string) ($receiving['purchase_order_id'] ?? '')) ?></span>
             </div>
             <div class="detail-item">
+                <span class="detail-label">Delivery Reference</span>
+                <span class="detail-value"><?= esc((string) ($receiving['delivery_reference'] ?? '')) ?></span>
+            </div>
+            <div class="detail-item">
                 <span class="detail-label">Received Date</span>
                 <span class="detail-value"><?= esc((string) ($receiving['received_date'] ?? '')) ?></span>
             </div>
@@ -73,7 +77,7 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
             <div class="toolbar">
                 <form class="inline-form" method="post" action="<?= site_url('receiving/' . $receiving['id'] . '/validate') ?>">
                     <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-outline">Validate Draft</button>
+                    <button type="submit" class="btn btn-outline">Run Draft Validation</button>
                 </form>
                 <form class="inline-form" method="post" action="<?= site_url('receiving/' . $receiving['id'] . '/post') ?>">
                     <?= csrf_field() ?>
@@ -85,6 +89,7 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
                     <button type="submit" class="btn btn-danger">Void Draft</button>
                 </form>
             </div>
+            <p class="muted" style="margin: 8px 0 0 0; font-size: 0.85rem;">Validation checks line consistency and stock constraints but does not change status.</p>
         <?php endif ?>
     </section>
 

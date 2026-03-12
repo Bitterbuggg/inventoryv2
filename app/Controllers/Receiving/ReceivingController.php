@@ -26,11 +26,12 @@ class ReceivingController extends BaseController
         if ($this->shouldExportCsv()) {
             return $this->csvResponse(
                 'receivings_' . date('Ymd_His') . '.csv',
-                ['ID', 'Receiving Number', 'PO Request ID', 'Received Date', 'Status'],
+                ['ID', 'Receiving Number', 'PO Request ID', 'Delivery Reference', 'Received Date', 'Status'],
                 array_map(static fn (array $row): array => [
                     (string) ($row['id'] ?? ''),
                     (string) ($row['receiving_number'] ?? ''),
                     (string) ($row['po_request_id'] ?? ''),
+                    (string) ($row['delivery_reference'] ?? ''),
                     (string) ($row['received_date'] ?? ''),
                     (string) ($row['status'] ?? ''),
                 ], $receivings),

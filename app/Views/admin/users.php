@@ -75,6 +75,7 @@ foreach ($usersList as $userRow) {
                         <th>Username</th>
                         <th>Email</th>
                         <th>Groups</th>
+                        <th>PO Create Delegation</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -96,6 +97,10 @@ foreach ($usersList as $userRow) {
                             }
                         }
 
+                        $hasDelegatedPoCreate = is_object($user)
+                            && method_exists($user, 'hasPermission')
+                            && $user->hasPermission('procurement.po.create');
+
                         ?>
                         <tr>
                             <td><?= esc($userId) ?></td>
@@ -103,8 +108,28 @@ foreach ($usersList as $userRow) {
                             <td><?= esc($email) ?></td>
                             <td><?= esc(implode(', ', $userGroups)) ?></td>
                             <td>
+                                <?php if (in_array('admin', $userGroups, true)): ?>
+                                    <span class="badge" style="background: var(--color-brand-100); color: var(--color-brand-700);">Implicit (Admin)</span>
+                                <?php elseif ($hasDelegatedPoCreate): ?>
+                                    <span class="badge" style="background: #dcfce7; color: #166534;">Granted</span>
+                                <?php else: ?>
+                                    <span class="badge" style="background: #f1f5f9; color: #475569;">Not Granted</span>
+                                <?php endif ?>
+                            </td>
+                            <td>
                                 <div class="button-group-compact">
                                     <a href="<?= site_url('admin/users/' . $userId . '/edit') ?>" class="btn btn-outline btn-small">Edit</a>
+
+                                    <?php if (! in_array('admin', $userGroups, true)): ?>
+                                        <form class="inline-form" method="post" action="<?= site_url('admin/users/' . $userId . '/permissions/po-create') ?>">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="action" value="<?= $hasDelegatedPoCreate ? 'revoke' : 'grant' ?>">
+                                            <button type="submit" class="btn btn-outline btn-small">
+                                                <?= $hasDelegatedPoCreate ? 'Revoke PO Power' : 'Grant PO Power' ?>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+
                                     <?php if (! in_array('admin', $userGroups, true)): ?>
                                         <form class="inline-form" method="post" action="<?= site_url('admin/users/' . $userId . '/delete') ?>" onsubmit="return confirm('Are you sure you want to delete this user?');">
                                             <?= csrf_field() ?>

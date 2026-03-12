@@ -9,6 +9,9 @@ $crumbs = [
     ['label' => 'Purchase Requests', 'url' => site_url('procurement/purchase-requests')],
     ['label' => 'PO Requests'],
 ];
+
+$user = function_exists('auth') ? auth()->user() : null;
+$isAdmin = $user !== null && method_exists($user, 'inGroup') && $user->inGroup('admin');
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -62,7 +65,9 @@ $crumbs = [
 <?= $this->section('page_actions') ?>
 <?php $poRequestExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/po-requests') . '?' . $poRequestExportQuery ?>">Export CSV</a>
+<?php if ($isAdmin): ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>">Pending Approvals</a>
+<?php endif ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>">Purchase Orders</a>
 <?= $this->endSection() ?>
 
@@ -153,7 +158,7 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                     <?= esc((string) ($poRequest['approved_by'] ?? $poRequest['rejected_by'] ?? '-')) ?>
                                 </td>
                                 <td>
-                                    <?php if (($poRequest['status'] ?? '') === 'pending'): ?>
+                                    <?php if (($poRequest['status'] ?? '') === 'pending' && $isAdmin): ?>
                                         <div class="action-forms-container">
                                             <form method="post" action="<?= site_url('procurement/po-requests/' . $poRequest['id'] . '/approve') ?>" style="margin: 0;">
                                                 <?= csrf_field() ?>
@@ -165,6 +170,8 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                                 <button type="submit" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem;">Reject</button>
                                             </form>
                                         </div>
+                                    <?php elseif (($poRequest['status'] ?? '') === 'pending'): ?>
+                                        <span class="muted" style="font-size: 0.8rem;">Awaiting admin action</span>
                                     <?php else: ?>
                                         <span class="muted" style="font-size: 0.8rem;">No actions available</span>
                                     <?php endif ?>

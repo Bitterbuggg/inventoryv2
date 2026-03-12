@@ -19,7 +19,10 @@ class ApprovalService
      */
     public function listPending(): array
     {
-        return $this->approvals->listPending();
+        return array_values(array_filter(
+            $this->approvals->listPending(),
+            static fn (array $row): bool => (string) ($row['reference_type'] ?? '') === 'purchase_request',
+        ));
     }
 
     public function approve(int $approvalId, int $approverId, ?string $comments = null): void

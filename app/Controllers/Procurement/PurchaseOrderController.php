@@ -15,6 +15,35 @@ class PurchaseOrderController extends BaseController
     {
         $status = trim((string) $this->request->getGet('status'));
         $purchaseOrders = RepositoryServices::purchaseOrderService()->list($status === '' ? null : $status);
+        $poRequests = RepositoryServices::poRequestService()->list();
+
+        $poRequestByOrder = [];
+        foreach ($poRequests as $poRequest) {
+            $purchaseOrderId = (int) ($poRequest['purchase_order_id'] ?? 0);
+            if ($purchaseOrderId <= 0) {
+                continue;
+            }
+
+            $current = $poRequestByOrder[$purchaseOrderId] ?? null;
+            if ($current === null || (int) ($poRequest['id'] ?? 0) > (int) ($current['id'] ?? 0)) {
+                $poRequestByOrder[$purchaseOrderId] = $poRequest;
+            }
+        }
+
+        $purchaseOrders = array_map(static function (array $order) use ($poRequestByOrder): array {
+            $purchaseOrderId = (int) ($order['id'] ?? 0);
+            $linkedPoRequest = $poRequestByOrder[$purchaseOrderId] ?? null;
+            $linkedStatus = strtolower((string) ($linkedPoRequest['status'] ?? ''));
+
+            $order['po_request_status'] = $linkedPoRequest['status'] ?? null;
+            $order['has_open_po_request'] = in_array(
+                $linkedStatus,
+                ['pending', 'approved', 'converted_to_receiving', 'closed'],
+                true,
+            );
+
+            return $order;
+        }, $purchaseOrders);
 
         RepositoryServices::analyticsService()->trackCurrentUser(
             'procurement.po_list_viewed',
@@ -48,6 +77,17 @@ class PurchaseOrderController extends BaseController
 
     public function createFromPr(int $prId): RedirectResponse
     {
+        $user = auth()->user();
+        $canCreatePo = $user !== null
+            && (
+                $user->inGroup('admin')
+                || (method_exists($user, 'can') && $user->can('procurement.po.create'))
+            );
+
+        if (! $canCreatePo) {
+            return redirect()->back()->with('error', 'You do not have permission to create Purchase Orders.');
+        }
+
         // 1. DATA SAFETY: Check if PO already exists before calling the service
         $existingPOs = RepositoryServices::purchaseOrderService()->list(); 
         $alreadyConverted = array_filter($existingPOs, static fn($po) => (int)$po['purchase_request_id'] === $prId);
@@ -82,7 +122,11 @@ class PurchaseOrderController extends BaseController
             ['purchase_request_id' => $prId],
         );
 
-        return redirect()->to('/procurement/purchase-orders')->with('message', "Purchase order #{$purchaseOrderId} created.");
+        $redirectPath = ($user !== null && ($user->inGroup('admin') || $user->inGroup('it_staff')))
+            ? '/procurement/purchase-orders'
+            : '/procurement/purchase-requests';
+
+        return redirect()->to($redirectPath)->with('message', "Purchase order #{$purchaseOrderId} created.");
     }
 
     public function issue(int $id): RedirectResponse

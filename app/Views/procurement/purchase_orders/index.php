@@ -9,6 +9,9 @@ $crumbs = [
     ['label' => 'Purchase Requests', 'url' => site_url('procurement/purchase-requests')],
     ['label' => 'Purchase Orders'],
 ];
+
+$user = function_exists('auth') ? auth()->user() : null;
+$isAdmin = $user !== null && method_exists($user, 'inGroup') && $user->inGroup('admin');
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -62,7 +65,9 @@ $crumbs = [
 <?= $this->section('page_actions') ?>
 <?php $purchaseOrderExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') . '?' . $purchaseOrderExportQuery ?>">Export CSV</a>
+<?php if ($isAdmin): ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>">Pending Approvals</a>
+<?php endif ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>">PO Requests</a>
 <?= $this->endSection() ?>
 
@@ -158,21 +163,31 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
                                 </td>
                                 <td>
                                     <div class="action-forms-container">
-                                        <?php if (($order['status'] ?? '') === 'draft'): ?>
+                                        <?php if (($order['status'] ?? '') === 'draft' && $isAdmin): ?>
                                             <form method="post" action="<?= site_url('procurement/purchase-orders/' . $order['id'] . '/issue') ?>" style="margin: 0;">
                                                 <?= csrf_field() ?>
                                                 <button type="submit" class="btn btn-primary" style="padding: 4px 10px; font-size: 0.75rem;">Issue Order</button>
                                             </form>
                                         <?php endif ?>
 
-                                        <?php if (($order['status'] ?? '') === 'issued'): ?>
+                                        <?php if (($order['status'] ?? '') === 'issued' && $isAdmin && ! (bool) ($order['has_open_po_request'] ?? false)): ?>
                                             <form method="post" action="<?= site_url('procurement/po-requests/from-po/' . $order['id']) ?>" style="margin: 0;">
                                                 <?= csrf_field() ?>
                                                 <button type="submit" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem;">Create PO Request</button>
                                             </form>
                                         <?php endif ?>
+
+                                        <?php if (($order['status'] ?? '') === 'issued' && (bool) ($order['has_open_po_request'] ?? false)): ?>
+                                            <span class="muted" style="font-size: 0.8rem;">
+                                                PO Request: <?= esc(str_replace('_', ' ', (string) ($order['po_request_status'] ?? 'open'))) ?>
+                                            </span>
+                                        <?php endif ?>
                                         
-                                        <?php if (!in_array(($order['status'] ?? ''), ['draft', 'issued'])): ?>
+                                        <?php if (! $isAdmin && in_array((string) ($order['status'] ?? ''), ['draft', 'issued'], true)): ?>
+                                            <span class="muted" style="font-size: 0.8rem;">Read-only</span>
+                                        <?php endif ?>
+
+                                        <?php if (!in_array(($order['status'] ?? ''), ['draft', 'issued'], true)): ?>
                                             <span class="muted" style="font-size: 0.8rem;">No actions</span>
                                         <?php endif ?>
                                     </div>

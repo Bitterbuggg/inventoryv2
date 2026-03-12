@@ -20,12 +20,14 @@ $routes->group('admin', ['filter' => 'auth'], static function (RouteCollection $
     $routes->get('users/(:num)/edit', 'Admin\UserController::edit/$1', ['filter' => 'role:admin']);
     $routes->post('users/(:num)', 'Admin\UserController::update/$1', ['filter' => 'role:admin']);
     $routes->post('users/(:num)/role', 'Admin\UserController::role/$1', ['filter' => 'role:admin']);
+    $routes->post('users/(:num)/permissions/po-create', 'Admin\UserController::poCreatePermission/$1', ['filter' => 'role:admin']);
     $routes->post('users/(:num)/delete', 'Admin\UserController::delete/$1', ['filter' => 'role:admin']);
 });
 
 $routes->group('procurement', ['filter' => 'auth'], static function (RouteCollection $routes): void {
     $routes->get('purchase-requests', 'Procurement\PurchaseRequestController::index', ['filter' => 'role:admin,employee,it_staff']);
     $routes->get('purchase-requests/create', 'Procurement\PurchaseRequestController::create', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->get('purchase-requests/(:num)', 'Procurement\PurchaseRequestController::show/$1', ['filter' => 'role:admin,employee,it_staff']);
     $routes->post('purchase-requests', 'Procurement\PurchaseRequestController::store', ['filter' => 'role:admin,employee,it_staff']);
     $routes->get('purchase-requests/(:num)/edit', 'Procurement\PurchaseRequestController::edit/$1', ['filter' => 'role:admin,employee,it_staff']);
     $routes->get('purchase-requests/(:num)/items.csv', 'Procurement\PurchaseRequestController::itemsCsv/$1', ['filter' => 'role:admin,employee,it_staff']);
@@ -37,11 +39,11 @@ $routes->group('procurement', ['filter' => 'auth'], static function (RouteCollec
         $routes->post('approvals/(:num)/approve', 'Procurement\PurchaseApprovalController::approve/$1', ['filter' => 'role:admin,it_staff']);
         $routes->post('approvals/(:num)/reject', 'Procurement\PurchaseApprovalController::reject/$1', ['filter' => 'role:admin,it_staff']);
 
-    $routes->get('purchase-orders', 'Procurement\PurchaseOrderController::index', ['filter' => 'role:admin']);
-    $routes->post('purchase-orders/from-pr/(:num)', 'Procurement\PurchaseOrderController::createFromPr/$1', ['filter' => 'role:admin']);
+    $routes->get('purchase-orders', 'Procurement\PurchaseOrderController::index', ['filter' => 'role:admin,it_staff']);
+    $routes->post('purchase-orders/from-pr/(:num)', 'Procurement\PurchaseOrderController::createFromPr/$1', ['filter' => 'role:admin,employee,it_staff']);
     $routes->post('purchase-orders/(:num)/issue', 'Procurement\PurchaseOrderController::issue/$1', ['filter' => 'role:admin']);
 
-    $routes->get('po-requests', 'Procurement\PoRequestController::index', ['filter' => 'role:admin']);
+    $routes->get('po-requests', 'Procurement\PoRequestController::index', ['filter' => 'role:admin,it_staff']);
     $routes->post('po-requests/from-po/(:num)', 'Procurement\PoRequestController::createFromPo/$1', ['filter' => 'role:admin']);
     $routes->post('po-requests/(:num)/approve', 'Procurement\PoRequestController::approve/$1', ['filter' => 'role:admin']);
     $routes->post('po-requests/(:num)/reject', 'Procurement\PoRequestController::reject/$1', ['filter' => 'role:admin']);

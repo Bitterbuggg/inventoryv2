@@ -9,6 +9,9 @@ $crumbs = [
     ['label' => 'Inventory Issuance', 'url' => site_url('inventory/issuance')],
     ['label' => 'Issuance Details'],
 ];
+
+$user = function_exists('auth') ? auth()->user() : null;
+$isAdmin = $user !== null && method_exists($user, 'inGroup') && $user->inGroup('admin');
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -41,12 +44,12 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Requested Qty</p>
-                <p class="kpi-value"><?= esc(number_format($totalRequested, 2)) ?></p>
+                <p class="kpi-value"><?= esc(number_format($totalRequested, 0)) ?></p>
                 <p class="kpi-note">Total requested quantity.</p>
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Issued Qty</p>
-                <p class="kpi-value"><?= esc(number_format($totalIssued, 2)) ?></p>
+                <p class="kpi-value"><?= esc(number_format($totalIssued, 0)) ?></p>
                 <p class="kpi-note">Total released quantity.</p>
             </article>
         </div>
@@ -78,7 +81,7 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
                 </form>
             <?php endif ?>
 
-            <?php if (($issuance['status'] ?? '') === 'submitted'): ?>
+            <?php if (($issuance['status'] ?? '') === 'submitted' && $isAdmin): ?>
                 <form class="inline-form" method="post" action="<?= site_url('inventory/issuance/' . $issuance['id'] . '/approve') ?>">
                     <?= csrf_field() ?>
                     <input type="text" name="comments" placeholder="Optional comment">
@@ -91,11 +94,19 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
                 </form>
             <?php endif ?>
 
-            <?php if (($issuance['status'] ?? '') === 'approved'): ?>
+            <?php if (($issuance['status'] ?? '') === 'submitted' && ! $isAdmin): ?>
+                <span class="muted" style="font-size: 0.85rem;">Awaiting admin approval.</span>
+            <?php endif ?>
+
+            <?php if (($issuance['status'] ?? '') === 'approved' && $isAdmin): ?>
                 <form class="inline-form" method="post" action="<?= site_url('inventory/issuance/' . $issuance['id'] . '/release') ?>">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-primary">Release</button>
                 </form>
+            <?php endif ?>
+
+            <?php if (($issuance['status'] ?? '') === 'approved' && ! $isAdmin): ?>
+                <span class="muted" style="font-size: 0.85rem;">Awaiting admin release.</span>
             <?php endif ?>
 
             <?php if (in_array((string) ($issuance['status'] ?? ''), ['draft', 'submitted'], true)): ?>
