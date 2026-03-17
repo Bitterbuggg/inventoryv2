@@ -229,7 +229,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                     <td style="color: var(--color-text-muted); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= esc((string) ($request['remarks'] ?? '')) ?>"><?= esc((string) ($request['remarks'] ?? '')) ?></td>
                                     <td>
                                         <div class="action-row">
-                                            <a class="btn-link-view" href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>">View</a>
+                                            <a class="btn-link-view view-action" href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>">View</a>
                                             <?php if (($request['status'] ?? '') === 'draft'): ?>
                                                 <form method="post" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/submit') ?>" style="margin:0">
                                                     <?= csrf_field() ?>

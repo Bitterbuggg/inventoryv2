@@ -121,8 +121,10 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
                                 <td style="font-size: 0.85rem;"><?= esc((string) $issuance['issue_date']) ?></td>
                                 <td style="font-weight: 500; word-break: break-word;"><?= esc((string) ($issuance['department'] ?? '')) ?></td>
                                 <td><?= view('components/shared/table_status_badge', ['status' => $issuance['status'] ?? 'unknown']) ?></td>
-                                <td style="text-align: center;">
-                                    <a class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" href="<?= site_url('inventory/issuance/' . $issuance['id']) ?>">View</a>
+                                <td class="actions">
+                                    <div class="action-row">
+                                        <a class="btn btn-outline view-action" style="padding: 4px 8px; font-size: 0.75rem;" href="<?= site_url('inventory/issuance/' . $issuance['id']) ?>">View</a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach ?>

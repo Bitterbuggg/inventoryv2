@@ -212,8 +212,10 @@ $convertibleCount = count($convertiblePoRequests ?? []);
                                 <td style="font-size: 0.85rem;"><?= esc((string) ($receiving['delivery_reference'] ?? '-')) ?></td>
                                 <td style="font-size: 0.85rem;"><?= esc((string) $receiving['received_date']) ?></td>
                                 <td><?= view('components/shared/table_status_badge', ['status' => $receiving['status'] ?? 'unknown']) ?></td>
-                                <td style="text-align: center;">
-                                    <a class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" href="<?= site_url('receiving/' . $receiving['id']) ?>">View</a>
+                                <td class="actions">
+                                    <div class="action-row">
+                                        <a class="btn btn-outline view-action" style="padding: 4px 8px; font-size: 0.75rem;" href="<?= site_url('receiving/' . $receiving['id']) ?>">View</a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach ?>

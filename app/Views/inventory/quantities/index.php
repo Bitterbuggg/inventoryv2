@@ -165,8 +165,10 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
                                     ?>
                                     <td style="text-align: right; <?= $qtyColor ?>"><?= esc((string) $stock['available_qty']) ?></td>
                                     <td style="text-align: right; font-family: var(--font-mono); font-size: 0.85rem;">₱<?= esc(number_format((float) ($stock['average_unit_cost'] ?? 0), 2)) ?></td>
-                                    <td style="text-align: center;">
-                                        <a class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" href="<?= site_url('inventory/quantities/' . $stock['id']) ?>">View</a>
+                                    <td class="actions">
+                                        <div class="action-row">
+                                            <a class="btn btn-outline view-action" style="padding: 4px 8px; font-size: 0.75rem;" href="<?= site_url('inventory/quantities/' . $stock['id']) ?>">View</a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach ?>
