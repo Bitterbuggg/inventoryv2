@@ -28,7 +28,7 @@ $isAdmin = $user !== null && method_exists($user, 'inGroup') && $user->inGroup('
 
     /* Fixed Sortable Headers - Prevents clipping at the top and gives arrow space */
     #po-req-table th {
-        padding-top: 12px !important; /* Extra breathing room at the top to prevent clipping */
+        padding-top: 12px !important; 
         padding-bottom: 12px !important;
     }
     th.sortable { 
@@ -38,9 +38,9 @@ $isAdmin = $user !== null && method_exists($user, 'inGroup') && $user->inGroup('
         user-select: none; 
         transition: background 0.2s ease; 
         line-height: 1.4 !important; 
-        white-space: normal !important; /* Allows long headers to safely wrap */
+        white-space: normal !important; 
         vertical-align: middle !important;
-        overflow: visible !important; /* Ensures descenders/ascenders are not chopped */
+        overflow: visible !important; 
     }
     th.sortable:hover { background: rgba(0, 0, 0, 0.03) !important; }
     th.sortable::after { 
@@ -59,6 +59,21 @@ $isAdmin = $user !== null && method_exists($user, 'inGroup') && $user->inGroup('
 
     .action-forms-container { display: flex; gap: 8px; align-items: center; justify-content: flex-start; flex-wrap: wrap; }
     .reject-input { padding: 4px 8px; font-size: 0.8rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); width: 140px; }
+
+    /* --- SPECIAL STATUS BADGE (Matches Converted to PO) --- */
+    .status-badge-special {
+        background: #e0e7ff; 
+        color: #4338ca; 
+        border: 1px solid #c7d2fe;
+        padding: 4px 10px; 
+        font-size: 0.75rem; 
+        font-weight: 700; 
+        border-radius: 9999px; 
+        white-space: nowrap; 
+        display: inline-block;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
 </style>
 <?= $this->endSection() ?>
 
@@ -154,7 +169,15 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                 <td style="font-family: var(--font-mono); font-weight: 500; color: var(--color-brand-700);"><?= esc((string) $poRequest['po_request_number']) ?></td>
                                 <td style="font-family: var(--font-mono); font-size: 0.85rem;">PO-<?= esc((string) $poRequest['purchase_order_id']) ?></td>
                                 <td style="font-size: 0.85rem;"><?= esc((string) $poRequest['request_date']) ?></td>
-                                <td><?= view('components/shared/table_status_badge', ['status' => $poRequest['status'] ?? 'unknown']) ?></td>
+                                
+                                <td>
+                                    <?php if (($poRequest['status'] ?? '') === 'converted_to_receiving'): ?>
+                                        <span class="status-badge-special">Converted to Receiving</span>
+                                    <?php else: ?>
+                                        <?= view('components/shared/table_status_badge', ['status' => $poRequest['status'] ?? 'unknown']) ?>
+                                    <?php endif; ?>
+                                </td>
+                                
                                 <td style="font-size: 0.85rem; color: var(--color-text-muted);">
                                     <?= esc((string) ($poRequest['approved_by'] ?? $poRequest['rejected_by'] ?? '-')) ?>
                                 </td>
@@ -171,10 +194,8 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                                 <button type="submit" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem;">Reject</button>
                                             </form>
                                         </div>
-                                    <?php elseif (($poRequest['status'] ?? '') === 'pending'): ?>
-                                        <span class="muted" style="font-size: 0.8rem;">Awaiting admin action</span>
                                     <?php else: ?>
-                                        <span class="muted" style="font-size: 0.8rem;">No actions available</span>
+                                        <span class="muted" style="font-size: 0.85rem; font-weight: 600; padding: 4px 10px;">&mdash;</span>
                                     <?php endif ?>
                                 </td>
                             </tr>

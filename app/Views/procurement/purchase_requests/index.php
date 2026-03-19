@@ -73,8 +73,17 @@ $canCreatePo = $isAdmin
     /* --- HCI UNIFIED ACTION BUTTONS --- */
     .action-row { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: nowrap; }
 
-    .btn-link-view { font-size: 0.78rem; color: var(--color-text-muted); text-decoration: none; font-weight: 500; padding: 4px 0; white-space: nowrap; }
-    .btn-link-view:hover { color: var(--color-brand-700); text-decoration: underline; }
+    .btn-link-view { 
+        font-size: 0.78rem; 
+        color: #0284c7; 
+        text-decoration: underline; 
+        font-weight: 700; 
+        padding: 4px 6px; 
+        white-space: nowrap; 
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+    .btn-link-view:hover { color: #0369a1; background: #f0f9ff; }
     
     .btn-table {
         padding: 4px 10px !important;
@@ -101,11 +110,39 @@ $canCreatePo = $isAdmin
     .btn-cancel-red { background: #fee2e2 !important; color: #b91c1c !important; border: 1px solid #fca5a5 !important; }
     .btn-cancel-red:hover { background: #fecaca !important; color: #991b1b !important; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(220, 38, 38, 0.15); }
 
-    .create-po-group { display: inline-flex; border: 1px solid #bae6fd; border-radius: 4px; overflow: hidden; background: #e0f2fe; }
-    .create-po-input { border: none; padding: 4px 8px; font-size: 0.75rem; width: 100px; outline: none; background: white; }
-    .btn-po-blue { border: none; background: #0369a1 !important; color: white !important; padding: 4px 10px; font-size: 0.75rem !important; font-weight: 700 !important; cursor: pointer; }
+    /* Updated to match the Indigo "Converted to PO" theme */
+    .create-po-group { display: inline-flex; border: 1px solid #c7d2fe; border-radius: 4px; overflow: hidden; background: #ffffff; }
+    .create-po-input { border: none; padding: 4px 8px; font-size: 0.75rem; width: 100px; outline: none; background: #ffffff; color: var(--color-text); }
+    
+    /* Solid Indigo Action Button */
+    .btn-po-blue { border: none; background: #4f46e5 !important; color: white !important; padding: 4px 10px; font-size: 0.75rem !important; font-weight: 700 !important; cursor: pointer; transition: background 0.2s ease;}
+    .btn-po-blue:hover { background: #4338ca !important; }
 
-    .po-nav-btn { background: #f0f9ff !important; color: #0369a1 !important; border: 1px solid #bae6fd !important; font-weight: 800 !important; }
+    /* Inverted Indigo Navigation Button (Matches Badge) */
+    .po-nav-btn { background: #e0e7ff !important; color: #4338ca !important; border: 1px solid #c7d2fe !important; font-weight: 800 !important; transition: all 0.2s ease; }
+    .po-nav-btn:hover { background: #c7d2fe !important; color: #312e81 !important; }
+    
+    /* NEW: Read-Only Action Badges */
+    .action-badge-waiting {
+        background: #f8fafc; color: #64748b; border: 1px dashed #cbd5e1;
+        padding: 4px 10px; font-size: 0.7rem; font-weight: 700; border-radius: 4px; text-transform: uppercase; cursor: not-allowed;
+    }
+    .action-badge-done {
+        background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
+        padding: 4px 10px; font-size: 0.7rem; font-weight: 700; border-radius: 4px; text-transform: uppercase; cursor: default;
+    }
+
+    /* NEW: Unique Status Badge for Converted PO */
+    .status-badge-special {
+        background: #e0e7ff; /* Light indigo background */
+        color: #4338ca;      /* Dark indigo text */
+        border: 1px solid #c7d2fe; /* Soft indigo border */
+        padding: 4px 10px; 
+        font-size: 0.75rem; 
+        font-weight: 700; 
+        border-radius: 9999px; /* Keeps the pill shape */
+        white-space: nowrap; 
+    }
 </style>
 <?= $this->endSection() ?>
 
@@ -225,51 +262,61 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                     <td><a href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>" style="font-family: var(--font-mono); font-weight: 600; color: var(--color-brand-700); font-size: 0.85rem; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'"><?= esc((string)$request['pr_number']) ?></a></td>
                                     <td><strong><?= esc((string) $request['requested_by']) ?></strong></td>
                                     <td style="white-space: nowrap; font-size: 0.85rem;"><?= esc((string) $request['request_date']) ?></td>
-                                    <td><?= view('components/shared/table_status_badge', ['status' => $request['status'] ?? 'unknown']) ?></td>
+                                    
+                                    <td>
+                                        <?php if (($request['status'] ?? '') === 'converted_to_po'): ?>
+                                            <span class="status-badge-special">Converted to PO</span>
+                                        <?php else: ?>
+                                            <?= view('components/shared/table_status_badge', ['status' => $request['status'] ?? 'unknown']) ?>
+                                        <?php endif; ?>
+                                    </td>
+                                    
                                     <td style="color: var(--color-text-muted); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= esc((string) ($request['remarks'] ?? '')) ?>"><?= esc((string) ($request['remarks'] ?? '')) ?></td>
+                                    
                                     <td>
                                         <div class="action-row">
                                             <a class="btn-link-view view-action" href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>">View</a>
+                                            
                                             <?php if (($request['status'] ?? '') === 'draft'): ?>
                                                 <form method="post" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/submit') ?>" style="margin:0">
                                                     <?= csrf_field() ?>
                                                     <button type="submit" class="btn-table btn-submit-blue">Submit</button>
                                                 </form>
                                                 <a class="btn-table btn-edit-outline" href="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/edit') ?>">Edit</a>
-                                                    <form method="post"
-                                                          data-confirm="Cancel this draft request? This cannot be undone."
-                                                          data-confirm-title="Cancel Draft"
-                                                          action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
+                                                <form method="post"
+                                                      data-confirm="Cancel this draft request? This cannot be undone."
+                                                      data-confirm-title="Cancel Draft"
+                                                      action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
                                                     <?= csrf_field() ?>
                                                     <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
                                                 </form>
 
-                                                <?php elseif (($request['status'] ?? '') === 'submitted'): ?>
-                                                    <form method="post"
-                                                          data-confirm="Cancel this submitted request? It will need to be re-submitted for approval."
-                                                          data-confirm-title="Cancel Submitted Request"
-                                                          action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
-                                                        <?= csrf_field() ?>
-                                                        <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
-                                                    </form>
+                                            <?php elseif (($request['status'] ?? '') === 'submitted'): ?>
+                                                <form method="post"
+                                                      data-confirm="Cancel this submitted request? It will need to be re-submitted for approval."
+                                                      data-confirm-title="Cancel Submitted Request"
+                                                      action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
+                                                </form>
 
                                             <?php elseif (($request['status'] ?? '') === 'approved' && $canCreatePo): ?>
                                                 <form method="post" action="<?= site_url('procurement/purchase-orders/from-pr/' . $request['id']) ?>" style="margin:0">
                                                     <?= csrf_field() ?>
                                                     <div class="create-po-group">
-                                                        <input type="text" name="supplier_name" class="create-po-input" placeholder="Supplier...">
+                                                        <input type="text" name="supplier_name" class="create-po-input" placeholder="Supplier..." required>
                                                         <button type="submit" class="btn-po-blue">PO</button>
                                                     </div>
                                                 </form>
 
                                             <?php elseif (($request['status'] ?? '') === 'approved'): ?>
-                                                <span class="muted" style="font-size: 0.75rem;">Awaiting PO</span>
+                                                <span class="action-badge-waiting">⏳ Awaiting PO</span>
 
                                             <?php elseif (($request['status'] ?? '') === 'converted_to_po'): ?>
                                                 <?php if ($canOps): ?>
                                                     <a href="<?= site_url('procurement/purchase-orders') ?>" class="btn-table po-nav-btn">PO &rarr;</a>
                                                 <?php else: ?>
-                                                    <span class="muted" style="font-size: 0.75rem;">Converted</span>
+                                                    <span class="action-badge-done">✓ Converted</span>
                                                 <?php endif ?>
                                             <?php else: ?>
                                                 <span class="muted" style="font-size: 0.75rem;">&mdash;</span>
@@ -482,7 +529,6 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
 
             showPage(1);
         }
-
 
     });
 </script>
