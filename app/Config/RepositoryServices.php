@@ -371,8 +371,8 @@ class RepositoryServices
     {
         if (self::$inventoryQuantityService === null) {
             self::$inventoryQuantityService = new InventoryQuantityService(
-                self::inventoryStockRepository(),
-                self::stockMovementRepository(),
+                self::receivingInventoryStockRepository(),
+                self::receivingStockMovementRepository(),
                 \Config\Database::connect()
             );
         }
@@ -425,7 +425,7 @@ class RepositoryServices
             self::$issuanceReleaseService = new IssuanceReleaseService(
                 self::issuanceRepository(),
                 self::issuanceItemRepository(),
-                new IssuanceItemAllocationRepository(),
+                self::issuanceItemAllocationRepository(),
                 self::issuanceInventoryStockRepository(),
                 self::issuanceStockMovementRepository(),
                 self::inventoryAvailabilityService(),
