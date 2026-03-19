@@ -139,7 +139,7 @@ final class ReceivingServiceTest extends CIUnitTestCase
 
         $poRequests->method('find')->with(77)->willReturn([
             'id'     => 77,
-            'status' => 'approved',
+            'status' => 'converting',
         ]);
 
         $items->method('listByReceiving')->with(55)->willReturn([
