@@ -117,7 +117,7 @@ $predefinedUnits = [
             <div class="header-layout">
                 <div class="header-field-date">
                     <label for="request_date" class="field-label">Request Date <span style="color:var(--color-danger);">*</span></label>
-                    <input id="request_date" type="date" name="request_date" class="form-control-header" value="<?= esc((string) old('request_date', date('Y-m-d'))) ?>" required>
+                    <input id="request_date" type="date" name="request_date" class="form-control-header" value="<?= esc((string) old('request_date', date('Y-m-d'))) ?>" max="<?= date('Y-m-d') ?>" required>
                 </div>
                 <div class="header-field-date">
                     <label for="needed_date" class="field-label">Needed Date <span class="muted" style="font-weight: normal;">(Optional)</span></label>

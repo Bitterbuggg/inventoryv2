@@ -55,12 +55,12 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Total On Hand</p>
-                <p class="kpi-value" id="kpi-onhand"><?= esc(number_format($totalOnHand, 2)) ?></p>
-                <p class="kpi-note">Current physical quantity total.</p>
-            </article>
-            <article class="kpi-card">
-                <p class="kpi-label">Total Available</p>
-                <p class="kpi-value" id="kpi-available"><?= esc(number_format($totalAvailable, 2)) ?></p>
+                <p class="kpi-value" id="kpi-onhand"><?= esc(number_format($totalOnHand, 0)) ?></p>
+                <p class="kpi-note">Physical units across all batches.</p>
+                </article>
+                <article class="kpi-card">
+                <p class="kpi-label">Available</p>
+                <p class="kpi-value" id="kpi-available"><?= esc(number_format($totalAvailable, 0)) ?></p>
                 <p class="kpi-note">On hand minus reserved quantities.</p>
             </article>
             <article class="kpi-card">
@@ -168,6 +168,13 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
                                     <td class="actions">
                                         <div class="action-row">
                                             <a class="btn btn-outline view-action" style="padding: 4px 8px; font-size: 0.75rem;" href="<?= site_url('inventory/quantities/' . $stock['id']) ?>">View</a>
+                                            <?php if ($daysUntilExpiry <= 0 && (float)$stock['on_hand_qty'] > 0): ?>
+                                                <button type="button" class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem;" 
+                                                        onclick="openDisposalModal(<?= $stock['id'] ?>, '<?= esc((string)$stock['item_name']) ?>', <?= (float)$stock['on_hand_qty'] ?>)"
+                                                        title="Remove expired stock from inventory">
+                                                    Dispose
+                                                </button>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
@@ -189,7 +196,57 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
     </section>
 </div>
 
+<!-- DISPOSAL MODAL -->
+<div class="modal-overlay" id="disposalModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Dispose Expired Stock</h3>
+            <button type="button" class="btn-close-modal" onclick="closeDisposalModal()">&times;</button>
+        </div>
+        <form id="disposalForm" method="post">
+            <?= csrf_field() ?>
+            <div class="modal-body">
+                <p class="muted" id="modal-disposal-text" style="margin-bottom:16px; font-size:0.85rem;"></p>
+                <div class="field">
+                    <label for="disposal_qty">Quantity to Dispose: <span style="color:var(--color-danger);">*</span></label>
+                    <input type="number" id="disposal_qty" name="qty" step="1" min="1" required>
+                </div>
+                <div class="field" style="margin-top:12px;">
+                    <label for="disposal_reason">Reason for Adjustment: <span style="color:var(--color-danger);">*</span></label>
+                    <select id="disposal_reason" name="reason" required>
+                        <option value="Expired">Expired / Expired Material</option>
+                        <option value="Damaged">Damaged / Broken</option>
+                        <option value="Recall">Recall by Manufacturer</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeDisposalModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger">Confirm Disposal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+    function openDisposalModal(stockId, itemName, maxQty) {
+        const modal = document.getElementById('disposalModal');
+        const form = document.getElementById('disposalForm');
+        const text = document.getElementById('modal-disposal-text');
+        const qtyInput = document.getElementById('disposal_qty');
+        
+        form.action = "<?= site_url('inventory/quantities/') ?>" + stockId + "/adjust-out";
+        text.innerText = "You are about to remove " + itemName + " from inventory. Max available: " + maxQty;
+        qtyInput.max = maxQty;
+        qtyInput.value = maxQty;
+        
+        modal.classList.add('active');
+    }
+
+    function closeDisposalModal() {
+        document.getElementById('disposalModal').classList.remove('active');
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const rowsPerPage = 15;
         const tbody = document.querySelector('#inventory-table tbody');
@@ -288,8 +345,8 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
             });
             
             kpiSkus.innerText = currentRows.length;
-            kpiOnHand.innerText = sumOnHand.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            kpiAvailable.innerText = sumAvailable.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            kpiOnHand.innerText = sumOnHand.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            kpiAvailable.innerText = sumAvailable.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
             kpiZero.innerText = countZero;
         }
 

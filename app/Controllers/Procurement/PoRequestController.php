@@ -16,6 +16,26 @@ class PoRequestController extends BaseController
         $status = trim((string) $this->request->getGet('status'));
         $poRequests = RepositoryServices::poRequestService()->list($status === '' ? null : $status);
 
+        $poRequests = array_map(static function (array $poRequest): array {
+            $purchaseOrderId = (int) ($poRequest['purchase_order_id'] ?? 0);
+            if ($purchaseOrderId <= 0) {
+                return $poRequest;
+            }
+
+            $purchaseOrder = RepositoryServices::purchaseOrderService()->findWithItems($purchaseOrderId);
+            if ($purchaseOrder !== null) {
+                $poRequest['purchase_order'] = [
+                    'po_number'     => $purchaseOrder['po_number'] ?? null,
+                    'supplier_name' => $purchaseOrder['supplier_name'] ?? null,
+                    'order_date'    => $purchaseOrder['order_date'] ?? null,
+                    'total_amount'  => $purchaseOrder['total_amount'] ?? 0,
+                    'items'         => $purchaseOrder['items'] ?? [],
+                ];
+            }
+
+            return $poRequest;
+        }, $poRequests);
+
         RepositoryServices::analyticsService()->trackCurrentUser(
             'procurement.po_request_list_viewed',
             'procurement',

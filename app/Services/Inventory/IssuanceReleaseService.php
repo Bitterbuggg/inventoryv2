@@ -197,7 +197,7 @@ class IssuanceReleaseService
     private function generateMovementNumber(): string
     {
         do {
-            $number = 'MOVOUT-' . date('Ymd-His') . '-' . random_int(1000, 9999);
+            $number = 'MOVOUT-' . date('Ymd-His') . '-' . substr((string)round(microtime(true) * 1000), -4);
         } while ($this->stockMovements->findByNumber($number) !== null);
 
         return $number;

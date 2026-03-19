@@ -143,17 +143,30 @@ $canCreatePo = $isAdmin
         border-radius: 9999px; /* Keeps the pill shape */
         white-space: nowrap; 
     }
+
+    /* --- MODAL STYLES --- */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(2px); }
+    .modal-overlay.active { display: flex; }
+    .modal-content { background: var(--color-surface); padding: 24px; border-radius: 8px; width: 100%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid var(--color-border); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px; }
+    .modal-header h3 { margin: 0; font-size: 1.1rem; color: var(--color-brand-700); font-weight: 700; }
+    .btn-close-modal { background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--color-text-muted); margin:0; padding:0; line-height: 1; }
+    .btn-close-modal:hover { color: var(--color-danger); }
+    .modal-body .field { margin-bottom: 16px; }
+    .modal-body label { display: block; font-weight: 700; font-size: 0.85rem; color: #1e293b; margin-bottom: 6px; }
+    .modal-body select, .modal-body input { width: 100%; padding: 10px; border: 1px solid var(--color-border-strong); border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem;}
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--color-border); }
 </style>
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
-<a class="btn btn-primary" href="<?= site_url('procurement/purchase-requests/create') ?>">Create Request</a>
+<a class="btn btn-primary" href="<?= site_url('procurement/purchase-requests/create') ?>" title="Create a new draft purchase request">Create Request</a>
 <?php $purchaseRequestExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests') . '?' . $purchaseRequestExportQuery ?>">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests') . '?' . $purchaseRequestExportQuery ?>" title="Download the current list of purchase requests as a CSV file">Export CSV</a>
 <?php if ($canOps): ?>
-<a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>">Pending Approvals</a>
-<a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>">Purchase Orders</a>
-<a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>">PO Requests</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>" title="View requests awaiting your approval">Pending Approvals</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>" title="View all issued purchase orders">Purchase Orders</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>" title="View converted PO requests awaiting receiving">PO Requests</a>
 <?php endif ?>
 <?= $this->endSection() ?>
 
@@ -265,10 +278,10 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                     
                                     <td>
                                         <?php if (($request['status'] ?? '') === 'converted_to_po'): ?>
-                                            <span class="status-badge-special">Converted to PO</span>
+                                            <?= view('components/shared/table_status_badge', ['status' => 'converted_to_po']) ?>
                                         <?php else: ?>
                                             <?= view('components/shared/table_status_badge', ['status' => $request['status'] ?? 'unknown']) ?>
-                                        <?php endif; ?>
+                                        <?php endif ?>
                                     </td>
                                     
                                     <td style="color: var(--color-text-muted); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= esc((string) ($request['remarks'] ?? '')) ?>"><?= esc((string) ($request['remarks'] ?? '')) ?></td>
@@ -301,13 +314,10 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                                 </form>
 
                                             <?php elseif (($request['status'] ?? '') === 'approved' && $canCreatePo): ?>
-                                                <form method="post" action="<?= site_url('procurement/purchase-orders/from-pr/' . $request['id']) ?>" style="margin:0">
-                                                    <?= csrf_field() ?>
-                                                    <div class="create-po-group">
-                                                        <input type="text" name="supplier_name" class="create-po-input" placeholder="Supplier..." required>
-                                                        <button type="submit" class="btn-po-blue">PO</button>
-                                                    </div>
-                                                </form>
+                                                <button type="button" class="btn-po-blue btn-table" 
+                                                        onclick="openPoModal(<?= $request['id'] ?>, '<?= esc((string)$request['pr_number']) ?>')">
+                                                    Create PO
+                                                </button>
 
                                             <?php elseif (($request['status'] ?? '') === 'approved'): ?>
                                                 <span class="action-badge-waiting">⏳ Awaiting PO</span>
@@ -342,7 +352,53 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
     </section>
 </div>
 
+<!-- PO MODAL -->
+<div class="modal-overlay" id="poModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Convert to Purchase Order</h3>
+            <button type="button" class="btn-close-modal" onclick="closePoModal()">&times;</button>
+        </div>
+        <form id="poForm" method="post">
+            <?= csrf_field() ?>
+            <div class="modal-body">
+                <p class="muted" id="modal-pr-text" style="margin-bottom:16px; font-size:0.85rem;"></p>
+                <div class="field">
+                    <label for="supplier_name">Please select a Supplier for this order: <span style="color:var(--color-danger);">*</span></label>
+                    <select id="supplier_name" name="supplier_name" required>
+                        <option value="">-- Select Supplier --</option>
+                        <option value="ACME Pharma Supply">ACME Pharma Supply</option>
+                        <option value="Global Meds">Global Meds</option>
+                        <option value="Generic Pharm">Generic Pharm</option>
+                        <option value="Hospital Logistics">Hospital Logistics</option>
+                        <option value="LifeCare Systems">LifeCare Systems</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closePoModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Confirm</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+    function openPoModal(prId, prNumber) {
+        const modal = document.getElementById('poModal');
+        const form = document.getElementById('poForm');
+        const text = document.getElementById('modal-pr-text');
+        
+        form.action = "<?= site_url('procurement/purchase-orders/from-pr/') ?>" + prId;
+        text.innerText = "Convert " + prNumber + " to Purchase Order.";
+        
+        modal.classList.add('active');
+    }
+
+    function closePoModal() {
+        document.getElementById('poModal').classList.remove('active');
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const rowsPerPage = 15; 
         const tbody = document.querySelector('#pr-table tbody');

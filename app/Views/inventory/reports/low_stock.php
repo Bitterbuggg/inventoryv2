@@ -69,7 +69,7 @@ $nearExpiryRows = count(array_filter(
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Total Available</p>
-                <p class="kpi-value" id="kpi-available"><?= esc(number_format($totalAvailable, 2)) ?></p>
+                <p class="kpi-value" id="kpi-available"><?= esc(number_format($totalAvailable, 0)) ?></p>
                 <p class="kpi-note">Combined quantity of low items.</p>
             </article>
             <article class="kpi-card">
@@ -278,7 +278,7 @@ $nearExpiryRows = count(array_filter(
             });
             
             kpiRows.innerText = currentRows.length;
-            kpiAvailable.innerText = sumAvailable.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            kpiAvailable.innerText = sumAvailable.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
             kpiCritical.innerText = countCritical;
             kpiExpiry.innerText = countExpiry;
             totalIndicator.innerText = currentRows.length;

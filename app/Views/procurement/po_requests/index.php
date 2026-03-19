@@ -166,7 +166,37 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                         <?php foreach ($poRequests as $poRequest): ?>
                             <tr class="po-req-row" style="display: none;" data-status="<?= esc(strtolower((string) ($poRequest['status'] ?? ''))) ?>">
                                 <td><?= esc((string) $poRequest['id']) ?></td>
-                                <td style="font-family: var(--font-mono); font-weight: 500; color: var(--color-brand-700);"><?= esc((string) $poRequest['po_request_number']) ?></td>
+                                <td style="font-family: var(--font-mono); font-weight: 500; color: var(--color-brand-700);">
+                                    <?= esc((string) $poRequest['po_request_number']) ?>
+                                    
+                                    <?php $po = $poRequest['purchase_order'] ?? null; ?>
+                                    <?php if (is_array($po)): ?>
+                                        <details style="margin-top: 6px; font-family: var(--font-sans); font-size: 0.75rem;">
+                                            <summary style="cursor: pointer; color: var(--color-brand-700); font-weight: 600;">View PO Details</summary>
+                                            <div style="margin-top: 6px; line-height: 1.45; color: var(--color-text-muted);">
+                                                <div><strong>PO:</strong> <?= esc((string) ($po['po_number'] ?? '-')) ?></div>
+                                                <div><strong>Supplier:</strong> <?= esc((string) ($po['supplier_name'] ?? '-')) ?></div>
+                                                <div><strong>Total:</strong> ₱<?= number_format((float) ($po['total_amount'] ?? 0), 2) ?></div>
+                                                <?php $items = is_array($po['items'] ?? null) ? $po['items'] : []; ?>
+                                                <div><strong>Items:</strong> <?= esc((string) count($items)) ?></div>
+                                                <?php if ($items !== []): ?>
+                                                    <ul style="margin: 6px 0 0 16px; padding: 0;">
+                                                        <?php foreach (array_slice($items, 0, 4) as $item): ?>
+                                                            <li>
+                                                                <?= esc((string) ($item['item_name'] ?? '')) ?>
+                                                                (<?= esc((string) ((int) round((float) ($item['ordered_qty'] ?? 0)))) ?>
+                                                                <?= esc((string) ($item['unit'] ?? 'unit')) ?>)
+                                                            </li>
+                                                        <?php endforeach ?>
+                                                    </ul>
+                                                    <?php if (count($items) > 4): ?>
+                                                        <div style="margin-top: 4px;">+<?= esc((string) (count($items) - 4)) ?> more items</div>
+                                                    <?php endif ?>
+                                                <?php endif ?>
+                                            </div>
+                                        </details>
+                                    <?php endif ?>
+                                </td>
                                 <td style="font-family: var(--font-mono); font-size: 0.85rem;">PO-<?= esc((string) $poRequest['purchase_order_id']) ?></td>
                                 <td style="font-size: 0.85rem;"><?= esc((string) $poRequest['request_date']) ?></td>
                                 

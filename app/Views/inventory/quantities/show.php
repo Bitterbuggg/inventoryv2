@@ -70,7 +70,7 @@ $totalOut = array_sum(array_map(static fn (array $row): float => (float) ($row['
 
     <section class="card stack-md">
         <h2>Stock Movements</h2>
-        <p class="split-note"><span>Total In: <?= esc(number_format($totalIn, 2)) ?></span><span>Total Out: <?= esc(number_format($totalOut, 2)) ?></span></p>
+        <p class="split-note"><span>Total In: <?= esc(number_format($totalIn, 0)) ?></span><span>Total Out: <?= esc(number_format($totalOut, 0)) ?></span></p>
         <div class="table-wrap">
             <table class="table">
                 <thead>

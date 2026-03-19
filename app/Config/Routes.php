@@ -20,7 +20,7 @@ $routes->group('admin', ['filter' => 'auth'], static function (RouteCollection $
     $routes->get('users/(:num)/edit', 'Admin\UserController::edit/$1', ['filter' => 'role:admin']);
     $routes->post('users/(:num)', 'Admin\UserController::update/$1', ['filter' => 'role:admin']);
     $routes->post('users/(:num)/role', 'Admin\UserController::role/$1', ['filter' => 'role:admin']);
-    $routes->post('users/(:num)/permissions/po-create', 'Admin\UserController::poCreatePermission/$1', ['filter' => 'role:admin']);
+    $routes->post('users/(:num)/permissions/module', 'Admin\UserController::modulePermission/$1', ['filter' => 'role:admin']);
     $routes->post('users/(:num)/delete', 'Admin\UserController::delete/$1', ['filter' => 'role:admin']);
 });
 
@@ -63,6 +63,7 @@ $routes->group('receiving', ['filter' => 'auth'], static function (RouteCollecti
 $routes->group('inventory', ['filter' => 'auth'], static function (RouteCollection $routes): void {
     $routes->get('quantities', 'Receiving\InventoryQuantityController::index', ['filter' => 'role:admin,employee,it_staff']);
     $routes->get('quantities/(:num)', 'Receiving\InventoryQuantityController::show/$1', ['filter' => 'role:admin,employee,it_staff']);
+    $routes->post('quantities/(:num)/adjust-out', 'Receiving\InventoryQuantityController::adjustOut/$1', ['filter' => 'role:admin,it_staff']);
     $routes->get('quantities/(:num)/movements.csv', 'Receiving\InventoryQuantityController::movementsCsv/$1', ['filter' => 'role:admin,employee,it_staff']);
 
     $routes->get('issuance', 'Inventory\IssuanceController::index', ['filter' => 'role:admin,employee,it_staff']);

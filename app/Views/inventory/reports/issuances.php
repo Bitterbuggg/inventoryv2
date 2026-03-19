@@ -62,12 +62,12 @@ $releasedCount = count(array_filter($issuanceRows, static fn (array $row): bool 
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Total Requested</p>
-                <p class="kpi-value" id="kpi-requested"><?= esc(number_format($totalRequested, 2)) ?></p>
-                <p class="kpi-note">Requested quantity aggregate.</p>
-            </article>
-            <article class="kpi-card">
+                <p class="kpi-value" id="kpi-requested"><?= esc(number_format($totalRequested, 0)) ?></p>
+                <p class="kpi-note">Sum of all item requests.</p>
+                </article>
+                <article class="kpi-card">
                 <p class="kpi-label">Total Issued</p>
-                <p class="kpi-value" id="kpi-issued"><?= esc(number_format($totalIssued, 2)) ?></p>
+                <p class="kpi-value" id="kpi-issued"><?= esc(number_format($totalIssued, 0)) ?></p>
                 <p class="kpi-note">Actual released quantity aggregate.</p>
             </article>
             <article class="kpi-card">

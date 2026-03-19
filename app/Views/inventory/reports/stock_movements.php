@@ -62,12 +62,12 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Total Qty In</p>
-                <p class="kpi-value" id="kpi-in"><?= esc(number_format($totalIn, 2)) ?></p>
-                <p class="kpi-note">Inbound stock movement sum.</p>
-            </article>
-            <article class="kpi-card">
-                <p class="kpi-label">Total Qty Out</p>
-                <p class="kpi-value" id="kpi-out"><?= esc(number_format($totalOut, 2)) ?></p>
+                <p class="kpi-value" id="kpi-in"><?= esc(number_format($totalIn, 0)) ?></p>
+                <p class="kpi-note">Total quantity in.</p>
+                </article>
+                <article class="kpi-card">
+                <p class="kpi-label">Total Out</p>
+                <p class="kpi-value" id="kpi-out"><?= esc(number_format($totalOut, 0)) ?></p>
                 <p class="kpi-note">Outbound stock movement sum.</p>
             </article>
             <article class="kpi-card">
@@ -206,8 +206,8 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
             });
             
             kpiRows.innerText = currentRows.length;
-            kpiIn.innerText = sumIn.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            kpiOut.innerText = sumOut.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            kpiIn.innerText = sumIn.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            kpiOut.innerText = sumOut.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
             kpiDistinct.innerText = uniqueItems.size;
             totalIndicator.innerText = currentRows.length;
         }

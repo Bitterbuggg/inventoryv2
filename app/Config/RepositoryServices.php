@@ -371,8 +371,9 @@ class RepositoryServices
     {
         if (self::$inventoryQuantityService === null) {
             self::$inventoryQuantityService = new InventoryQuantityService(
-                self::receivingInventoryStockRepository(),
-                self::receivingStockMovementRepository(),
+                self::inventoryStockRepository(),
+                self::stockMovementRepository(),
+                \Config\Database::connect()
             );
         }
 

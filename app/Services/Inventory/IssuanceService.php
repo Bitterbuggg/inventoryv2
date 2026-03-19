@@ -209,7 +209,7 @@ class IssuanceService
     private function generateIssuanceNumber(): string
     {
         do {
-            $number = 'ISS-' . date('Ymd-His') . '-' . random_int(1000, 9999);
+            $number = 'ISS-' . date('Ymd-His') . '-' . substr((string)round(microtime(true) * 1000), -4);
         } while ($this->issuances->findByNumber($number) !== null);
 
         return $number;

@@ -95,11 +95,11 @@ $predefinedUnits = ['Box', 'Piece', 'Vial', 'Bottle', 'Pack', 'Roll', 'Tablet', 
                 <div class="form-grid-2">
                     <div class="field">
                         <label for="issue_date">Issue Date <span style="color:var(--color-danger);">*</span></label>
-                        <input id="issue_date" type="date" name="issue_date" class="form-control-header" value="<?= esc((string) old('issue_date', date('Y-m-d'))) ?>" required>
+                        <input id="issue_date" type="date" name="issue_date" class="form-control-header" value="<?= esc((string) old('issue_date', date('Y-m-d'))) ?>" max="<?= date('Y-m-d') ?>" required title="Select the date this issuance is performed. Future dates are disabled.">
                     </div>
                     <div class="field">
                         <label for="department">Department</label>
-                        <input id="department" type="text" name="department" class="form-control-header" placeholder="e.g., Ward A, Emergency..." value="<?= esc((string) old('department')) ?>">
+                        <input id="department" type="text" name="department" class="form-control-header" placeholder="e.g., Ward A, Emergency..." value="<?= esc((string) old('department')) ?>" title="The department or ward requesting the items.">
                     </div>
                 </div>
 

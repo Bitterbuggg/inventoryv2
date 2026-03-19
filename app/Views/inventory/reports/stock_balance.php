@@ -59,17 +59,17 @@ $available = array_sum(array_map(static fn (array $row): float => (float) ($row[
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">On Hand</p>
-                <p class="kpi-value" id="kpi-onhand"><?= esc(number_format($onHand, 2)) ?></p>
-                <p class="kpi-note">Total physical quantity.</p>
-            </article>
-            <article class="kpi-card">
+                <p class="kpi-value" id="kpi-onhand"><?= esc(number_format($onHand, 0)) ?></p>
+                <p class="kpi-note">Physical units in stock.</p>
+                </article>
+                <article class="kpi-card">
                 <p class="kpi-label">Reserved</p>
-                <p class="kpi-value" id="kpi-reserved"><?= esc(number_format($reserved, 2)) ?></p>
-                <p class="kpi-note">Allocated but unreleased quantity.</p>
-            </article>
-            <article class="kpi-card">
+                <p class="kpi-value" id="kpi-reserved"><?= esc(number_format($reserved, 0)) ?></p>
+                <p class="kpi-note">Allocated to open issuances.</p>
+                </article>
+                <article class="kpi-card">
                 <p class="kpi-label">Available</p>
-                <p class="kpi-value" id="kpi-available"><?= esc(number_format($available, 2)) ?></p>
+                <p class="kpi-value" id="kpi-available"><?= esc(number_format($available, 0)) ?></p>
                 <p class="kpi-note">Usable stock for issuance.</p>
             </article>
         </div>
@@ -245,9 +245,9 @@ $available = array_sum(array_map(static fn (array $row): float => (float) ($row[
             });
             
             kpiSkus.innerText = currentRows.length;
-            kpiOnHand.innerText = sumOnHand.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            kpiReserved.innerText = sumReserved.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            kpiAvailable.innerText = sumAvailable.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            kpiOnHand.innerText = sumOnHand.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            kpiReserved.innerText = sumReserved.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            kpiAvailable.innerText = sumAvailable.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
         }
 
         // Attach Event Listeners to inputs

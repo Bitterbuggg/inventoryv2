@@ -67,30 +67,32 @@ class InventoryQuantityController extends BaseController
         ]);
     }
 
-    public function movementsCsv(int $inventoryStockId): RedirectResponse|ResponseInterface
+    public function adjustOut(int $inventoryStockId): RedirectResponse
     {
-        $stock = RepositoryServices::inventoryQuantityService()->findWithMovements($inventoryStockId);
+        $rules = [
+            'qty'    => 'required|is_natural_no_zero',
+            'reason' => 'required|in_list[Expired,Damaged,Recall]',
+        ];
 
-        if ($stock === null) {
-            return redirect()->to('/inventory/quantities')->with('error', 'Inventory stock record not found.');
+        if (! $this->validate($rules)) {
+            return redirect()->back()->with('errors', $this->validator->getErrors());
         }
 
-        $rows = $stock['movements'] ?? [];
+        $qty    = (float) $this->request->getPost('qty');
+        $reason = (string) $this->request->getPost('reason');
 
-        return $this->csvResponse(
-            'inventory_stock_movements_' . ((string) ($stock['id'] ?? $inventoryStockId)) . '.csv',
-            ['ID', 'Movement Number', 'Type', 'Reference Type', 'Reference ID', 'Qty In', 'Qty Out', 'Balance After', 'Performed At'],
-            array_map(static fn (array $row): array => [
-                (string) ($row['id'] ?? ''),
-                (string) ($row['movement_number'] ?? ''),
-                (string) ($row['movement_type'] ?? ''),
-                (string) ($row['reference_type'] ?? ''),
-                (string) ($row['reference_id'] ?? ''),
-                (string) ($row['qty_in'] ?? '0'),
-                (string) ($row['qty_out'] ?? '0'),
-                (string) ($row['balance_after'] ?? '0'),
-                (string) ($row['performed_at'] ?? ''),
-            ], $rows),
-        );
+        try {
+            $user = auth()->user();
+            RepositoryServices::inventoryQuantityService()->manualAdjustmentOut(
+                $inventoryStockId,
+                $qty,
+                (int) ($user->id ?? 0),
+                $reason
+            );
+
+            return redirect()->to('/inventory/quantities')->with('message', "Successfully disposed {$qty} units (Reason: {$reason}).");
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 }

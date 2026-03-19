@@ -36,7 +36,6 @@ foreach ($usersList as $userRow) {
 
 <?= $this->section('page_actions') ?>
 <a class="btn btn-primary" href="<?= site_url('admin/users/create') ?>">Create User</a>
-<a class="btn btn-outline" href="<?= site_url('admin/users?export=csv') ?>">Export CSV</a>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -75,7 +74,7 @@ foreach ($usersList as $userRow) {
                         <th>Username</th>
                         <th>Email</th>
                         <th>Groups</th>
-                        <th>PO Create Delegation</th>
+                        <th>Module Access</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -97,10 +96,14 @@ foreach ($usersList as $userRow) {
                             }
                         }
 
-                        $hasDelegatedPoCreate = is_object($user)
-                            && method_exists($user, 'hasPermission')
-                            && $user->hasPermission('procurement.po.create');
+                        $isAdmin = in_array('admin', $userGroups, true);
 
+                        $modules = [
+                            'procurement' => 'procurement.view',
+                            'receiving'   => 'receiving.view',
+                            'inventory'   => 'inventory.issuance.create',
+                            'reports'     => 'reports.view',
+                        ];
                         ?>
                         <tr>
                             <td><?= esc($userId) ?></td>
@@ -108,36 +111,39 @@ foreach ($usersList as $userRow) {
                             <td><?= esc($email) ?></td>
                             <td><?= esc(implode(', ', $userGroups)) ?></td>
                             <td>
-                                <?php if (in_array('admin', $userGroups, true)): ?>
-                                    <span class="badge" style="background: var(--color-brand-100); color: var(--color-brand-700);">Implicit (Admin)</span>
-                                <?php elseif ($hasDelegatedPoCreate): ?>
-                                    <span class="badge" style="background: #dcfce7; color: #166534;">Granted</span>
+                                <?php if ($isAdmin): ?>
+                                    <span class="badge" style="background: var(--color-brand-100); color: var(--color-brand-700);">Full Access (Admin)</span>
                                 <?php else: ?>
-                                    <span class="badge" style="background: #f1f5f9; color: #475569;">Not Granted</span>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                        <?php foreach ($modules as $modName => $perm): ?>
+                                            <?php $hasAccess = $user->hasPermission($perm); ?>
+                                            <form class="inline-form" method="post" action="<?= site_url('admin/users/' . $userId . '/permissions/module') ?>">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="module" value="<?= $modName ?>">
+                                                <input type="hidden" name="action" value="<?= $hasAccess ? 'revoke' : 'grant' ?>">
+                                                <button type="submit" 
+                                                        class="badge" 
+                                                        style="cursor: pointer; border: none; font-family: inherit; transition: opacity 0.2s; background: <?= $hasAccess ? '#dcfce7' : '#f1f5f9' ?>; color: <?= $hasAccess ? '#166534' : '#475569' ?>;"
+                                                        title="Click to <?= $hasAccess ? 'revoke' : 'grant' ?> <?= ucfirst($modName) ?> access">
+                                                    <?= ucfirst($modName) ?>: <?= $hasAccess ? 'ON' : 'OFF' ?>
+                                                </button>
+                                            </form>
+                                        <?php endforeach; ?>
+                                    </div>
                                 <?php endif ?>
                             </td>
                             <td>
                                 <div class="button-group-compact">
-                                    <a href="<?= site_url('admin/users/' . $userId . '/edit') ?>" class="btn btn-outline btn-small">Edit</a>
+                                    <a href="<?= site_url('admin/users/' . $userId . '/edit') ?>" class="btn btn-outline btn-small" title="Edit user details">Edit</a>
 
-                                    <?php if (! in_array('admin', $userGroups, true)): ?>
-                                        <form class="inline-form" method="post" action="<?= site_url('admin/users/' . $userId . '/permissions/po-create') ?>">
-                                            <?= csrf_field() ?>
-                                            <input type="hidden" name="action" value="<?= $hasDelegatedPoCreate ? 'revoke' : 'grant' ?>">
-                                            <button type="submit" class="btn btn-outline btn-small">
-                                                <?= $hasDelegatedPoCreate ? 'Revoke PO Power' : 'Grant PO Power' ?>
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
-
-                                    <?php if (! in_array('admin', $userGroups, true)): ?>
+                                    <?php if (! $isAdmin): ?>
                                         <form class="inline-form"
                                               method="post"
                                               action="<?= site_url('admin/users/' . $userId . '/delete') ?>"
                                               data-confirm="Delete this user account? This action cannot be undone."
                                               data-confirm-title="Delete User">
                                             <?= csrf_field() ?>
-                                            <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                                            <button type="submit" class="btn btn-danger btn-small" title="Permanently delete this user">Delete</button>
                                         </form>
                                     <?php endif; ?>
                                 </div>

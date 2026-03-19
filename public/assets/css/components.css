@@ -709,18 +709,36 @@ textarea {
     border-color: var(--color-border);
 }
 
-.status-submitted {
+.status-submitted,
+.status-approved {
     background: var(--color-info-100);
     color: var(--color-info-700);
     border-color: var(--color-info-border);
 }
 
-.status-approved,
 .status-posted,
 .status-released {
     background: var(--color-success-100);
     color: var(--color-success-700);
     border-color: var(--color-success-border);
+}
+
+.status-converting {
+    background: #f5f3ff; /* Purple 50 */
+    color: #5b21b6;      /* Purple 800 */
+    border-color: #ddd6fe; /* Purple 200 */
+}
+
+.status-converted-to-po {
+    background: #fef3c7; /* Amber 100 */
+    color: #92400e;      /* Amber 800 */
+    border-color: #fde68a; /* Amber 200 */
+}
+
+.status-converted-to-receiving {
+    background: #eef2ff; /* Indigo 50 */
+    color: #3730a3;      /* Indigo 800 */
+    border-color: #c7d2fe; /* Indigo 200 */
 }
 
 .status-rejected,

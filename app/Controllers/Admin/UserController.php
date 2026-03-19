@@ -236,7 +236,7 @@ class UserController extends BaseController
         return redirect()->to('/admin/users')->with('message', "User role updated to {$newRole}.");
     }
 
-    public function poCreatePermission(int $userId): RedirectResponse
+    public function modulePermission(int $userId): RedirectResponse
     {
         $user = model(UserModel::class)->find($userId);
 
@@ -245,6 +245,7 @@ class UserController extends BaseController
         }
 
         $rules = [
+            'module' => 'required|in_list[procurement,receiving,inventory,reports]',
             'action' => 'required|in_list[grant,revoke]',
         ];
 
@@ -252,32 +253,57 @@ class UserController extends BaseController
             return redirect()->back()->with('errors', $this->validator->getErrors());
         }
 
+        $module = (string) $this->request->getPost('module');
         $action = (string) $this->request->getPost('action');
-        $permission = 'procurement.po.create';
 
-        if ($action === 'grant') {
-            if (! $user->hasPermission($permission)) {
-                $user->addPermission($permission);
+        $permissionsMap = [
+            'procurement' => [
+                'procurement.pr.create',
+                'procurement.pr.approve',
+                'procurement.po.create',
+                'procurement.por.manage',
+                'procurement.view',
+            ],
+            'receiving' => [
+                'receiving.convert',
+                'receiving.view',
+            ],
+            'inventory' => [
+                'inventory.quantity.update',
+                'inventory.issuance.create',
+                'inventory.issuance.approve',
+            ],
+            'reports' => [
+                'reports.view',
+            ],
+        ];
+
+        $targetPermissions = $permissionsMap[$module] ?? [];
+
+        foreach ($targetPermissions as $permission) {
+            if ($action === 'grant') {
+                if (! $user->hasPermission($permission)) {
+                    $user->addPermission($permission);
+                }
+            } else {
+                if ($user->hasPermission($permission)) {
+                    $user->removePermission($permission);
+                }
             }
-            $message = 'PO creation delegation granted.';
-            $event = 'admin.po_create_permission_granted';
-        } else {
-            if ($user->hasPermission($permission)) {
-                $user->removePermission($permission);
-            }
-            $message = 'PO creation delegation revoked.';
-            $event = 'admin.po_create_permission_revoked';
         }
 
+        $message = "Module '" . ucfirst($module) . "' access " . ($action === 'grant' ? 'granted' : 'revoked') . ".";
+        
         $currentUser = auth()->user();
         RepositoryServices::analyticsService()->trackCurrentUser(
-            $event,
+            'admin.module_permission_changed',
             'admin',
             'user',
             $currentUser === null ? null : (int) ($currentUser->id ?? 0),
             [
                 'target_user_id' => $userId,
-                'permission' => $permission,
+                'module' => $module,
+                'action' => $action,
             ],
         );
 

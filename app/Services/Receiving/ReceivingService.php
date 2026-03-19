@@ -215,6 +215,8 @@ class ReceivingService
 
         $this->receivingItems->addItems($receivingId, $items);
 
+        $this->poRequests->update($poRequestId, ['status' => 'converting']);
+
         return $receivingId;
     }
 
@@ -259,8 +261,8 @@ class ReceivingService
             throw new \DomainException('PO request for receiving was not found.');
         }
 
-        if (($poRequest['status'] ?? '') !== 'approved') {
-            throw new \DomainException('PO request must be approved before posting receiving.');
+        if (($poRequest['status'] ?? '') !== 'converting') {
+            throw new \DomainException('PO request must be in converting status before posting receiving.');
         }
 
         $items = $this->receivingItems->listByReceiving($receivingId);
@@ -345,6 +347,10 @@ class ReceivingService
             'void_reason' => $reason,
         ]);
 
+        $this->poRequests->update((int) ($receiving['po_request_id'] ?? 0), [
+            'status' => 'approved',
+        ]);
+
         $this->safeAudit(
             actorId: $actorId,
             action: 'receiving.voided',
@@ -359,7 +365,7 @@ class ReceivingService
     private function generateReceivingNumber(): string
     {
         do {
-            $number = 'RCV-' . date('Ymd-His') . '-' . random_int(1000, 9999);
+            $number = 'RCV-' . date('Ymd-His') . '-' . substr((string)round(microtime(true) * 1000), -4);
         } while ($this->receivings->findByNumber($number) !== null);
 
         return $number;

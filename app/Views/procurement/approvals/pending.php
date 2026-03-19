@@ -123,11 +123,6 @@ $prApprovals = count(array_filter($rows, static fn (array $row): bool => (string
                 <p class="kpi-value" id="kpi-pr"><?= esc((string) $prApprovals) ?></p>
                 <p class="kpi-note">Linked to PR flow.</p>
             </article>
-            <article class="kpi-card">
-                <p class="kpi-label">Scope</p>
-                <p class="kpi-value" id="kpi-pr-only">PR Only</p>
-                <p class="kpi-note">Procurement approvals only.</p>
-            </article>
         </div>
     </section>
 
@@ -263,7 +258,6 @@ $prApprovals = count(array_filter($rows, static fn (array $row): bool => (string
             const kpiTotal = document.getElementById('kpi-total');
             const kpiL1 = document.getElementById('kpi-l1');
             const kpiPr = document.getElementById('kpi-pr');
-            const kpiPrOnly = document.getElementById('kpi-pr-only');
 
             const searchInput = document.getElementById('instant-search-input');
             const clearBtn = document.getElementById('btn-clear-search');
@@ -302,9 +296,6 @@ $prApprovals = count(array_filter($rows, static fn (array $row): bool => (string
                 kpiTotal.innerText = currentRows.length;
                 kpiL1.innerText = countL1;
                 kpiPr.innerText = countPR;
-                if (kpiPrOnly) {
-                    kpiPrOnly.innerText = 'PR Only';
-                }
                 totalIndicator.innerText = currentRows.length;
             }
 

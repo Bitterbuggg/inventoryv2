@@ -200,7 +200,7 @@ class PurchaseRequestService
     private function generatePrNumber(): string
     {
         do {
-            $number = 'PR-' . date('Ymd-His') . '-' . random_int(1000, 9999);
+            $number = 'PR-' . date('Ymd-His') . '-' . substr((string)round(microtime(true) * 1000), -4);
         } while ($this->purchaseRequests->findByNumber($number) !== null);
 
         return $number;

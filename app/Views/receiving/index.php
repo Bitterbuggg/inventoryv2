@@ -80,10 +80,10 @@ $crumbs = [
 
 <?= $this->section('page_actions') ?>
 <?php $receivingExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('receiving') . '?' . $receivingExportQuery ?>">Export CSV</a>
-<a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>">PO Requests</a>
-<a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>">Purchase Orders</a>
-<a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>">Inventory Quantities</a>
+<a class="btn btn-outline" href="<?= site_url('receiving') . '?' . $receivingExportQuery ?>" title="Download the current list of receiving records as a CSV file">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>" title="View approved purchase requests ready for receiving">PO Requests</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>" title="View all issued purchase orders">Purchase Orders</a>
+<a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>" title="View current inventory stock levels">Inventory Quantities</a>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -174,8 +174,12 @@ $convertibleCount = count($convertiblePoRequests ?? []);
                         <option value="<?= esc($option) ?>" <?= (($status ?? '') === $option) ? 'selected' : '' ?>><?= esc($label) ?></option>
                     <?php endforeach ?>
                     </select>
-                <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">Filter</button>
+                <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;" title="Filter history by status">Filter</button>
             </form>
+        </div>
+
+        <div id="filter-chips-container" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 28px;">
+            <!-- Chips injected by JS -->
         </div>
 
         <div class="table-wrap">
@@ -259,10 +263,64 @@ $convertibleCount = count($convertiblePoRequests ?? []);
 
             const searchInput = document.getElementById('instant-search-input');
             const clearBtn = document.getElementById('btn-clear-search');
+            const chipsContainer = document.getElementById('filter-chips-container');
 
             const statusCycle = ['All', 'draft', 'posted', 'voided'];
             let cycleIndex = 0;
             let currentStatusFilter = 'All';
+
+            function updateChips() {
+                chipsContainer.innerHTML = '';
+                const query = searchInput.value.trim();
+                
+                if (query !== '') {
+                    createChip(`Search: "${query}"`, () => {
+                        searchInput.value = '';
+                        applyFilters();
+                    });
+                }
+
+                if (currentStatusFilter !== 'All') {
+                    createChip(`Status: ${currentStatusFilter}`, () => {
+                        currentStatusFilter = 'All';
+                        cycleIndex = 0;
+                        statusHeader.innerHTML = `Status (All)`;
+                        applyFilters();
+                    });
+                }
+
+                if (query !== '' || currentStatusFilter !== 'All') {
+                    const clearAll = document.createElement('button');
+                    clearAll.innerText = 'Clear All';
+                    clearAll.style = 'background:none; border:none; color:var(--color-danger); font-size:0.75rem; cursor:pointer; font-weight:600; padding:4px 8px;';
+                    clearAll.onclick = () => {
+                        searchInput.value = '';
+                        currentStatusFilter = 'All';
+                        cycleIndex = 0;
+                        statusHeader.innerHTML = `Status (All)`;
+                        applyFilters();
+                    };
+                    chipsContainer.appendChild(clearAll);
+                }
+            }
+
+            function createChip(label, onClear) {
+                const chip = document.createElement('div');
+                chip.className = 'status-badge';
+                chip.style = 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; display:flex; align-items:center; gap:6px; padding:2px 8px; font-size:0.75rem;';
+                
+                const span = document.createElement('span');
+                span.innerText = label;
+                
+                const close = document.createElement('span');
+                close.innerHTML = '&times;';
+                close.style = 'cursor:pointer; font-size:1.1rem; line-height:1; font-weight:bold;';
+                close.onclick = onClear;
+
+                chip.appendChild(span);
+                chip.appendChild(close);
+                chipsContainer.appendChild(chip);
+            }
 
             function applyFilters() {
                 const query = searchInput.value.toLowerCase().trim();
@@ -290,6 +348,7 @@ $convertibleCount = count($convertiblePoRequests ?? []);
 
                 currentRows.forEach(row => tbodyMain.appendChild(row));
                 updateKPIs();
+                updateChips();
                 showPage(1);
             }
 

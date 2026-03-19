@@ -36,7 +36,7 @@ class StockMovementService
     private function generateMovementNumber(): string
     {
         do {
-            $number = 'MOV-' . date('Ymd-His') . '-' . random_int(1000, 9999);
+            $number = 'MOV-' . date('Ymd-His') . '-' . substr((string)round(microtime(true) * 1000), -4);
         } while ($this->stockMovements->findByNumber($number) !== null);
 
         return $number;

@@ -119,7 +119,7 @@ class PoRequestService
     private function generatePoRequestNumber(): string
     {
         do {
-            $number = 'POR-' . date('Ymd-His') . '-' . random_int(1000, 9999);
+            $number = 'POR-' . date('Ymd-His') . '-' . substr((string)round(microtime(true) * 1000), -4);
         } while ($this->poRequests->findByNumber($number) !== null);
 
         return $number;

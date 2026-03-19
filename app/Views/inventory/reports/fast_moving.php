@@ -105,7 +105,7 @@ $maxQty = $topItemQty > 0 ? $topItemQty : 1;
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Total Qty Out</p>
-                <p class="kpi-value" id="kpi-qty"><?= esc(number_format($totalQtyOut, 2)) ?></p>
+                <p class="kpi-value" id="kpi-qty"><?= esc(number_format($totalQtyOut, 0)) ?></p>
                 <p class="kpi-note">Aggregate outbound quantity.</p>
             </article>
             <article class="kpi-card">
@@ -115,7 +115,7 @@ $maxQty = $topItemQty > 0 ? $topItemQty : 1;
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Top Item Qty</p>
-                <p class="kpi-value"><?= esc(number_format($topItemQty, 2)) ?></p>
+                <p class="kpi-value"><?= esc(number_format($topItemQty, 0)) ?></p>
                 <p class="kpi-note">Outbound quantity of top item.</p>
             </article>
         </div>
@@ -175,7 +175,7 @@ $maxQty = $topItemQty > 0 ? $topItemQty : 1;
                                     <td>
                                         <div class="volume-bar-container">
                                             <div class="volume-bar-fill" style="width: <?= esc((string) $percent) ?>%;"></div>
-                                            <span class="volume-bar-text"><?= esc(number_format($qtyOut, 2)) ?></span>
+                                            <span class="volume-bar-text"><?= esc(number_format($qtyOut, 0)) ?></span>
                                         </div>
                                     </td>
                                 </tr>

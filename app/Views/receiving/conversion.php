@@ -125,8 +125,8 @@ $todayDate = date('Y-m-d');
                         <input id="received_date" type="date" name="received_date" class="form-control-header" value="<?= esc((string) old('received_date', $todayDate)) ?>" max="<?= $todayDate ?>" required>
                     </div>
                     <div class="header-field-date">
-                        <label for="delivery_reference" class="field-label">Delivery Reference <span class="muted" style="font-weight: normal;">(Optional)</span></label>
-                        <input id="delivery_reference" type="text" name="delivery_reference" class="form-control-header" placeholder="e.g., DR-10293" value="<?= esc((string) old('delivery_reference')) ?>">
+                        <label for="delivery_reference" class="field-label">Delivery Reference <span style="color:var(--color-danger);">*</span></label>
+                        <input id="delivery_reference" type="text" name="delivery_reference" class="form-control-header" placeholder="e.g., DR-10293" value="<?= esc((string) old('delivery_reference')) ?>" required>
                     </div>
                     <div class="header-field-remarks">
                         <label for="remarks" class="field-label">Remarks / Notes</label>
@@ -169,6 +169,9 @@ $todayDate = date('Y-m-d');
                         </tr>
                     </thead>
                     <tbody>
+                        <?php 
+                        $minExpiryDate = date('Y-m-d', strtotime('+3 months')); 
+                        ?>
                         <?php foreach ($itemRows as $index => $item): ?>
                             <tr>
                                 <td>
@@ -185,10 +188,10 @@ $todayDate = date('Y-m-d');
                                 <td><input type="number" step="1" min="0" name="accepted_qty[]" class="table-control" value="<?= esc((string) old('accepted_qty.' . $index, (string) ($item['accepted_qty'] ?? 0))) ?>" required></td>
                                 <td><input type="number" step="1" min="0" name="rejected_qty[]" class="table-control" value="<?= esc((string) old('rejected_qty.' . $index, (string) ($item['rejected_qty'] ?? 0))) ?>" required></td>
                                 
-                                <td><input type="text" name="batch_no[]" class="table-control" placeholder="Required" value="<?= esc((string) old('batch_no.' . $index)) ?>" required></td>
-                                <td><input type="text" name="lot_no[]" class="table-control" placeholder="Required" value="<?= esc((string) old('lot_no.' . $index)) ?>" required></td>
+                                <td><input type="text" name="batch_no[]" class="table-control solid-input" placeholder="Required" value="<?= esc((string) old('batch_no.' . $index)) ?>" pattern="[A-Z0-9\-_]{3,}" title="Minimum 3 characters, alphanumeric, hyphen, or underscore only." required></td>
+                                <td><input type="text" name="lot_no[]" class="table-control solid-input" placeholder="Optional" value="<?= esc((string) old('lot_no.' . $index)) ?>" pattern="[A-Z0-9\-_]{3,}" title="Minimum 3 characters, alphanumeric, hyphen, or underscore only."></td>
                                 
-                                <td><input type="date" name="expiry_date[]" class="table-control" value="<?= esc((string) old('expiry_date.' . $index)) ?>" min="<?= $todayDate ?>" required></td>
+                                <td><input type="date" name="expiry_date[]" class="table-control" value="<?= esc((string) old('expiry_date.' . $index)) ?>" min="<?= $minExpiryDate ?>" required></td>
                                 
                                 <td><input type="number" step="0.01" min="0" name="unit_cost[]" class="table-control text-right" value="<?= esc((string) old('unit_cost.' . $index, (string) ($item['unit_cost'] ?? 0))) ?>"></td>
                                 <td><input type="text" name="item_remarks[]" class="table-control" placeholder="Optional" value="<?= esc((string) old('item_remarks.' . $index)) ?>"></td>
@@ -260,19 +263,33 @@ $todayDate = date('Y-m-d');
             });
         });
 
+        // --- SOLID BATCH/LOT FORMATTING ---
+        document.querySelectorAll('.solid-input').forEach(input => {
+            input.addEventListener('input', function() {
+                // Auto-uppercase and remove spaces/special chars (allow hyphen and underscore)
+                this.value = this.value.toUpperCase().replace(/[^A-Z0-9\-_]/g, '');
+            });
+        });
+
         // --- SUBMIT VALIDATION ---
         form.addEventListener('submit', function(e) {
             let isValid = true;
-            const today = new Date().toISOString().split('T')[0];
+            
+            // Ideal Expiry: +3 months
+            const minExpiry = new Date();
+            minExpiry.setMonth(minExpiry.getMonth() + 3);
+            const minExpiryStr = minExpiry.toISOString().split('T')[0];
             
             // Validate Expiry Dates
             const expiryInputs = document.querySelectorAll('input[name="expiry_date[]"]');
             for(let i=0; i < expiryInputs.length; i++) {
-                if (expiryInputs[i].value && expiryInputs[i].value < today) {
-                    alert(`Row ${i+1}: You cannot receive an expired item! Please check the expiry date.`);
-                    expiryInputs[i].focus();
-                    isValid = false;
-                    break;
+                if (expiryInputs[i].value && expiryInputs[i].value < minExpiryStr) {
+                    const confirmMsg = `Row ${i+1}: The expiry date (${expiryInputs[i].value}) is less than 3 months away. Are you sure you want to receive this? Items expiring soon might be wasted.`;
+                    if (!confirm(confirmMsg)) {
+                        expiryInputs[i].focus();
+                        isValid = false;
+                        break;
+                    }
                 }
             }
 

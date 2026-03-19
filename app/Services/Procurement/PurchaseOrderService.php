@@ -138,7 +138,7 @@ class PurchaseOrderService
     private function generatePoNumber(): string
     {
         do {
-            $number = 'PO-' . date('Ymd-His') . '-' . random_int(1000, 9999);
+            $number = 'PO-' . date('Ymd-His') . '-' . substr((string)round(microtime(true) * 1000), -4);
         } while ($this->purchaseOrders->findByNumber($number) !== null);
 
         return $number;
