@@ -278,7 +278,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                     
                                     <td>
                                         <?php if (($request['status'] ?? '') === 'converted_to_po'): ?>
-                                            <?= view('components/shared/table_status_badge', ['status' => 'converted_to_po']) ?>
+                                            <span class="status-badge-special">Converted to PO</span>
                                         <?php else: ?>
                                             <?= view('components/shared/table_status_badge', ['status' => $request['status'] ?? 'unknown']) ?>
                                         <?php endif ?>
@@ -425,6 +425,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
             let currentStatusFilter = 'All';
 
             function toTitleCase(str) {
+                if (str === 'converted_to_po') return 'Converted to PO';
                 return str.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
             }
 
