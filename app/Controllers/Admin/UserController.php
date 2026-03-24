@@ -52,14 +52,15 @@ class UserController extends BaseController
         return view('admin/create_user');
     }
 
-    public function store(): RedirectResponse
+ public function store(): RedirectResponse
     {
         $rules = [
             'username'         => 'required|min_length[3]|max_length[30]|regex_match[/\A[a-zA-Z0-9\.]+\z/]|is_unique[users.username]',
             'email'            => 'required|valid_email|max_length[254]',
             'password'         => 'required|min_length[8]|max_length[255]',
             'password_confirm' => 'required|matches[password]',
-            'role'             => 'required|in_list[admin,employee,it_staff]',
+            // Updated to allow 'custom' as a valid option from the frontend
+            'role'             => 'required|in_list[admin,employee,it_staff,custom]', 
         ];
 
         if (! $this->validate($rules)) {
@@ -86,10 +87,25 @@ class UserController extends BaseController
                 'password' => (string) $this->request->getPost('password'),
             ]);
 
+            // Handle the 'custom' role by defaulting them to an employee base group
+            $postedRole = (string) $this->request->getPost('role');
+            $dbRole = ($postedRole === 'custom') ? 'employee' : $postedRole;
+
             RepositoryServices::userRepository()->assignGroup(
                 $userId,
-                (string) $this->request->getPost('role'),
+                $dbRole,
             );
+
+            // Grant granular permissions
+            $permissions = $this->request->getPost('permissions') ?? [];
+            $userModel = model(UserModel::class);
+            $newUser = $userModel->find($userId);
+            
+            if ($newUser !== null && !empty($permissions)) {
+                foreach ($permissions as $perm) {
+                    $newUser->addPermission($perm);
+                }
+            }
 
             $user = auth()->user();
             RepositoryServices::analyticsService()->trackCurrentUser(
@@ -107,7 +123,7 @@ class UserController extends BaseController
                 ->with('error', $e->getMessage());
         }
     }
-
+    
     public function edit(int $userId): string|RedirectResponse
     {
         $user = model(UserModel::class)->find($userId);
@@ -159,6 +175,26 @@ class UserController extends BaseController
         $user->username = (string) $this->request->getPost('username');
 
         model(UserModel::class)->save($user);
+
+        // Sync granular permissions
+        $permissions = $this->request->getPost('permissions') ?? [];
+        $allPossiblePerms = [];
+        foreach ($this->getPermissionsMap() as $perms) {
+            $allPossiblePerms = array_merge($allPossiblePerms, $perms);
+        }
+        $allPossiblePerms[] = 'audit.view'; // Extra from the structure
+
+        foreach ($allPossiblePerms as $perm) {
+            if (in_array($perm, $permissions, true)) {
+                if (! $user->hasPermission($perm)) {
+                    $user->addPermission($perm);
+                }
+            } else {
+                if ($user->hasPermission($perm)) {
+                    $user->removePermission($perm);
+                }
+            }
+        }
 
         $currentUser = auth()->user();
         RepositoryServices::analyticsService()->trackCurrentUser(
@@ -256,29 +292,8 @@ class UserController extends BaseController
         $module = (string) $this->request->getPost('module');
         $action = (string) $this->request->getPost('action');
 
-        $permissionsMap = [
-            'procurement' => [
-                'procurement.pr.create',
-                'procurement.pr.approve',
-                'procurement.po.create',
-                'procurement.por.manage',
-                'procurement.view',
-            ],
-            'receiving' => [
-                'receiving.convert',
-                'receiving.view',
-            ],
-            'inventory' => [
-                'inventory.quantity.update',
-                'inventory.issuance.create',
-                'inventory.issuance.approve',
-            ],
-            'reports' => [
-                'reports.view',
-            ],
-        ];
-
-        $targetPermissions = $permissionsMap[$module] ?? [];
+        $map = $this->getPermissionsMap();
+        $targetPermissions = $map[$module] ?? [];
 
         foreach ($targetPermissions as $permission) {
             if ($action === 'grant') {
@@ -308,6 +323,31 @@ class UserController extends BaseController
         );
 
         return redirect()->to('/admin/users')->with('message', $message);
+    }
+
+    private function getPermissionsMap(): array
+    {
+        return [
+            'procurement' => [
+                'procurement.pr.create',
+                'procurement.pr.approve',
+                'procurement.po.create',
+                'procurement.por.manage',
+                'procurement.view',
+            ],
+            'receiving' => [
+                'receiving.convert',
+                'receiving.view',
+            ],
+            'inventory' => [
+                'inventory.quantity.update',
+                'inventory.issuance.create',
+                'inventory.issuance.approve',
+            ],
+            'reports' => [
+                'reports.view',
+            ],
+        ];
     }
 }
 

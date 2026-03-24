@@ -20,7 +20,14 @@ $hasGroup = static function ($userEntity, string $group): bool {
 $isAdmin = $hasGroup($user, 'admin');
 $isEmployee = $hasGroup($user, 'employee');
 $isItStaff = $hasGroup($user, 'it_staff');
-$canProcurement = $isAdmin || $isEmployee || $isItStaff;
+
+// Granular permission checks for module visibility
+$canViewProcurement = $user->hasPermission('procurement.view') || $user->hasPermission('procurement.pr.create');
+$canViewReceiving   = $user->hasPermission('receiving.view')   || $user->hasPermission('receiving.convert');
+$canViewInventory   = $user->hasPermission('inventory.issuance.create') || $user->hasPermission('inventory.quantity.update');
+$canViewReports     = $user->hasPermission('reports.view');
+
+// Operational access check (Admin or specific staff)
 $canOps = $isAdmin || $isItStaff;
 
 $roleLabel = 'Employee';
@@ -61,13 +68,16 @@ if ($isAdmin) {
     ];
 }
 
-if ($canProcurement) {
+if ($isAdmin || $canViewProcurement) {
     $procurementItems = [
         ['path' => 'procurement/purchase-requests', 'label' => 'Purchase Requests'],
     ];
 
-    if ($canOps) {
+    if ($isAdmin || $user->hasPermission('procurement.pr.approve')) {
         $procurementItems[] = ['path' => 'procurement/approvals/pending', 'label' => 'Approvals'];
+    }
+    
+    if ($isAdmin || $user->hasPermission('procurement.po.create')) {
         $procurementItems[] = ['path' => 'procurement/purchase-orders', 'label' => 'Purchase Orders'];
         $procurementItems[] = ['path' => 'procurement/po-requests', 'label' => 'PO Requests'];
     }
@@ -78,14 +88,18 @@ if ($canProcurement) {
         'icon'  => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>',
         'items' => $procurementItems,
     ];
+}
 
-    $inventoryItems = [
-        ['path' => 'inventory/quantities', 'label' => 'Inventory'],
-        ['path' => 'inventory/issuance', 'label' => 'Issuance'],
-    ];
+if ($isAdmin || $canViewInventory || $canViewReceiving) {
+    $inventoryItems = [];
 
-    if ($canOps) {
-        array_unshift($inventoryItems, ['path' => 'receiving', 'label' => 'Receiving']);
+    if ($isAdmin || $canViewReceiving) {
+        $inventoryItems[] = ['path' => 'receiving', 'label' => 'Receiving'];
+    }
+
+    if ($isAdmin || $canViewInventory) {
+        $inventoryItems[] = ['path' => 'inventory/quantities', 'label' => 'Inventory'];
+        $inventoryItems[] = ['path' => 'inventory/issuance', 'label' => 'Issuance'];
     }
 
     $navGroups[] = [
@@ -96,20 +110,31 @@ if ($canProcurement) {
     ];
 }
 
-if ($canOps) {
-    $navGroups[] = [
-        'title' => 'Reports and Analytics',
-        // Bar Chart Icon
-        'icon'  => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>',
-        'items' => [
+if ($isAdmin || $canViewReports || $isItStaff) {
+    $reportItems = [];
+
+    if ($isAdmin || $canViewReports) {
+        $reportItems = array_merge($reportItems, [
             ['path' => 'reports/stock-balance', 'label' => 'Stock Balance'],
             ['path' => 'reports/stock-movements', 'label' => 'Stock Movements'],
             ['path' => 'reports/issuances', 'label' => 'Issuances'],
             ['path' => 'reports/low-stock', 'label' => 'Low Stock'],
             ['path' => 'reports/fast-moving', 'label' => 'Fast Moving'],
-            ['path' => 'analytics/activity-logs', 'label' => 'Activity Logs'],
-        ],
-    ];
+        ]);
+    }
+
+    if ($isAdmin || $isItStaff) {
+        $reportItems[] = ['path' => 'analytics/activity-logs', 'label' => 'Activity Logs'];
+    }
+
+    if ($reportItems !== []) {
+        $navGroups[] = [
+            'title' => 'Reports and Analytics',
+            // Bar Chart Icon
+            'icon'  => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>',
+            'items' => $reportItems,
+        ];
+    }
 }
 ?>
 <!doctype html>

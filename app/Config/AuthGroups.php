@@ -2,36 +2,14 @@
 
 declare(strict_types=1);
 
-/**
- * This file is part of CodeIgniter Shield.
- *
- * (c) CodeIgniter Foundation <admin@codeigniter.com>
- *
- * For the full copyright and license information, please view
- * the LICENSE file that was distributed with this source code.
- */
-
 namespace Config;
 
 use CodeIgniter\Shield\Config\AuthGroups as ShieldAuthGroups;
 
 class AuthGroups extends ShieldAuthGroups
 {
-    /**
-     * --------------------------------------------------------------------
-     * Default Group
-     * --------------------------------------------------------------------
-     * The group that a newly registered user is added to.
-     */
     public string $defaultGroup = 'employee';
 
-    /**
-     * --------------------------------------------------------------------
-     * Groups
-     * --------------------------------------------------------------------
-     *
-     * @var array<string, array<string, string>>
-     */
     public array $groups = [
         'admin' => [
             'title'       => 'Admin',
@@ -43,22 +21,17 @@ class AuthGroups extends ShieldAuthGroups
         ],
         'it_staff' => [
             'title'       => 'IT Dev/Staff',
-            'description' => 'Technical support, troubleshooting, and read-only operational visibility.',
+            'description' => 'Technical support and read-only operational visibility.',
         ],
     ];
 
-    /**
-     * --------------------------------------------------------------------
-     * Permissions
-     * --------------------------------------------------------------------
-     */
     public array $permissions = [
         'dashboard.view_admin'       => 'Can access admin dashboard',
         'auth.manage_users'          => 'Can manage user roles and assignments',
-        'auth.support_users'         => 'Can reset passwords and unlock accounts (not manage roles)',
+        'auth.support_users'         => 'Can reset passwords and unlock accounts',
         'procurement.pr.create'      => 'Can create purchase requests',
         'procurement.pr.approve'     => 'Can approve or reject purchase requests',
-        'procurement.po.create'      => 'Can generate purchase orders from approved requests',
+        'procurement.po.create'      => 'Can generate purchase orders',
         'procurement.por.manage'     => 'Can manage PO request transitions',
         'procurement.view'           => 'Can view purchase requests and orders',
         'receiving.convert'          => 'Can convert approved PO requests to receiving records',
@@ -68,15 +41,10 @@ class AuthGroups extends ShieldAuthGroups
         'inventory.issuance.approve' => 'Can approve, reject, and release issuances',
         'reports.view'               => 'Can view inventory and movement reports',
         'audit.view'                 => 'Can view workflow and audit logs',
-        'workflow.cancel_draft'      => 'Can cancel draft records to unstick workflow',
+        'workflow.cancel_draft'      => 'Can cancel draft records',
         'system.diagnostics'         => 'Can access system health and diagnostics',
     ];
 
-    /**
-     * --------------------------------------------------------------------
-     * Permissions Matrix
-     * --------------------------------------------------------------------
-     */
     public array $matrix = [
         'admin' => [
             'dashboard.view_admin',
@@ -85,28 +53,21 @@ class AuthGroups extends ShieldAuthGroups
             'procurement.pr.approve',
             'procurement.po.create',
             'procurement.por.manage',
+            'procurement.view',
             'receiving.convert',
+            'receiving.view',
             'inventory.quantity.update',
             'inventory.issuance.create',
             'inventory.issuance.approve',
             'reports.view',
             'audit.view',
         ],
-        'employee' => [
-            'procurement.pr.create',
-            'inventory.issuance.create',
-        ],
+        'employee' => [],
         'it_staff' => [
             'auth.support_users',
-            'procurement.pr.create',
-            'procurement.view',
-            'receiving.view',
-            'inventory.issuance.create',
-            'reports.view',
             'audit.view',
             'workflow.cancel_draft',
             'system.diagnostics',
         ],
     ];
 }
-
