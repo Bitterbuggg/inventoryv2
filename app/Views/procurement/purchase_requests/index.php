@@ -20,153 +20,211 @@ $canCreatePo = $isAdmin
 
 <?= $this->section('head') ?>
 <style>
-    /* --- SORTABLE TABLE HEADERS (Matches Events View) --- */
-    th.sortable {
-        cursor: pointer;
-        position: relative;
-        padding-right: 18px !important;
-        user-select: none;
-        transition: background 0.2s ease;
-    }
-    th.sortable:hover {
-        background: rgba(0, 0, 0, 0.03) !important;
-    }
-    th.sortable::after {
-        content: '↕';
-        position: absolute;
-        right: 6px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 0.75rem;
-        opacity: 0.3;
-    }
-    th.sortable.asc::after {
-        content: '↑';
-        opacity: 1;
-        color: var(--color-brand-600);
-        font-weight: bold;
-    }
-    th.sortable.desc::after {
-        content: '↓';
-        opacity: 1;
-        color: var(--color-brand-600);
-        font-weight: bold;
+    /* --- V2 DESIGN SYSTEM VARIABLES --- */
+    :root {
+        --v2-border: #b2e0eb; /* Soft cyan border */
+        --v2-title: #00476b;  /* Deep navy/teal for headers */
+        --v2-label: #00668c;  /* Bright teal for small labels and icons */
+        --v2-active-bg: #00638a; /* Solid dark blue for active hover state */
+        --v2-text-main: #1e3a8a; /* TRUE Dark Blue so it doesn't look black */
+        --v2-text-muted: #64748b;
     }
 
-    /* --- CUSTOM JS PAGER (Matches Events View) --- */
-    .ci-pager {
-        display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; align-items: center;
+    /* --- NO-SCROLL VIEWPORT WRAPPER --- */
+    .viewport-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        height: calc(100vh - 120px); 
+        min-height: 640px;
+        overflow: hidden;
     }
-    .ci-pager li { display: block; }
+
+    /* --- PASTEL KPI CARDS --- */
+    .kpi-grid { 
+        display: grid; 
+        grid-template-columns: repeat(4, 1fr); 
+        gap: 16px; 
+        flex-shrink: 0; 
+    }
+    
+    .kpi-card { 
+        background: #ffffff; 
+        border: 1px solid var(--v2-border); 
+        border-radius: 12px; 
+        padding: 16px 18px; 
+        display: flex; 
+        align-items: center; 
+        gap: 14px; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+    }
+    
+    .kpi-icon-box {
+        width: 46px; height: 46px; 
+        border-radius: 10px; 
+        display: flex; align-items: center; justify-content: center; 
+        flex-shrink: 0;
+    }
+
+    .icon-total { background: #f1f5f9; color: #475569; }        
+    .icon-draft { background: #f5f3ff; color: #8b5cf6; } 
+    .icon-submitted { background: #fffbeb; color: #d97706; }   
+    .icon-approved { background: #ecfccb; color: #16a34a; }   
+
+    .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }
+    
+    .kpi-value { font-size: 1.15rem; font-weight: 800; color: var(--v2-title); line-height: 1.2; margin: 0; }
+    .kpi-label { font-size: 0.75rem; font-weight: 500; color: var(--v2-text-muted); margin: 0; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* --- V2 TABLE CARD --- */
+    .table-card {
+        background: #ffffff; 
+        border: 1px solid var(--v2-border); 
+        border-radius: 12px; 
+        display: flex;
+        flex-direction: column;
+        flex: 1; 
+        min-height: 0; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+        overflow: hidden;
+    }
+
+    .table-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 20px; 
+        border-bottom: 1px solid var(--v2-border); 
+        background: #ffffff; 
+        flex-shrink: 0;
+        flex-wrap: wrap;
+    }
+    
+    .table-toolbar h3 { margin: 0; font-size: 1.1rem; color: var(--v2-title); font-weight: 800; }
+    
+    .toolbar-controls { display: flex; gap: 8px; align-items: center; flex: 1; justify-content: flex-end; }
+    
+    .search-wrap { position: relative; width: 280px; }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 14px; height: 14px; }
+    .search-input, .filter-select { 
+        padding: 8px 12px; 
+        font-size: 0.85rem; 
+        border: 1px solid var(--v2-border); 
+        border-radius: 6px; 
+        outline: none; 
+        color: var(--v2-text-main);
+        background: #ffffff;
+        transition: all 0.2s;
+    }
+    .search-input { width: 100%; padding-left: 32px; }
+    .search-input:focus, .filter-select:focus { border-color: var(--v2-label); box-shadow: 0 0 0 3px rgba(0, 102, 140, 0.1); }
+
+    /* Scrollable Table Area */
+    .table-scroll-container {
+        flex: 1;
+        overflow-y: auto; 
+        background: #ffffff;
+    }
+
+    .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    
+    .modern-table th { 
+        position: sticky; top: 0; z-index: 20;
+        background-color: #ffffff !important; /* Pure white header */
+        padding: 14px 16px; 
+        font-size: 0.75rem; 
+        text-transform: uppercase; 
+        font-weight: 800; 
+        color: var(--v2-title); 
+        border-bottom: 2px solid var(--v2-border); /* 2px distinct separation line */
+        text-align: left; 
+        letter-spacing: 0.05em; 
+        vertical-align: middle; 
+    }
+    .modern-table td { padding: 12px 16px; font-size: 0.85rem; color: var(--v2-text-main); border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .modern-table tr:hover td { background: #f8fafc; }
+
+    /* --- SORTABLE HEADERS --- */
+    th.sortable { cursor: pointer; padding-right: 18px !important; user-select: none; transition: background 0.2s ease, color 0.2s ease; }
+    th.sortable:hover { background-color: #f1f5f9 !important; color: var(--v2-title) !important; } /* Subtle hover so it stays mostly white */
+    th.sortable::after { content: '↕'; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; opacity: 0.3; color: var(--v2-title); }
+    th.sortable.asc::after { content: '↑'; opacity: 1; color: var(--v2-label); font-weight: bold; }
+    th.sortable.desc::after { content: '↓'; opacity: 1; color: var(--v2-label); font-weight: bold; }
+
+    /* --- PAGINATION FOOTER --- */
+    .table-footer {
+        padding: 10px 20px;
+        border-top: 1px solid var(--v2-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #ffffff;
+        flex-shrink: 0;
+    }
+    .ci-pager { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; align-items: center; }
     .ci-pager li a, .ci-pager li span {
         display: inline-flex; align-items: center; justify-content: center;
-        padding: 6px 12px; font-size: 0.85rem; min-width: 32px;
-        border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm);
-        background: var(--color-surface); color: var(--color-brand-700);
-        text-decoration: none; font-weight: 600; transition: all 0.2s ease;
+        padding: 4px 10px; font-size: 0.75rem; min-width: 28px;
+        border: 1px solid var(--v2-border); border-radius: 4px;
+        background: #ffffff; color: var(--v2-label);
+        text-decoration: none; font-weight: 700; transition: all 0.2s ease;
     }
-    .ci-pager li a:hover { background: var(--color-brand-100); border-color: var(--color-brand-500); }
-    .ci-pager li.active a { background: var(--color-brand-500); color: #ffffff; border-color: var(--color-brand-600); }
-    .ci-pager li.disabled a { opacity: 0.5; background: var(--color-surface-alt); color: var(--color-text-muted); pointer-events: none; border-color: var(--color-border); }
-    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--color-text-muted); }
+    .ci-pager li a:hover { background: rgba(178, 224, 235, 0.3); border-color: var(--v2-label); }
+    .ci-pager li.active a { background: var(--v2-label); color: #ffffff; border-color: var(--v2-label); }
+    .ci-pager li.disabled a { opacity: 0.5; background: #f1f5f9; color: var(--v2-text-muted); pointer-events: none; border-color: #cbd5e1; }
+    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--v2-text-muted); }
 
-    /* --- HCI UNIFIED ACTION BUTTONS --- */
+    /* --- V2 ACTION BUTTONS & BADGES --- */
     .action-row { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: nowrap; }
 
-    .btn-link-view { 
-        font-size: 0.78rem; 
-        color: #0284c7; 
-        text-decoration: underline; 
-        font-weight: 700; 
-        padding: 4px 6px; 
-        white-space: nowrap; 
-        border-radius: 4px;
-        transition: background 0.2s ease;
-    }
-    .btn-link-view:hover { color: #0369a1; background: #f0f9ff; }
+    .btn-link-view { font-size: 0.75rem; color: var(--v2-label); text-decoration: none; font-weight: 800; padding: 4px 8px; border-radius: 4px; transition: background 0.2s ease; }
+    .btn-link-view:hover { color: var(--v2-title); background: rgba(178, 224, 235, 0.3); }
     
-    .btn-table {
-        padding: 4px 10px !important;
-        font-size: 0.7rem !important;
-        font-weight: 700 !important;
-        border-radius: 4px !important;
-        text-transform: uppercase !important;
-        transition: all 0.2s ease;
-        border: none !important;
-        cursor: pointer;
-        display: inline-flex;
-        text-decoration: none !important;
-        align-items: center;
-        justify-content: center;
-        white-space: nowrap;
-    }
-
-    .btn-submit-blue { background: #0369a1 !important; color: white !important; }
-    .btn-submit-blue:hover { background: #075985 !important; transform: translateY(-1px); }
-
-    .btn-edit-outline { background: white !important; border: 1px solid #0369a1 !important; color: #0369a1 !important; }
-    .btn-edit-outline:hover { background: #f0f9ff !important; }
-
-    .btn-cancel-red { background: #fee2e2 !important; color: #b91c1c !important; border: 1px solid #fca5a5 !important; }
-    .btn-cancel-red:hover { background: #fecaca !important; color: #991b1b !important; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(220, 38, 38, 0.15); }
-
-    /* Updated to match the Indigo "Converted to PO" theme */
-    .create-po-group { display: inline-flex; border: 1px solid #c7d2fe; border-radius: 4px; overflow: hidden; background: #ffffff; }
-    .create-po-input { border: none; padding: 4px 8px; font-size: 0.75rem; width: 100px; outline: none; background: #ffffff; color: var(--color-text); }
+    .btn-table { padding: 4px 10px; font-size: 0.7rem; font-weight: 800; border-radius: 4px; text-transform: uppercase; transition: all 0.2s ease; border: none; cursor: pointer; display: inline-flex; text-decoration: none; align-items: center; justify-content: center; white-space: nowrap; }
     
-    /* Solid Indigo Action Button */
-    .btn-po-blue { border: none; background: #4f46e5 !important; color: white !important; padding: 4px 10px; font-size: 0.75rem !important; font-weight: 700 !important; cursor: pointer; transition: background 0.2s ease;}
-    .btn-po-blue:hover { background: #4338ca !important; }
-
-    /* Inverted Indigo Navigation Button (Matches Badge) */
-    .po-nav-btn { background: #e0e7ff !important; color: #4338ca !important; border: 1px solid #c7d2fe !important; font-weight: 800 !important; transition: all 0.2s ease; }
-    .po-nav-btn:hover { background: #c7d2fe !important; color: #312e81 !important; }
+    .btn-submit-blue { background: var(--v2-label); color: white; }
+    .btn-submit-blue:hover { background: var(--v2-active-bg); }
+    .btn-edit-outline { background: white; border: 1px solid var(--v2-label); color: var(--v2-label); }
+    .btn-edit-outline:hover { background: rgba(178, 224, 235, 0.2); }
+    .btn-cancel-red { background: #ffffff; color: #ef4444; border: 1px solid #fca5a5; }
+    .btn-cancel-red:hover { background: #fef2f2; color: #dc2626; border-color: #f87171; }
     
-    /* NEW: Read-Only Action Badges */
-    .action-badge-waiting {
-        background: #f8fafc; color: #64748b; border: 1px dashed #cbd5e1;
-        padding: 4px 10px; font-size: 0.7rem; font-weight: 700; border-radius: 4px; text-transform: uppercase; cursor: not-allowed;
-    }
-    .action-badge-done {
-        background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
-        padding: 4px 10px; font-size: 0.7rem; font-weight: 700; border-radius: 4px; text-transform: uppercase; cursor: default;
-    }
+    /* V2 THEMED CREATE PO BUTTON */
+    .btn-create-po { background: #7C3AED !important; color: #ffffff !important; border: 1px solid #7C3AED !important; }
+    .btn-create-po:hover { background: #6D28D9 !important; border-color: #6D28D9 !important; box-shadow: 0 2px 4px rgba(109, 40, 217, 0.2); }
 
-    /* NEW: Unique Status Badge for Converted PO */
-    .status-badge-special {
-        background: #e0e7ff; /* Light indigo background */
-        color: #4338ca;      /* Dark indigo text */
-        border: 1px solid #c7d2fe; /* Soft indigo border */
-        padding: 4px 10px; 
-        font-size: 0.75rem; 
-        font-weight: 700; 
-        border-radius: 9999px; /* Keeps the pill shape */
-        white-space: nowrap; 
-    }
+    /* V2 THEMED PO NAVIGATION BUTTON */
+    .po-nav-btn { background: #f0f9ff !important; color: var(--v2-label) !important; border: 1px solid var(--v2-border) !important; }
+    .po-nav-btn:hover { background: var(--v2-label) !important; color: #ffffff !important; border-color: var(--v2-label) !important; }
+
+    .status-badge-special { background: #f0f9ff; color: var(--v2-label); border: 1px solid var(--v2-border); padding: 3px 10px; font-size: 0.7rem; font-weight: 800; border-radius: 9999px; white-space: nowrap; text-transform: uppercase; }
+    .action-badge-waiting { background: #f8fafc; color: #64748b; border: 1px dashed #cbd5e1; padding: 3px 10px; font-size: 0.7rem; font-weight: 800; border-radius: 4px; text-transform: uppercase; cursor: not-allowed; }
+    .action-badge-done { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 3px 10px; font-size: 0.7rem; font-weight: 800; border-radius: 4px; text-transform: uppercase; cursor: default; }
 
     /* --- MODAL STYLES --- */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(2px); }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.5); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(2px); }
     .modal-overlay.active { display: flex; }
-    .modal-content { background: var(--color-surface); padding: 24px; border-radius: 8px; width: 100%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid var(--color-border); }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px; }
-    .modal-header h3 { margin: 0; font-size: 1.1rem; color: var(--color-brand-700); font-weight: 700; }
-    .btn-close-modal { background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--color-text-muted); margin:0; padding:0; line-height: 1; }
-    .btn-close-modal:hover { color: var(--color-danger); }
+    .modal-content { background: #ffffff; padding: 24px; border-radius: 12px; width: 100%; max-width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid var(--v2-border); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--v2-border); padding-bottom: 12px; }
+    .modal-header h3 { margin: 0; font-size: 1.1rem; color: var(--v2-title); font-weight: 800; }
+    .btn-close-modal { background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--v2-text-muted); margin:0; padding:0; line-height: 1; transition: color 0.2s; }
+    .btn-close-modal:hover { color: #ef4444; }
     .modal-body .field { margin-bottom: 16px; }
-    .modal-body label { display: block; font-weight: 700; font-size: 0.85rem; color: #1e293b; margin-bottom: 6px; }
-    .modal-body select, .modal-body input { width: 100%; padding: 10px; border: 1px solid var(--color-border-strong); border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem;}
-    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--color-border); }
+    .modal-body label { display: block; font-weight: 700; font-size: 0.8rem; color: var(--v2-text-main); margin-bottom: 6px; }
+    .modal-body select { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; outline: none; }
+    .modal-body select:focus { border-color: var(--v2-label); box-shadow: 0 0 0 3px rgba(0, 102, 140, 0.1); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--v2-border); }
 </style>
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
-<a class="btn btn-primary" href="<?= site_url('procurement/purchase-requests/create') ?>" title="Create a new draft purchase request">Create Request</a>
+<a class="btn btn-primary" href="<?= site_url('procurement/purchase-requests/create') ?>" title="Create a new draft purchase request" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);">Create Request</a>
 <?php $purchaseRequestExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests') . '?' . $purchaseRequestExportQuery ?>" title="Download the current list of purchase requests as a CSV file">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests') . '?' . $purchaseRequestExportQuery ?>" title="Download the current list of purchase requests as a CSV file" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <?php if ($canOps): ?>
-<a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>" title="View requests awaiting your approval">Pending Approvals</a>
-<a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>" title="View all issued purchase orders">Purchase Orders</a>
-<a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>" title="View converted PO requests awaiting receiving">PO Requests</a>
+    <a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Pending Approvals</a>
+    <a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Purchase Orders</a>
 <?php endif ?>
 <?= $this->endSection() ?>
 
@@ -179,180 +237,196 @@ $submittedRequests = count(array_filter($rows, static fn (array $row): bool => (
 $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'approved'));
 ?>
 
-<div class="stack-lg">
-    <section class="card stack-md">
+<div class="viewport-wrapper">
+    
+    <div style="flex-shrink: 0;">
+        <h2 style="margin:0; font-size: 1.6rem; color: var(--v2-title); font-weight: 900; letter-spacing: -0.02em;">Purchase Requests</h2>
+    </div>
+
+    <section style="flex-shrink: 0;">
         <div class="kpi-grid">
             <article class="kpi-card">
-                <p class="kpi-label">Visible Requests</p>
-                <p class="kpi-value" id="kpi-visible"><?= esc((string) $totalRequests) ?></p>
+                <div class="kpi-icon-box icon-total"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" id="kpi-visible"><?= esc((string) $totalRequests) ?></span>
+                    <span class="kpi-label">Visible Requests</span>
+                </div>
             </article>
             <article class="kpi-card">
-                <p class="kpi-label">Draft</p>
-                <p class="kpi-value" id="kpi-draft"><?= esc((string) $draftRequests) ?></p>
+                <div class="kpi-icon-box icon-draft"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" id="kpi-draft"><?= esc((string) $draftRequests) ?></span>
+                    <span class="kpi-label">Draft Status</span>
+                </div>
             </article>
             <article class="kpi-card">
-                <p class="kpi-label">Submitted</p>
-                <p class="kpi-value" id="kpi-submitted" style="color: #d97706;"><?= esc((string) $submittedRequests) ?></p>
+                <div class="kpi-icon-box icon-submitted"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" id="kpi-submitted" style="color: #b45309;"><?= esc((string) $submittedRequests) ?></span>
+                    <span class="kpi-label">Submitted</span>
+                </div>
             </article>
             <article class="kpi-card">
-                <p class="kpi-label">Approved</p>
-                <p class="kpi-value" id="kpi-approved" style="color: var(--color-success);"><?= esc((string) $approvedRequests) ?></p>
+                <div class="kpi-icon-box icon-approved"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" id="kpi-approved" style="color: #15803d;"><?= esc((string) $approvedRequests) ?></span>
+                    <span class="kpi-label">Approved</span>
+                </div>
             </article>
         </div>
     </section>
 
-    <section class="card stack-md">
-        <div class="stack-sm" style="border-bottom: 1px solid var(--color-border); padding-bottom: 12px; margin-bottom: 8px;">
-            <h2 style="margin: 0; font-size: 1.25rem;">Request Queue</h2>
-            <p class="muted" style="margin: 4px 0 0 0; font-size: 0.85rem;">Filter requests and process actions directly from this list.</p>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <div style="display: flex; gap: 8px; flex: 1; max-width: 400px;">
-                <input type="text" id="instant-search-input" placeholder="Search PR Number or Requestor..." autocomplete="off" style="flex: 1;">
-                <button type="button" class="btn btn-outline" id="btn-clear-search">Clear</button>
+    <div class="table-card">
+        <div class="table-toolbar">
+            <div>
+                <h3>Request Queue</h3>
+                <p style="margin: 2px 0 0 0; font-size: 0.75rem; color: var(--v2-text-muted);">Process and track procurement requests.</p>
             </div>
-
-            <?php
-            $statusLabels = [
-                'draft'           => 'Draft',
-                'submitted'       => 'Submitted',
-                'approved'        => 'Approved',
-                'rejected'        => 'Rejected',
-                'cancelled'       => 'Cancelled',
-                'converted_to_po' => 'Converted to PO',
-            ];
-            ?>
-            <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('procurement/purchase-requests') ?>" style="margin: 0;">
-                <select id="status" name="status" aria-label="Filter by status" style="padding: 6px 12px; font-size: 0.85rem;">
-                    <option value="">All Statuses</option>
-                    <?php foreach ($statusLabels as $val => $lbl): ?>
-                        <option value="<?= esc($val) ?>" <?= (($status ?? '') === $val) ? 'selected' : '' ?>><?= esc($lbl) ?></option>
-                    <?php endforeach ?>
-                </select>
-                <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">Filter</button>
-            </form>
+            
+            <div class="toolbar-controls">
+                <div class="search-wrap">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="instant-search-input" class="search-input" placeholder="Search PR Number or Requestor..." autocomplete="off">
+                </div>
+                
+                <?php
+                $statusLabels = [
+                    'draft'           => 'Draft',
+                    'submitted'       => 'Submitted',
+                    'approved'        => 'Approved',
+                    'rejected'        => 'Rejected',
+                    'cancelled'       => 'Cancelled',
+                    'converted_to_po' => 'Converted to PO',
+                ];
+                ?>
+                <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('procurement/purchase-requests') ?>" style="margin: 0; display: flex; gap: 8px;">
+                    <select id="status" name="status" class="filter-select" aria-label="Filter by status">
+                        <option value="">All Statuses</option>
+                        <?php foreach ($statusLabels as $val => $lbl): ?>
+                            <option value="<?= esc($val) ?>" <?= (($status ?? '') === $val) ? 'selected' : '' ?>><?= esc($lbl) ?></option>
+                        <?php endforeach ?>
+                    </select>
+                    <button type="button" class="btn btn-outline" id="btn-clear-search" style="padding: 8px 16px; font-size: 0.8rem; font-weight: 800; border-radius: 6px; border: 1px solid var(--v2-border); color: var(--v2-title); background: #ffffff;">Clear</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.8rem; font-weight: 800; border-radius: 6px; background: var(--v2-label); color: #ffffff; border: none;">Filter Server</button>
+                </form>
+            </div>
         </div>
 
-        <div id="full-events-container">
-            <div class="table-wrap">
-                <table class="table" id="pr-table" style="table-layout: fixed; width: 100%;">
-                    <colgroup>
-                        <col style="width: 5%;">  
-                        <col style="width: 14%;">   
-                        <col style="width: 12%;">   
-                        <col style="width: 10%;">   
-                        <col style="width: 11%;">   
-                        <col style="width: 16%;">    
-                        <col style="width: 32%;"> 
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th class="sortable numeric" data-col="0">ID</th>
-                            <th class="sortable" data-col="1">PR Number</th>
-                            <th class="sortable" data-col="2">Requested By</th>
-                            <th class="sortable date" data-col="3">Date</th>
-                            <th class="sortable" data-col="4" id="status-header" title="Click to cycle status filters!">Status <span style="font-size: 0.75rem; font-weight: normal; opacity: 0.7;">(All)</span></th>
-                            <th>Remarks</th>
-                            <th style="text-align: right;">Actions</th>
+        <div class="table-scroll-container">
+            <table class="modern-table" id="pr-table" style="table-layout: fixed; width: 100%;">
+                <colgroup>
+                    <col style="width: 5%;">  
+                    <col style="width: 14%;">   
+                    <col style="width: 14%;">   
+                    <col style="width: 10%;">   
+                    <col style="width: 11%;">   
+                    <col style="width: 16%;">    
+                    <col style="width: 30%;"> 
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th class="sortable numeric" data-col="0">ID</th>
+                        <th class="sortable" data-col="1">PR Number</th>
+                        <th class="sortable" data-col="2">Requested By</th>
+                        <th class="sortable date" data-col="3">Date</th>
+                        <th class="sortable" data-col="4" id="status-header" title="Click to cycle status filters!">
+                            Status <span style="font-size: 0.65rem; font-weight: normal; color: var(--v2-label);">(All)</span>
+                        </th>
+                        <th>Remarks</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (($rows ?? []) === []): ?>
+                        <tr class="no-records-row">
+                            <td colspan="7" style="text-align: center; padding: 40px; color: var(--v2-text-muted);">
+                                <strong>No purchase requests found.</strong><br>
+                                <span style="font-size: 0.8rem;">Adjust your filters or create a new request.</span>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (($rows ?? []) === []): ?>
-                            <tr class="no-records-row">
-                                <td colspan="7">
-                                    <div class="empty-state-block">
-                                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                                        <strong>No purchase requests found</strong>
-                                        <p>No requests match your current filter. <a href="<?= site_url('procurement/purchase-requests/create') ?>">Create a new request</a> or adjust the filter above.</p>
+                    <?php else: ?>
+                        <?php foreach ($rows as $request): ?>
+                            <tr class="pr-row" style="display: none;" data-status="<?= esc(strtolower((string) ($request['status'] ?? ''))) ?>">
+                                <td style="font-weight: 800; color: #94a3b8;"><?= esc((string) $request['id']) ?></td>
+                                <td><a href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>" style="font-family: var(--font-mono); font-weight: 800; color: var(--v2-label); text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'"><?= esc((string)$request['pr_number']) ?></a></td>
+                                <td style="font-weight: 800; color: var(--v2-text-main);"><?= esc((string) $request['requested_by']) ?></td>
+                                <td style="white-space: nowrap; font-size: 0.8rem; font-weight: 600; color: var(--v2-text-main);"><?= esc((string) $request['request_date']) ?></td>
+                                
+                                <td>
+                                    <?php if (($request['status'] ?? '') === 'converted_to_po'): ?>
+                                        <span class="status-badge-special">Converted to PO</span>
+                                    <?php else: ?>
+                                        <?= view('components/shared/table_status_badge', ['status' => $request['status'] ?? 'unknown']) ?>
+                                    <?php endif ?>
+                                </td>
+                                
+                                <td style="color: var(--v2-text-muted); font-size: 0.8rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= esc((string) ($request['remarks'] ?? '')) ?>"><?= esc((string) ($request['remarks'] ?? '')) ?></td>
+                                
+                                <td>
+                                    <div class="action-row">
+                                        <?php if (($request['status'] ?? '') === 'draft'): ?>
+                                            <form method="post" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/submit') ?>" style="margin:0">
+                                                <?= csrf_field() ?>
+                                                <button type="submit" class="btn-table btn-submit-blue">Submit</button>
+                                            </form>
+                                            <a class="btn-table btn-edit-outline" href="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/edit') ?>">Edit</a>
+                                            <form method="post"
+                                                  data-confirm="Cancel this draft request? This cannot be undone."
+                                                  data-confirm-title="Cancel Draft"
+                                                  action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
+                                                <?= csrf_field() ?>
+                                                <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
+                                            </form>
+
+                                        <?php elseif (($request['status'] ?? '') === 'submitted'): ?>
+                                            <form method="post"
+                                                  data-confirm="Cancel this submitted request? It will need to be re-submitted for approval."
+                                                  data-confirm-title="Cancel Submitted Request"
+                                                  action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
+                                                <?= csrf_field() ?>
+                                                <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
+                                            </form>
+
+                                        <?php elseif (($request['status'] ?? '') === 'approved' && $canCreatePo): ?>
+                                            <button type="button" class="btn-create-po btn-table" 
+                                                    onclick="openPoModal(<?= $request['id'] ?>, '<?= esc((string)$request['pr_number']) ?>')">
+                                                Create PO
+                                            </button>
+
+                                        <?php elseif (($request['status'] ?? '') === 'approved'): ?>
+                                            <span class="action-badge-waiting">⏳ Awaiting PO</span>
+
+                                        <?php elseif (($request['status'] ?? '') === 'converted_to_po'): ?>
+                                            <?php if ($canOps): ?>
+                                                <a href="<?= site_url('procurement/purchase-orders') ?>" class="btn-table po-nav-btn">PO &rarr;</a>
+                                            <?php else: ?>
+                                                <span class="action-badge-done">✓ Converted</span>
+                                            <?php endif ?>
+                                        <?php else: ?>
+                                            <span class="muted" style="font-size: 0.75rem;">&mdash;</span>
+                                        <?php endif ?>
+                                        
+                                        <a class="btn-link-view view-action" href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>">View</a>
                                     </div>
                                 </td>
                             </tr>
-                        <?php else: ?>
-                            <?php foreach ($rows as $request): ?>
-                                <tr class="pr-row" style="display: none;" data-status="<?= esc(strtolower((string) ($request['status'] ?? ''))) ?>">
-                                    <td><?= esc((string) $request['id']) ?></td>
-                                    <td><a href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>" style="font-family: var(--font-mono); font-weight: 600; color: var(--color-brand-700); font-size: 0.85rem; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'"><?= esc((string)$request['pr_number']) ?></a></td>
-                                    <td><strong><?= esc((string) $request['requested_by']) ?></strong></td>
-                                    <td style="white-space: nowrap; font-size: 0.85rem;"><?= esc((string) $request['request_date']) ?></td>
-                                    
-                                    <td>
-                                        <?php if (($request['status'] ?? '') === 'converted_to_po'): ?>
-                                            <span class="status-badge-special">Converted to PO</span>
-                                        <?php else: ?>
-                                            <?= view('components/shared/table_status_badge', ['status' => $request['status'] ?? 'unknown']) ?>
-                                        <?php endif ?>
-                                    </td>
-                                    
-                                    <td style="color: var(--color-text-muted); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= esc((string) ($request['remarks'] ?? '')) ?>"><?= esc((string) ($request['remarks'] ?? '')) ?></td>
-                                    
-                                    <td>
-                                        <div class="action-row">
-                                            <a class="btn-link-view view-action" href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>">View</a>
-                                            
-                                            <?php if (($request['status'] ?? '') === 'draft'): ?>
-                                                <form method="post" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/submit') ?>" style="margin:0">
-                                                    <?= csrf_field() ?>
-                                                    <button type="submit" class="btn-table btn-submit-blue">Submit</button>
-                                                </form>
-                                                <a class="btn-table btn-edit-outline" href="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/edit') ?>">Edit</a>
-                                                <form method="post"
-                                                      data-confirm="Cancel this draft request? This cannot be undone."
-                                                      data-confirm-title="Cancel Draft"
-                                                      action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
-                                                    <?= csrf_field() ?>
-                                                    <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
-                                                </form>
-
-                                            <?php elseif (($request['status'] ?? '') === 'submitted'): ?>
-                                                <form method="post"
-                                                      data-confirm="Cancel this submitted request? It will need to be re-submitted for approval."
-                                                      data-confirm-title="Cancel Submitted Request"
-                                                      action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
-                                                    <?= csrf_field() ?>
-                                                    <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
-                                                </form>
-
-                                            <?php elseif (($request['status'] ?? '') === 'approved' && $canCreatePo): ?>
-                                                <button type="button" class="btn-po-blue btn-table" 
-                                                        onclick="openPoModal(<?= $request['id'] ?>, '<?= esc((string)$request['pr_number']) ?>')">
-                                                    Create PO
-                                                </button>
-
-                                            <?php elseif (($request['status'] ?? '') === 'approved'): ?>
-                                                <span class="action-badge-waiting">⏳ Awaiting PO</span>
-
-                                            <?php elseif (($request['status'] ?? '') === 'converted_to_po'): ?>
-                                                <?php if ($canOps): ?>
-                                                    <a href="<?= site_url('procurement/purchase-orders') ?>" class="btn-table po-nav-btn">PO &rarr;</a>
-                                                <?php else: ?>
-                                                    <span class="action-badge-done">✓ Converted</span>
-                                                <?php endif ?>
-                                            <?php else: ?>
-                                                <span class="muted" style="font-size: 0.75rem;">&mdash;</span>
-                                            <?php endif ?>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach ?>
-                        <?php endif ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; margin-top: 8px; border-top: 1px solid var(--color-border);">
-                <p class="muted" style="margin: 0; font-size: 0.85rem; line-height: 1;">
-                    Showing records <span id="page-indicator"></span> (Total: <span id="total-indicator"><?= esc((string) $totalRequests) ?></span>)
-                </p>
-                <nav aria-label="Pagination">
-                    <ul class="ci-pager" id="client-pager"></ul>
-                </nav>
-            </div>
+                        <?php endforeach ?>
+                    <?php endif ?>
+                </tbody>
+            </table>
         </div>
-    </section>
+        
+        <div class="table-footer">
+            <p style="margin: 0; font-size: 0.8rem; font-weight: 700; color: var(--v2-text-muted);">
+                Showing records <span id="page-indicator" style="color: var(--v2-title);"></span> (Total: <span id="total-indicator"><?= esc((string) $totalRequests) ?></span>)
+            </p>
+            <nav aria-label="Pagination">
+                <ul class="ci-pager" id="client-pager"></ul>
+            </nav>
+        </div>
+    </div>
 </div>
 
-<!-- PO MODAL -->
 <div class="modal-overlay" id="poModal">
     <div class="modal-content">
         <div class="modal-header">
@@ -362,9 +436,9 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
         <form id="poForm" method="post">
             <?= csrf_field() ?>
             <div class="modal-body">
-                <p class="muted" id="modal-pr-text" style="margin-bottom:16px; font-size:0.85rem;"></p>
+                <p id="modal-pr-text" style="margin-bottom:16px; font-size:0.85rem; color: var(--v2-text-muted);"></p>
                 <div class="field">
-                    <label for="supplier_name">Please select a Supplier for this order: <span style="color:var(--color-danger);">*</span></label>
+                    <label for="supplier_name">Please select a Supplier for this order: <span style="color: #ef4444;">*</span></label>
                     <select id="supplier_name" name="supplier_name" required>
                         <option value="">-- Select Supplier --</option>
                         <option value="ACME Pharma Supply">ACME Pharma Supply</option>
@@ -376,8 +450,8 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                 </div>
             </div>
             <div class="modal-actions">
-                <button type="button" class="btn btn-outline" onclick="closePoModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Confirm</button>
+                <button type="button" class="btn btn-outline" style="padding: 8px 16px; border-radius: 6px; font-weight: 800; font-size: 0.85rem;" onclick="closePoModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="padding: 8px 16px; border-radius: 6px; font-weight: 800; font-size: 0.85rem; background: #7C3AED; color: #ffffff; border: none;">Confirm & Create</button>
             </div>
         </form>
     </div>
@@ -390,7 +464,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
         const text = document.getElementById('modal-pr-text');
         
         form.action = "<?= site_url('procurement/purchase-orders/from-pr/') ?>" + prId;
-        text.innerText = "Convert " + prNumber + " to Purchase Order.";
+        text.innerText = "Convert request " + prNumber + " to a finalized Purchase Order.";
         
         modal.classList.add('active');
     }
@@ -481,9 +555,9 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                     currentStatusFilter = statusCycle[cycleIndex];
 
                     if (currentStatusFilter === 'All') {
-                        statusHeader.innerHTML = `Status <span style="font-size: 0.75rem; font-weight: normal; opacity: 0.7;">(All)</span>`;
+                        statusHeader.innerHTML = `Status <span style="font-size: 0.65rem; font-weight: normal; color: var(--v2-label);">(All)</span>`;
                     } else {
-                        statusHeader.innerHTML = `Status <br><span style="color: var(--color-brand-600); font-weight: 800; text-transform: capitalize;">${toTitleCase(currentStatusFilter)}</span>`;
+                        statusHeader.innerHTML = `Status <br><span style="color: var(--v2-label); font-weight: 800; font-size: 0.65rem; text-transform: uppercase;">${toTitleCase(currentStatusFilter)}</span>`;
                     }
                     applyFilters();
                 });
@@ -586,8 +660,6 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
 
             showPage(1);
         }
-
     });
 </script>
-
 <?= $this->endSection() ?>

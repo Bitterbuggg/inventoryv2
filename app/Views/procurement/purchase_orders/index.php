@@ -17,66 +17,199 @@ $isAdmin = $user !== null && method_exists($user, 'inGroup') && $user->inGroup('
 
 <?= $this->section('head') ?>
 <style>
-    /* Custom JS Pager */
+    /* --- V2 DESIGN SYSTEM VARIABLES --- */
+    :root {
+        --v2-border: #b2e0eb; 
+        --v2-title: #00476b;  
+        --v2-label: #00668c;  
+        --v2-active-bg: #00638a; 
+        --v2-text-main: #1e3a8a; /* TRUE Dark Blue */
+        --v2-text-muted: #64748b;
+    }
+
+    /* --- NO-SCROLL VIEWPORT WRAPPER --- */
+    .viewport-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        height: calc(100vh - 120px); 
+        min-height: 640px;
+        overflow: hidden;
+    }
+
+    /* --- PASTEL KPI CARDS --- */
+    .kpi-grid { 
+        display: grid; 
+        grid-template-columns: repeat(4, 1fr); 
+        gap: 16px; 
+        flex-shrink: 0; 
+    }
+    
+    .kpi-card { 
+        background: #ffffff; 
+        border: 1px solid var(--v2-border); 
+        border-radius: 12px; 
+        padding: 16px 18px; 
+        display: flex; 
+        align-items: center; 
+        gap: 14px; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+    }
+    
+    .kpi-icon-box {
+        width: 46px; height: 46px; 
+        border-radius: 10px; 
+        display: flex; align-items: center; justify-content: center; 
+        flex-shrink: 0;
+    }
+
+    /* Specific Icon Colors for POs */
+    .icon-total { background: #f1f5f9; color: #475569; }        
+    .icon-draft { background: #fffbeb; color: #d97706; } 
+    .icon-issued { background: #e0f2fe; color: #0284c7; }   
+    .icon-received { background: #ecfccb; color: #16a34a; }   
+
+    .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }
+    
+    .kpi-value { font-size: 1.15rem; font-weight: 800; color: var(--v2-title); line-height: 1.2; margin: 0; }
+    .kpi-label { font-size: 0.75rem; font-weight: 500; color: var(--v2-text-muted); margin: 0; margin-top: 2px; }
+
+    /* --- V2 TABLE CARD --- */
+    .table-card {
+        background: #ffffff; 
+        border: 1px solid var(--v2-border); 
+        border-radius: 12px; 
+        display: flex;
+        flex-direction: column;
+        flex: 1; 
+        min-height: 0; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+        overflow: hidden;
+    }
+
+    .table-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 20px; 
+        border-bottom: 1px solid var(--v2-border); 
+        background: #ffffff; 
+        flex-shrink: 0;
+        flex-wrap: wrap;
+    }
+    
+    .table-toolbar h3 { margin: 0; font-size: 1.05rem; color: var(--v2-title); font-weight: 800; }
+    
+    .toolbar-controls { display: flex; gap: 8px; align-items: center; flex: 1; justify-content: flex-end; }
+    
+    .search-wrap { position: relative; width: 260px; }
+    .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 14px; height: 14px; }
+    .search-input, .filter-select { 
+        padding: 6px 12px; 
+        font-size: 0.85rem; 
+        border: 1px solid var(--v2-border); 
+        border-radius: 6px; 
+        outline: none; 
+        color: var(--v2-text-main);
+        background: #ffffff;
+    }
+    .search-input { width: 100%; padding-left: 30px; }
+    .search-input:focus, .filter-select:focus { border-color: var(--v2-label); box-shadow: 0 0 0 3px rgba(0, 102, 140, 0.1); }
+
+    /* Scrollable Table Area */
+    .table-scroll-container {
+        flex: 1;
+        overflow-y: auto; 
+        background: #ffffff;
+    }
+
+    .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .modern-table th { 
+        position: sticky; top: 0; z-index: 10;
+        background: #ffffff !important; 
+        padding: 14px 16px; /* Matched to PR page */
+        font-size: 0.75rem; /* Matched to PR page */
+        text-transform: uppercase; 
+        font-weight: 800; 
+        color: var(--v2-title); /* BOLD DEEP BLUE matched to PR page */
+        border-bottom: 2px solid var(--v2-border); 
+        text-align: left; 
+        letter-spacing: 0.05em; 
+        vertical-align: middle; 
+    }
+    .modern-table td { padding: 12px 16px; font-size: 0.85rem; color: var(--v2-text-main); border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .modern-table tr:hover td { background: #f8fafc; }
+
+    /* --- SORTABLE HEADERS --- */
+    th.sortable { cursor: pointer; padding-right: 18px !important; user-select: none; transition: background 0.2s ease, color 0.2s ease; }
+    th.sortable:hover { background-color: #f1f5f9 !important; color: var(--v2-title) !important; }
+    th.sortable::after { content: '↕'; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; opacity: 0.3; color: var(--v2-title); }
+    th.sortable.asc::after { content: '↑'; opacity: 1; color: var(--v2-label); font-weight: bold; }
+    th.sortable.desc::after { content: '↓'; opacity: 1; color: var(--v2-label); font-weight: bold; }
+
+    .filter-active-text { color: var(--v2-label); font-weight: 800; text-transform: uppercase; font-size: 0.65rem; display: inline-block; }
+
+    /* --- PAGINATION FOOTER --- */
+    .table-footer {
+        padding: 10px 20px;
+        border-top: 1px solid var(--v2-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #ffffff;
+        flex-shrink: 0;
+    }
     .ci-pager { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; align-items: center; }
-    .ci-pager li { display: block; }
-    .ci-pager li a, .ci-pager li span { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; font-size: 0.85rem; min-width: 32px; border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-brand-700); text-decoration: none; font-weight: 600; transition: all 0.2s ease; }
-    .ci-pager li a:hover { background: var(--color-brand-100); border-color: var(--color-brand-500); }
-    .ci-pager li.active a { background: var(--color-brand-500); color: #ffffff; border-color: var(--color-brand-600); }
-    .ci-pager li.disabled a { opacity: 0.5; background: var(--color-surface-alt); color: var(--color-text-muted); pointer-events: none; border-color: var(--color-border); }
-    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--color-text-muted); }
+    .ci-pager li a, .ci-pager li span {
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 4px 10px; font-size: 0.75rem; min-width: 28px;
+        border: 1px solid var(--v2-border); border-radius: 4px;
+        background: #ffffff; color: var(--v2-label);
+        text-decoration: none; font-weight: 700; transition: all 0.2s ease;
+    }
+    .ci-pager li a:hover { background: rgba(178, 224, 235, 0.3); border-color: var(--v2-label); }
+    .ci-pager li.active a { background: var(--v2-label); color: #ffffff; border-color: var(--v2-label); }
+    .ci-pager li.disabled a { opacity: 0.5; background: #f1f5f9; color: var(--v2-text-muted); pointer-events: none; border-color: #cbd5e1; }
+    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--v2-text-muted); }
 
-    /* Fixed Sortable Headers */
-    #po-table th { padding-top: 12px !important; padding-bottom: 12px !important; }
-    th.sortable { cursor: pointer; position: relative; padding-right: 28px !important; user-select: none; transition: background 0.2s ease; line-height: 1.4 !important; white-space: normal !important; vertical-align: middle !important; overflow: visible !important; }
-    th.sortable:hover { background: rgba(0, 0, 0, 0.03) !important; }
-    th.sortable::after { content: '↕'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.85rem; opacity: 0.3; pointer-events: none; }
-    th.sortable.asc::after { content: '↑'; opacity: 1; color: var(--color-brand-600); font-weight: bold; }
-    th.sortable.desc::after { content: '↓'; opacity: 1; color: var(--color-brand-600); font-weight: bold; }
+    /* --- V2 ACTION BUTTONS & BADGES --- */
+    .action-forms-container { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: nowrap; }
+
+    .btn-link-view { font-size: 0.75rem; color: var(--v2-label); text-decoration: none; font-weight: 800; padding: 4px 8px; border-radius: 4px; transition: background 0.2s ease; cursor: pointer; border: none; background: transparent; }
+    .btn-link-view:hover { color: var(--v2-title); background: rgba(178, 224, 235, 0.3); }
     
-    .filter-active-text { color: var(--color-brand-600); font-weight: 800; text-transform: capitalize; }
-
-    /* --- HCI UNIFIED ACTION BUTTONS --- */
-    .action-forms-container { display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: nowrap; }
-
-    .btn-link-view { font-size: 0.78rem; color: #0284c7; text-decoration: underline; font-weight: 700; padding: 4px 6px; white-space: nowrap; border-radius: 4px; transition: background 0.2s ease; cursor: pointer; border: none; background: transparent; }
-    .btn-link-view:hover { color: #0369a1; background: #f0f9ff; }
+    .btn-table { padding: 4px 10px !important; font-size: 0.7rem !important; font-weight: 800 !important; border-radius: 4px !important; text-transform: uppercase !important; transition: all 0.2s ease; border: none !important; cursor: pointer; display: inline-flex; text-decoration: none !important; align-items: center; justify-content: center; white-space: nowrap; }
     
-    .btn-table { padding: 4px 10px !important; font-size: 0.7rem !important; font-weight: 700 !important; border-radius: 4px !important; text-transform: uppercase !important; transition: all 0.2s ease; border: none !important; cursor: pointer; display: inline-flex; text-decoration: none !important; align-items: center; justify-content: center; white-space: nowrap; }
-    
-    .btn-action-primary { background: var(--color-brand-600) !important; color: white !important; }
-    .btn-action-primary:hover { background: var(--color-brand-700) !important; transform: translateY(-1px); }
+    .btn-action-primary { background: var(--v2-label) !important; color: white !important; }
+    .btn-action-primary:hover { background: var(--v2-active-bg) !important; transform: translateY(-1px); }
 
-    /* Solid Indigo Button (Inverted) */
-    .btn-action-indigo { background: #4f46e5 !important; color: white !important; border: 1px solid #4338ca !important; }
-    .btn-action-indigo:hover { background: #4338ca !important; color: white !important; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(67, 56, 202, 0.2); }
+    /* Updated to Solid Violet for PO Request consistency */
+    .btn-action-indigo { background: #7C3AED !important; color: white !important; border: 1px solid #7C3AED !important; }
+    .btn-action-indigo:hover { background: #6D28D9 !important; border-color: #6D28D9 !important; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(109, 40, 217, 0.2); }
 
-    /* --- SPECIFIC ACTION COLUMN BADGES --- */
-    .action-badge-neutral { background: transparent; color: #64748b; border: 1px solid #cbd5e1; padding: 4px 8px; font-size: 0.65rem; font-weight: 800; border-radius: 4px; text-transform: uppercase; cursor: default; white-space: nowrap; }
-    
-    /* Yellow filled for Pending PO Requests (Restored) */
-    .action-badge-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 4px 10px; font-size: 0.7rem; font-weight: 800; border-radius: 4px; text-transform: uppercase; cursor: default; white-space: nowrap; }
-    
-    /* Outline style for Approved PO Requests (Prevents clash with Fully Received status) */
-    .action-badge-success { background: #ffffff; color: #15803d; border: 1px solid #4ade80; padding: 4px 10px; font-size: 0.7rem; font-weight: 800; border-radius: 4px; text-transform: uppercase; cursor: default; white-space: nowrap; }
+    /* Specific Action Column Badges */
+    .action-badge-neutral { background: #f8fafc; color: #64748b; border: 1px dashed #cbd5e1; padding: 3px 10px; font-size: 0.7rem; font-weight: 800; border-radius: 4px; text-transform: uppercase; cursor: default; white-space: nowrap; }
+    .action-badge-warning { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 3px 10px; font-size: 0.7rem; font-weight: 800; border-radius: 4px; text-transform: uppercase; cursor: default; white-space: nowrap; }
+    .action-badge-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 3px 10px; font-size: 0.7rem; font-weight: 800; border-radius: 4px; text-transform: uppercase; cursor: default; white-space: nowrap; }
 
-    /* --- MAIN STATUS COLUMN BADGES (SOLID) --- */
-    .status-badge { padding: 4px 10px; font-size: 0.75rem; font-weight: 700; border-radius: 9999px; text-transform: uppercase; white-space: nowrap; display: inline-block; letter-spacing: 0.02em; }
+    /* Main Status Column Badges */
+    .status-badge { padding: 3px 10px; font-size: 0.7rem; font-weight: 800; border-radius: 9999px; text-transform: uppercase; white-space: nowrap; display: inline-block; letter-spacing: 0.05em; }
     .status-draft { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-    .status-issued { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    .status-issued { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
     .status-partial { background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; }
     .status-full { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-    .status-cancelled { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    .status-cancelled { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
 </style>
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
 <?php $purchaseOrderExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') . '?' . $purchaseOrderExportQuery ?>">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') . '?' . $purchaseOrderExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <?php if ($isAdmin): ?>
-<a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>">Pending Approvals</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Pending Approvals</a>
 <?php endif ?>
-<a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>">PO Requests</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">PO Requests</a>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -88,60 +221,84 @@ $issuedOrders = count(array_filter($rows, static fn (array $row): bool => ($row[
 $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_array((string) ($row['status'] ?? ''), ['partially_received', 'fully_received'], true)));
 ?>
 
-<div class="stack-lg">
-    <section class="card stack-md">
+<div class="viewport-wrapper">
+    
+    <div style="flex-shrink: 0;">
+        <h2 style="margin:0; font-size: 1.6rem; color: var(--v2-title); font-weight: 900; letter-spacing: -0.02em;">Purchase Orders</h2>
+    </div>
+
+    <section style="flex-shrink: 0;">
         <div class="kpi-grid">
-            <article class="kpi-card" style="padding: 12px;">
-                <p class="kpi-label">Visible POs</p>
-                <p class="kpi-value" id="kpi-visible" style="font-size: 1.25rem;"><?= esc((string) $totalOrders) ?></p>
-                <p class="kpi-note">Purchase orders in current view.</p>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-total"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" id="kpi-visible"><?= esc((string) $totalOrders) ?></span>
+                    <span class="kpi-label">Visible POs</span>
+                </div>
             </article>
-            <article class="kpi-card" style="padding: 12px;">
-                <p class="kpi-label">Draft</p>
-                <p class="kpi-value" id="kpi-draft" style="font-size: 1.25rem; color: #d97706;"><?= esc((string) $draftOrders) ?></p>
-                <p class="kpi-note">Pending PO issuance.</p>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-draft"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" id="kpi-draft" style="color: #b45309;"><?= esc((string) $draftOrders) ?></span>
+                    <span class="kpi-label">Draft Status</span>
+                </div>
             </article>
-            <article class="kpi-card" style="padding: 12px;">
-                <p class="kpi-label">Issued</p>
-                <p class="kpi-value" id="kpi-issued" style="font-size: 1.25rem; color: var(--color-brand-600);"><?= esc((string) $issuedOrders) ?></p>
-                <p class="kpi-note">Ready for PO request flow.</p>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-issued"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" id="kpi-issued" style="color: var(--v2-label);"><?= esc((string) $issuedOrders) ?></span>
+                    <span class="kpi-label">Issued Orders</span>
+                </div>
             </article>
-            <article class="kpi-card" style="padding: 12px;">
-                <p class="kpi-label">Received</p>
-                <p class="kpi-value" id="kpi-received" style="font-size: 1.25rem; color: var(--color-success);"><?= esc((string) $receivedOrders) ?></p>
-                <p class="kpi-note">Partially or fully received.</p>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-received"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" id="kpi-received" style="color: #15803d;"><?= esc((string) $receivedOrders) ?></span>
+                    <span class="kpi-label">Received</span>
+                </div>
             </article>
         </div>
     </section>
 
-    <section class="card stack-md">
-        <div class="stack-sm" style="border-bottom: 1px solid var(--color-border); padding-bottom: 12px; margin-bottom: 8px;">
-            <h2 style="margin: 0; font-size: 1.25rem;">Purchase Order Queue</h2>
-            <p class="muted" style="margin: 4px 0 0 0; font-size: 0.85rem;">Filter by status, issue draft POs, and convert issued POs to PO requests.</p>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <div style="display: flex; gap: 8px; flex: 1; max-width: 400px;">
-                <input type="text" id="instant-search-input" placeholder="Search by PO number, supplier, or PO ID..." autocomplete="off" style="flex: 1;">
-                <button type="button" class="btn btn-outline" id="btn-clear-search">Clear</button>
+    <div class="table-card">
+        <div class="table-toolbar">
+            <div>
+                <h3>Purchase Order Queue</h3>
+                <p style="margin: 2px 0 0 0; font-size: 0.75rem; color: var(--v2-text-muted);">Issue drafts and manage PO requests.</p>
             </div>
             
-            <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('procurement/purchase-orders') ?>" style="margin: 0;">
-                <?php $poStatusLabels = ['draft' => 'Draft', 'issued' => 'Issued', 'partially_received' => 'Partially Received', 'fully_received' => 'Fully Received', 'cancelled' => 'Cancelled']; ?>
-                <select id="status" name="status" aria-label="Filter purchase orders by status" style="padding: 6px 12px; font-size: 0.85rem;">
-                    <option value="">All Statuses</option>
-                    <?php foreach ($poStatusLabels as $option => $label): ?>
-                        <option value="<?= esc($option) ?>" <?= (($status ?? '') === $option) ? 'selected' : '' ?>><?= esc($label) ?></option>
-                    <?php endforeach ?>
-                </select>
-                <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">Filter</button>
-            </form>
+            <div class="toolbar-controls">
+                <div class="search-wrap">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="instant-search-input" class="search-input" placeholder="Search PO number or supplier..." autocomplete="off">
+                </div>
+                
+                <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('procurement/purchase-orders') ?>" style="margin: 0; display: flex; gap: 8px;">
+                    <?php $poStatusLabels = ['draft' => 'Draft', 'issued' => 'Issued', 'partially_received' => 'Partially Received', 'fully_received' => 'Fully Received', 'cancelled' => 'Cancelled']; ?>
+                    <select id="status" name="status" class="filter-select" aria-label="Filter purchase orders by status">
+                        <option value="">All Statuses</option>
+                        <?php foreach ($poStatusLabels as $option => $label): ?>
+                            <option value="<?= esc($option) ?>" <?= (($status ?? '') === $option) ? 'selected' : '' ?>><?= esc($label) ?></option>
+                        <?php endforeach ?>
+                    </select>
+                    <button type="button" class="btn btn-outline" id="btn-clear-search" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 6px;">Clear</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 6px; background: var(--v2-label); border: none;">Filter Server</button>
+                </form>
+            </div>
         </div>
 
-        <div class="table-wrap">
-            <table class="table" id="po-table" style="table-layout: fixed; width: 100%; min-width: 1050px;">
+        <div class="table-scroll-container">
+            <table class="modern-table" id="po-table" style="table-layout: fixed; width: 100%; min-width: 1050px;">
                 <colgroup>
-                    <col style="width: 60px;">  <col style="width: 150px;"> <col style="width: 80px;">  <col style="width: 25%;">   <col style="width: 120px;"> <col style="width: 180px;"> <col style="width: 120px;"> <col style="width: 220px;"> </colgroup>
+                    <col style="width: 60px;">  
+                    <col style="width: 150px;"> 
+                    <col style="width: 80px;">  
+                    <col style="width: 25%;">   
+                    <col style="width: 120px;"> 
+                    <col style="width: 150px;"> 
+                    <col style="width: 120px;"> 
+                    <col style="width: 220px;"> 
+                </colgroup>
                 <thead>
                     <tr>
                         <th class="sortable numeric" data-col="0">ID</th>
@@ -149,22 +306,29 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
                         <th class="sortable numeric" data-col="2">PR ID</th>
                         <th class="sortable" data-col="3">Supplier</th>
                         <th class="sortable date" data-col="4">Order Date</th>
-                        <th class="sortable" data-col="5" id="status-header" style="line-height: 1.2;">Status <br><span style="font-size: 0.75rem; opacity: 0.7;">(All)</span></th>
+                        <th class="sortable" data-col="5" id="status-header">
+                            Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>
+                        </th>
                         <th class="sortable numeric" data-col="6" style="text-align: right;">Total</th>
                         <th style="text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (($purchaseOrders ?? []) === []): ?>
-                        <tr><td colspan="8" class="empty-state">No purchase orders found.</td></tr>
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px; color: var(--v2-text-muted);">
+                                <strong>No purchase orders found.</strong><br>
+                                <span style="font-size: 0.8rem;">Adjust your filters to see more results.</span>
+                            </td>
+                        </tr>
                     <?php else: ?>
                         <?php foreach ($purchaseOrders as $order): ?>
                             <tr class="po-row" style="display: none;" data-status="<?= esc(strtolower((string) ($order['status'] ?? ''))) ?>">
-                                <td><?= esc((string) $order['id']) ?></td>
-                                <td style="font-family: var(--font-mono); font-weight: 500; color: var(--color-brand-700);"><?= esc((string) $order['po_number']) ?></td>
-                                <td style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-text-muted);">PR-<?= esc((string) $order['purchase_request_id']) ?></td>
-                                <td style="font-weight: 500; word-break: break-word;"><?= esc((string) ($order['supplier_name'] ?? '-')) ?></td>
-                                <td style="font-size: 0.85rem;"><?= esc((string) $order['order_date']) ?></td>
+                                <td style="font-weight: 700; color: #94a3b8;"><?= esc((string) $order['id']) ?></td>
+                                <td style="font-family: var(--font-mono); font-weight: 700; color: var(--v2-label);"><?= esc((string) $order['po_number']) ?></td>
+                                <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--v2-text-muted);">PR-<?= esc((string) $order['purchase_request_id']) ?></td>
+                                <td style="font-weight: 700; color: var(--v2-text-main); word-break: break-word;"><?= esc((string) ($order['supplier_name'] ?? '-')) ?></td>
+                                <td style="font-size: 0.8rem;"><?= esc((string) $order['order_date']) ?></td>
                                 
                                 <td>
                                     <?php 
@@ -179,7 +343,7 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
                                     <span class="status-badge <?= $sClass ?>"><?= esc($cleanStatus) ?></span>
                                 </td>
                                 
-                                <td style="text-align: right; font-family: var(--font-mono); font-weight: 600;">
+                                <td style="text-align: right; font-family: var(--font-mono); font-weight: 700; color: var(--v2-title);">
                                     <?= esc(number_format((float) ($order['total_amount'] ?? 0), 2)) ?>
                                 </td>
                                 
@@ -201,11 +365,10 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
 
                                         <?php if (($order['status'] ?? '') === 'issued' && (bool) ($order['has_open_po_request'] ?? false)): ?>
                                             <?php 
-                                                // Determine the Action Badge Color based on PO Request Status
                                                 $reqStatus = strtolower((string) ($order['po_request_status'] ?? 'pending'));
-                                                $badgeClass = 'action-badge-warning'; // Default Yellow for pending/open
+                                                $badgeClass = 'action-badge-warning'; 
                                                 if ($reqStatus === 'approved') {
-                                                    $badgeClass = 'action-badge-success'; // Clean green outline for approved
+                                                    $badgeClass = 'action-badge-success'; 
                                                 }
                                                 $cleanReqStatus = strtoupper(str_replace('_', ' ', $reqStatus));
                                             ?>
@@ -230,16 +393,19 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
             </table>
         </div>
         
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; margin-top: 8px; border-top: 1px solid var(--color-border);">
-            <p class="muted" style="margin: 0; font-size: 0.85rem; line-height: 1;">Showing records <span id="page-indicator"></span> (Total: <span id="total-indicator"><?= esc((string) $totalOrders) ?></span>)</p>
-            <nav aria-label="Pagination"><ul class="ci-pager" id="client-pager"></ul></nav>
+        <div class="table-footer">
+            <p style="margin: 0; font-size: 0.8rem; font-weight: 600; color: var(--v2-text-muted);">
+                Showing records <span id="page-indicator" style="color: var(--v2-title);"></span> (Total: <span id="total-indicator"><?= esc((string) $totalOrders) ?></span>)
+            </p>
+            <nav aria-label="Pagination">
+                <ul class="ci-pager" id="client-pager"></ul>
+            </nav>
         </div>
-    </section>
+    </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // --- TABLE SORTING & PAGINATION LOGIC ---
         const rowsPerPage = 15; 
         const tbody = document.querySelector('#po-table tbody');
         
@@ -273,12 +439,16 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
                     const prId = row.children[2].innerText.toLowerCase();
                     const supplier = row.children[3].innerText.toLowerCase();
                     const statusVal = row.getAttribute('data-status');
+                    
                     const matchesText = query === '' || poNum.includes(query) || prId.includes(query) || supplier.includes(query);
                     const matchesStatus = currentStatusFilter === 'All' || statusVal === currentStatusFilter;
+                    
                     return matchesText && matchesStatus;
                 });
+                
                 currentRows.forEach(row => tbody.appendChild(row));
-                updateKPIs(); showPage(1);
+                updateKPIs(); 
+                showPage(1);
             }
 
             function updateKPIs() {
@@ -289,7 +459,11 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
                     if (stat === 'issued') countIssued++;
                     if (stat === 'partially_received' || stat === 'fully_received') countReceived++;
                 });
-                kpiVisible.innerText = currentRows.length; kpiDraft.innerText = countDraft; kpiIssued.innerText = countIssued; kpiReceived.innerText = countReceived; totalIndicator.innerText = currentRows.length;
+                kpiVisible.innerText = currentRows.length; 
+                kpiDraft.innerText = countDraft; 
+                kpiIssued.innerText = countIssued; 
+                kpiReceived.innerText = countReceived; 
+                totalIndicator.innerText = currentRows.length;
             }
 
             if(searchInput) searchInput.addEventListener('input', applyFilters);
@@ -301,7 +475,7 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
                     cycleIndex = (cycleIndex + 1) % statusCycle.length;
                     currentStatusFilter = statusCycle[cycleIndex];
                     if (currentStatusFilter === 'All') {
-                        statusHeader.innerHTML = `Status <br><span style="font-size: 0.75rem; opacity: 0.7;">(All)</span>`;
+                        statusHeader.innerHTML = `Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>`;
                     } else {
                         statusHeader.innerHTML = `Status <br><span class="filter-active-text">${toTitleCase(currentStatusFilter)}</span>`;
                     }
@@ -353,8 +527,10 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
                 if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
                 const startPoint = (currentPage - 1) * rowsPerPage;
                 const endPoint = startPoint + rowsPerPage;
+                
                 allRows.forEach(row => row.style.display = 'none');
                 currentRows.forEach((row, index) => { if (index >= startPoint && index < endPoint) row.style.display = ''; });
+                
                 const actualEnd = Math.min(endPoint, totalRows);
                 if (pageIndicator) pageIndicator.innerText = totalRows === 0 ? '0' : `${startPoint + 1} - ${actualEnd}`;
 

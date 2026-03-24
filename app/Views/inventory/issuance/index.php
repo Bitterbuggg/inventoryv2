@@ -13,32 +13,188 @@ $crumbs = [
 
 <?= $this->section('head') ?>
 <style>
-    /* Custom JS Pager */
-    .ci-pager { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; align-items: center; }
-    .ci-pager li { display: block; }
-    .ci-pager li a, .ci-pager li span { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; font-size: 0.85rem; min-width: 32px; border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-brand-700); text-decoration: none; font-weight: 600; transition: all 0.2s ease; }
-    .ci-pager li a:hover { background: var(--color-brand-100); border-color: var(--color-brand-500); }
-    .ci-pager li.active a { background: var(--color-brand-500); color: #ffffff; border-color: var(--color-brand-600); }
-    .ci-pager li.disabled a { opacity: 0.5; background: var(--color-surface-alt); color: var(--color-text-muted); pointer-events: none; border-color: var(--color-border); }
-    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--color-text-muted); }
+    /* --- V2 DESIGN SYSTEM VARIABLES --- */
+    :root {
+        --v2-border: #b2e0eb; 
+        --v2-title: #00476b;  
+        --v2-label: #00668c;  
+        --v2-active-bg: #00638a; 
+        --v2-text-main: #1e3a8a; /* TRUE Dark Blue */
+        --v2-text-muted: #64748b;
+    }
 
-    /* Sortable Headers */
-    th.sortable { cursor: pointer; position: relative; padding-right: 18px !important; user-select: none; transition: background 0.2s ease; }
-    th.sortable:hover { background: rgba(0, 0, 0, 0.03) !important; }
-    th.sortable::after { content: '↕'; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; opacity: 0.3; }
-    th.sortable.asc::after { content: '↑'; opacity: 1; color: var(--color-brand-600); font-weight: bold; }
-    th.sortable.desc::after { content: '↓'; opacity: 1; color: var(--color-brand-600); font-weight: bold; }
+    /* --- NO-SCROLL VIEWPORT WRAPPER --- */
+    .viewport-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        height: calc(100vh - 120px); 
+        min-height: 640px;
+        overflow: hidden;
+    }
+
+    /* --- PASTEL KPI CARDS --- */
+    .kpi-grid { 
+        display: grid; 
+        grid-template-columns: repeat(4, 1fr); 
+        gap: 16px; 
+        flex-shrink: 0; 
+    }
     
-    .filter-active-text { color: var(--color-brand-600); font-weight: 800; text-transform: uppercase; }
+    .kpi-card { 
+        background: #ffffff; 
+        border: 1px solid var(--v2-border); 
+        border-radius: 12px; 
+        padding: 16px 18px; 
+        display: flex; 
+        align-items: center; 
+        gap: 14px; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+    }
+
+    .kpi-icon-box {
+        width: 46px; height: 46px; 
+        border-radius: 10px; 
+        display: flex; align-items: center; justify-content: center; 
+        flex-shrink: 0;
+    }
+
+    /* Specific Icon Colors */
+    .icon-total { background: #f1f5f9; color: #475569; }        
+    .icon-draft { background: #fffbeb; color: #d97706; } 
+    .icon-submitted { background: #e0f2fe; color: #0284c7; }   
+    .icon-released { background: #ecfccb; color: #16a34a; }   
+
+    .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }
+    
+    .kpi-value { font-size: 1.15rem; font-weight: 800; color: var(--v2-title); line-height: 1.2; margin: 0; }
+    .kpi-label { font-size: 0.75rem; font-weight: 500; color: var(--v2-text-muted); margin: 0; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* --- V2 TABLE CARD --- */
+    .table-card {
+        background: #ffffff; 
+        border: 1px solid var(--v2-border); 
+        border-radius: 12px; 
+        display: flex;
+        flex-direction: column;
+        flex: 1; 
+        min-height: 0; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+        overflow: hidden;
+    }
+
+    .table-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 20px; 
+        border-bottom: 1px solid var(--v2-border); 
+        background: #ffffff; 
+        flex-shrink: 0;
+        flex-wrap: wrap; 
+    }
+    
+    .table-toolbar h3 { margin: 0; font-size: 1.05rem; color: var(--v2-title); font-weight: 800; }
+    
+    /* --- FIXED INLINE TOOLBAR CONTROLS --- */
+    .toolbar-controls { 
+        display: flex; 
+        gap: 10px; 
+        align-items: center; 
+        flex: 1; 
+        justify-content: flex-end; 
+        flex-wrap: nowrap; 
+    }
+    
+    .search-wrap { position: relative; width: 260px; flex-shrink: 0; }
+    .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 14px; height: 14px; }
+    
+    .search-input, .filter-select { 
+        padding: 6px 12px; 
+        font-size: 0.85rem; 
+        border: 1px solid var(--v2-border); 
+        border-radius: 6px; 
+        outline: none; 
+        color: var(--v2-text-main);
+        background: #ffffff;
+        transition: all 0.2s;
+        height: 34px; 
+    }
+    .search-input { width: 100%; padding-left: 30px; }
+    .filter-select { width: 140px; flex-shrink: 0; cursor: pointer; } 
+    
+    .search-input:focus, .filter-select:focus { border-color: var(--v2-label); box-shadow: 0 0 0 3px rgba(0, 102, 140, 0.1); }
+
+    /* Scrollable Table Area */
+    .table-scroll-container {
+        flex: 1;
+        overflow-y: auto; 
+        background: #ffffff;
+    }
+
+    .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .modern-table th { 
+        position: sticky; top: 0; z-index: 10;
+        background: #ffffff !important; 
+        padding: 14px 16px; 
+        font-size: 0.75rem; 
+        text-transform: uppercase; 
+        font-weight: 800; 
+        color: var(--v2-title); 
+        border-bottom: 2px solid var(--v2-border); 
+        text-align: left; 
+        letter-spacing: 0.05em; 
+        vertical-align: middle; 
+    }
+    .modern-table td { padding: 12px 16px; font-size: 0.85rem; color: var(--v2-text-main); border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .modern-table tr:hover td { background: #f8fafc; }
+
+    /* --- SORTABLE HEADERS --- */
+    th.sortable { cursor: pointer; padding-right: 18px !important; user-select: none; transition: background 0.2s ease, color 0.2s ease; }
+    th.sortable:hover { background-color: #f1f5f9 !important; color: var(--v2-title) !important; }
+    th.sortable::after { content: '↕'; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; opacity: 0.3; color: var(--v2-title); }
+    th.sortable.asc::after { content: '↑'; opacity: 1; color: var(--v2-label); font-weight: bold; }
+    th.sortable.desc::after { content: '↓'; opacity: 1; color: var(--v2-label); font-weight: bold; }
+    .filter-active-text { color: var(--v2-label); font-weight: 800; text-transform: uppercase; font-size: 0.65rem; display: inline-block; }
+
+    /* --- PAGINATION FOOTER --- */
+    .table-footer {
+        padding: 10px 20px;
+        border-top: 1px solid var(--v2-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #ffffff;
+        flex-shrink: 0;
+    }
+    .ci-pager { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; align-items: center; }
+    .ci-pager li a, .ci-pager li span {
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 4px 10px; font-size: 0.75rem; min-width: 28px;
+        border: 1px solid var(--v2-border); border-radius: 4px;
+        background: #ffffff; color: var(--v2-label);
+        text-decoration: none; font-weight: 700; transition: all 0.2s ease;
+    }
+    .ci-pager li a:hover { background: rgba(178, 224, 235, 0.3); border-color: var(--v2-label); }
+    .ci-pager li.active a { background: var(--v2-label); color: #ffffff; border-color: var(--v2-label); }
+    .ci-pager li.disabled a { opacity: 0.5; background: #f1f5f9; color: var(--v2-text-muted); pointer-events: none; border-color: #cbd5e1; }
+    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--v2-text-muted); }
+
+    /* --- V2 ACTION BUTTONS --- */
+    .action-row { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: nowrap; }
+
+    .btn-link-view { font-size: 0.75rem; color: var(--v2-label); text-decoration: none; font-weight: 800; padding: 4px 8px; border-radius: 4px; transition: background 0.2s ease; cursor: pointer; border: none; background: transparent; }
+    .btn-link-view:hover { color: var(--v2-title); background: rgba(178, 224, 235, 0.3); }
 </style>
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
-<a class="btn btn-primary" href="<?= site_url('inventory/issuance/create') ?>">Create Issuance</a>
+<a class="btn btn-primary" href="<?= site_url('inventory/issuance/create') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Create Issuance</a>
 <?php $issuanceListExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('inventory/issuance') . '?' . $issuanceListExportQuery ?>">Export CSV</a>
-<a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>">Inventory Quantities</a>
-<a class="btn btn-outline" href="<?= site_url('reports/stock-balance') ?>">Reports</a>
+<a class="btn btn-outline" href="<?= site_url('inventory/issuance') . '?' . $issuanceListExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Inventory Quantities</a>
+<a class="btn btn-outline" href="<?= site_url('reports/stock-balance') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Reports</a>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -49,55 +205,83 @@ $draftIssuances = count(array_filter($rows, static fn (array $row): bool => ($ro
 $submittedIssuances = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'submitted'));
 $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'released'));
 ?>
-<div class="stack-lg">
-    <section class="card stack-md">
+<div class="viewport-wrapper">
+    
+    <div style="flex-shrink: 0;">
+        <h2 style="margin:0; font-size: 1.6rem; color: var(--v2-title); font-weight: 900; letter-spacing: -0.02em;">Inventory Issuance</h2>
+    </div>
+
+    <section style="flex-shrink: 0;">
         <div class="kpi-grid">
-            <article class="kpi-card" style="padding: 12px;">
-                <p class="kpi-label">Visible Issuances</p>
-                <p class="kpi-value" id="kpi-visible" style="font-size: 1.25rem;"><?= esc((string) $totalIssuances) ?></p>
-                <p class="kpi-note">Records in current list view.</p>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-total"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" id="kpi-visible"><?= esc((string) $totalIssuances) ?></span>
+                    <span class="kpi-label">Visible Records</span>
+                </div>
             </article>
-            <article class="kpi-card" style="padding: 12px;">
-                <p class="kpi-label">Draft</p>
-                <p class="kpi-value" id="kpi-draft" style="font-size: 1.25rem;"><?= esc((string) $draftIssuances) ?></p>
-                <p class="kpi-note">Still editable by requestor.</p>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-draft"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" id="kpi-draft" style="color: #b45309;"><?= esc((string) $draftIssuances) ?></span>
+                    <span class="kpi-label">Draft Status</span>
+                </div>
             </article>
-            <article class="kpi-card" style="padding: 12px;">
-                <p class="kpi-label">Submitted</p>
-                <p class="kpi-value" id="kpi-submitted" style="font-size: 1.25rem;"><?= esc((string) $submittedIssuances) ?></p>
-                <p class="kpi-note">Pending approval decision.</p>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-submitted"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" id="kpi-submitted" style="color: var(--v2-label);"><?= esc((string) $submittedIssuances) ?></span>
+                    <span class="kpi-label">Submitted</span>
+                </div>
             </article>
-            <article class="kpi-card" style="padding: 12px;">
-                <p class="kpi-label">Released</p>
-                <p class="kpi-value" id="kpi-released" style="color: var(--color-success); font-size: 1.25rem;"><?= esc((string) $releasedIssuances) ?></p>
-                <p class="kpi-note">Stock already deducted.</p>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-released"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" id="kpi-released" style="color: #15803d;"><?= esc((string) $releasedIssuances) ?></span>
+                    <span class="kpi-label">Released</span>
+                </div>
             </article>
         </div>
     </section>
 
-    <section class="card stack-md">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <div style="display: flex; gap: 8px; flex: 1; max-width: 400px;">
-                <input type="text" id="instant-search-input" placeholder="Search by issuance number, department, or ID..." autocomplete="off" aria-label="Search issuance records" style="flex: 1;">
-                <button type="button" class="btn btn-outline" id="btn-clear-search">Clear</button>
+    <div class="table-card">
+        <div class="table-toolbar">
+            <div>
+                <h3>Issuance Queue</h3>
+                <p style="margin: 2px 0 0 0; font-size: 0.75rem; color: var(--v2-text-muted);">Manage requests and deduct stocks.</p>
             </div>
             
-            <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('inventory/issuance') ?>" style="margin: 0;">
-                <?php $issuanceStatusLabels = ['draft' => 'Draft', 'submitted' => 'Submitted', 'approved' => 'Approved', 'rejected' => 'Rejected', 'released' => 'Released', 'cancelled' => 'Cancelled']; ?>
-                <select id="status" name="status" aria-label="Filter issuance by status" style="padding: 6px 12px; font-size: 0.85rem;">
-                    <option value="">All Statuses</option>
-                    <?php foreach ($issuanceStatusLabels as $option => $label): ?>
-                        <option value="<?= esc($option) ?>" <?= (($status ?? '') === $option) ? 'selected' : '' ?>><?= esc($label) ?></option>
-                    <?php endforeach ?>
-                </select>
-                <button type="submit" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">Filter</button>
-            </form>
+            <div class="toolbar-controls">
+                <div class="search-wrap">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="instant-search-input" class="search-input" placeholder="Search number, dept, or ID..." autocomplete="off">
+                </div>
+                
+                <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('inventory/issuance') ?>" style="margin: 0; display: flex; gap: 8px;">
+                    <?php $issuanceStatusLabels = ['draft' => 'Draft', 'submitted' => 'Submitted', 'approved' => 'Approved', 'rejected' => 'Rejected', 'released' => 'Released', 'cancelled' => 'Cancelled']; ?>
+                    <select id="status" name="status" class="filter-select" aria-label="Filter issuance by status">
+                        <option value="">All Statuses</option>
+                        <?php foreach ($issuanceStatusLabels as $option => $label): ?>
+                            <option value="<?= esc($option) ?>" <?= (($status ?? '') === $option) ? 'selected' : '' ?>><?= esc($label) ?></option>
+                        <?php endforeach ?>
+                    </select>
+                    <button type="button" class="btn btn-outline" id="btn-clear-search" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 6px; height: 34px;">Clear</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 800; border-radius: 6px; background: var(--v2-label); color: #ffffff; border: none;">Filter Server</button>
+                </form>
+            </div>
         </div>
 
-        <div class="table-wrap">
-            <table class="table" id="issuance-table" style="table-layout: fixed; width: 100%; min-width: 800px;">
+        <div class="table-scroll-container">
+            <table class="modern-table" id="issuance-table" style="table-layout: fixed; width: 100%; min-width: 800px;">
                 <colgroup>
-                    <col style="width: 80px;">  <col style="width: 150px;"> <col style="width: 100px;"> <col style="width: 120px;"> <col style="width: 25%;">   <col style="width: 150px;"> <col style="width: 100px;"> </colgroup>
+                    <col style="width: 80px;">  
+                    <col style="width: 150px;"> 
+                    <col style="width: 100px;"> 
+                    <col style="width: 120px;"> 
+                    <col style="width: 25%;">   
+                    <col style="width: 150px;"> 
+                    <col style="width: 100px;"> 
+                </colgroup>
                 <thead>
                     <tr>
                         <th class="sortable numeric" data-col="0">ID</th>
@@ -105,25 +289,32 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
                         <th class="sortable numeric" data-col="2">Requestor</th>
                         <th class="sortable date" data-col="3">Issue Date</th>
                         <th class="sortable" data-col="4">Department</th>
-                        <th class="sortable" data-col="5" id="status-header" title="Click to cycle status filters!">Status (All)</th>
-                        <th style="text-align: center;">Action</th>
+                        <th class="sortable" data-col="5" id="status-header" title="Click to cycle status filters!">
+                            Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>
+                        </th>
+                        <th style="text-align: right;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (($issuances ?? []) === []): ?>
-                        <tr class="no-records-row"><td colspan="7" class="empty-state">No issuance records found.</td></tr>
+                        <tr class="no-records-row">
+                            <td colspan="7" style="text-align: center; padding: 40px; color: var(--v2-text-muted);">
+                                <strong>No issuance records found.</strong><br>
+                                <span style="font-size: 0.8rem;">Adjust your filters to see more results.</span>
+                            </td>
+                        </tr>
                     <?php else: ?>
                         <?php foreach ($issuances as $issuance): ?>
                             <tr class="issuance-row" style="display: none;" data-status="<?= esc(strtolower((string) ($issuance['status'] ?? ''))) ?>">
-                                <td><?= esc((string) $issuance['id']) ?></td>
-                                <td style="font-family: var(--font-mono); font-weight: 500; color: var(--color-brand-700);"><?= esc((string) $issuance['issuance_number']) ?></td>
-                                <td style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-text-muted);">#<?= esc((string) $issuance['requestor_id']) ?></td>
-                                <td style="font-size: 0.85rem;"><?= esc((string) $issuance['issue_date']) ?></td>
-                                <td style="font-weight: 500; word-break: break-word;"><?= esc((string) ($issuance['department'] ?? '')) ?></td>
+                                <td style="font-weight: 700; color: #94a3b8;"><?= esc((string) $issuance['id']) ?></td>
+                                <td style="font-family: var(--font-mono); font-weight: 800; color: var(--v2-label);"><?= esc((string) $issuance['issuance_number']) ?></td>
+                                <td style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--v2-text-muted);">#<?= esc((string) $issuance['requestor_id']) ?></td>
+                                <td style="font-size: 0.85rem; font-weight: 600; color: var(--v2-text-main);"><?= esc((string) $issuance['issue_date']) ?></td>
+                                <td style="font-weight: 600; color: var(--v2-text-main); word-break: break-word;"><?= esc((string) ($issuance['department'] ?? '-')) ?></td>
                                 <td><?= view('components/shared/table_status_badge', ['status' => $issuance['status'] ?? 'unknown']) ?></td>
-                                <td class="actions">
+                                <td style="text-align: right;">
                                     <div class="action-row">
-                                        <a class="btn btn-outline view-action" style="padding: 4px 8px; font-size: 0.75rem;" href="<?= site_url('inventory/issuance/' . $issuance['id']) ?>">View</a>
+                                        <a class="btn-link-view" href="<?= site_url('inventory/issuance/' . $issuance['id']) ?>">View</a>
                                     </div>
                                 </td>
                             </tr>
@@ -133,22 +324,19 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
             </table>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; margin-top: 8px; border-top: 1px solid var(--color-border);">
-            <p class="muted" style="margin: 0; font-size: 0.85rem; line-height: 1;">
-                Showing records <span id="page-indicator"></span> (Total: <span id="total-indicator"><?= esc((string) $totalIssuances) ?></span>)
+        <div class="table-footer">
+            <p style="margin: 0; font-size: 0.8rem; font-weight: 700; color: var(--v2-text-muted);">
+                Showing records <span id="page-indicator" style="color: var(--v2-title);"></span> (Total: <span id="total-indicator"><?= esc((string) $totalIssuances) ?></span>)
             </p>
             <nav aria-label="Pagination">
                 <ul class="ci-pager" id="client-pager"></ul>
             </nav>
         </div>
-    </section>
+    </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // ==========================================
-        // MAIN TABLE SCRIPT
-        // ==========================================
         const rowsPerPage = 15; 
         const tbodyMain = document.querySelector('#issuance-table tbody');
         
@@ -161,7 +349,6 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
             const totalIndicator = document.getElementById('total-indicator');
             const statusHeader = document.getElementById('status-header');
             
-            // KPI DOM Elements
             const kpiVisible = document.getElementById('kpi-visible');
             const kpiDraft = document.getElementById('kpi-draft');
             const kpiSubmitted = document.getElementById('kpi-submitted');
@@ -173,6 +360,10 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
             const statusCycle = ['All', 'draft', 'submitted', 'approved', 'rejected', 'released', 'cancelled'];
             let cycleIndex = 0;
             let currentStatusFilter = 'All';
+
+            function toTitleCase(str) {
+                return str.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            }
 
             function applyFilters() {
                 const query = searchInput.value.toLowerCase().trim();
@@ -219,7 +410,6 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
                 });
             }
 
-            // Status Cycle Logic
             if(statusHeader) {
                 statusHeader.addEventListener('click', (e) => {
                     e.stopPropagation(); 
@@ -228,18 +418,17 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
                     currentStatusFilter = statusCycle[cycleIndex];
 
                     if (currentStatusFilter === 'All') {
-                        statusHeader.innerHTML = `Status (All)`;
+                        statusHeader.innerHTML = `Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>`;
                     } else {
-                        statusHeader.innerHTML = `Status (<span class="filter-active-text">${currentStatusFilter}</span>)`;
+                        statusHeader.innerHTML = `Status <br><span class="filter-active-text">${toTitleCase(currentStatusFilter)}</span>`;
                     }
                     
                     applyFilters();
                 });
             }
 
-            // Normal Sorting for other columns
             document.querySelectorAll('#issuance-table th.sortable').forEach(th => {
-                if (parseInt(th.getAttribute('data-col')) === 5) return; // Skip Status
+                if (parseInt(th.getAttribute('data-col')) === 5) return; 
 
                 th.addEventListener('click', () => {
                     const colIndex = parseInt(th.getAttribute('data-col'));
@@ -274,7 +463,6 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
                 });
             });
 
-            // Pagination logic
             let currentPage = 1;
             function showPage(page) {
                 currentPage = page;
@@ -294,7 +482,6 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
                 const actualEnd = Math.min(endPoint, totalRows);
                 if (pageIndicator) pageIndicator.innerText = totalRows === 0 ? '0' : `${startPoint + 1} - ${actualEnd}`;
 
-                // Render Pager
                 if (pagerContainer) {
                     pagerContainer.innerHTML = '';
                     if (totalPages > 1) {

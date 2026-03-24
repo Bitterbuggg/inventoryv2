@@ -31,577 +31,620 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
 
 <?= $this->section('head') ?>
 <style>
-    .activity-events-table {
-        table-layout: fixed;
-        min-width: 1160px;
-        width: 100%;
+    /* --- V2 DESIGN SYSTEM VARIABLES --- */
+    :root {
+        --v2-border: #b2e0eb; 
+        --v2-title: #00476b;  
+        --v2-label: #00668c;  
+        --v2-active-bg: #00638a; 
+        --v2-text-main: #1e3a8a; /* TRUE Dark Blue */
+        --v2-text-muted: #64748b;
     }
 
-    .activity-events-table td {
-        word-break: break-word;
+    /* --- VIEWPORT WRAPPER (Scrollable for Dashboard Tabs) --- */
+    .viewport-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        height: calc(100vh - 120px); 
+        min-height: 800px;
+        overflow-y: auto;
+        padding-bottom: 40px;
     }
 
-    .activity-event-name {
-        font-family: var(--font-mono);
-        color: var(--color-brand-700);
-        font-size: 0.85rem;
-        white-space: normal;
-        overflow-wrap: anywhere;
+    /* --- TABS --- */
+    .section-tabs { 
+        display: flex; 
+        gap: 8px; 
+        border-bottom: 1px solid var(--v2-border); 
+        background: #ffffff; 
+        padding: 0 16px;
+        flex-shrink: 0;
     }
-
-    .activity-route {
-        color: var(--color-text-muted);
-        font-size: 0.85rem;
-        word-break: break-all;
+    .section-tab { 
+        padding: 12px 20px; 
+        font-size: 0.85rem; 
+        font-weight: 800; 
+        color: var(--v2-text-muted); 
+        background: none; 
+        border: none; 
+        border-bottom: 3px solid transparent; 
+        cursor: pointer; 
+        transition: all 0.2s; 
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
+    .section-tab:hover { color: var(--v2-label); }
+    .section-tab.active { color: var(--v2-label); border-bottom-color: var(--v2-label); }
+    
+    .tab-panel { display: none; flex-direction: column; gap: 20px; }
+    .tab-panel.active { display: flex; }
 
-    .activity-meta-details {
-        min-width: 0;
+    /* --- KPI CARDS (Fixed Typography) --- */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; flex-shrink: 0; }
+    .kpi-card { background: #ffffff; border: 1px solid var(--v2-border); border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .kpi-icon-box { width: 46px; height: 46px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    
+    .icon-slate { background: #f1f5f9; color: #475569; }        
+    .icon-teal { background: #f0fdfa; color: #0d9488; } 
+    .icon-blue { background: #e0f2fe; color: #0284c7; }   
+    .icon-purple { background: #f5f3ff; color: #8b5cf6; }   
+    .icon-amber { background: #fffbeb; color: #d97706; }
+
+    .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }
+    .kpi-value { font-size: 1.25rem; font-weight: 900; color: var(--v2-title); line-height: 1.1; margin: 0; }
+    .kpi-label { font-size: 0.7rem; font-weight: 600; color: var(--v2-text-muted); margin: 0; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* --- TABLES & TOOLBARS --- */
+    .table-card { background: #ffffff; border: 1px solid var(--v2-border); border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); overflow: hidden; }
+    .table-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--v2-border); background: #ffffff; flex-shrink: 0; }
+    .table-toolbar h3 { margin: 0; font-size: 1rem; color: var(--v2-title); font-weight: 800; }
+
+    .table-scroll-container { overflow-y: auto; background: #ffffff; }
+
+    /* Fixed Table Layout to prevent overlapping columns */
+    .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+    .modern-table th { 
+        position: sticky; top: 0; z-index: 10; 
+        background: #ffffff !important; 
+        padding: 12px 10px; 
+        font-size: 0.75rem; 
+        text-transform: uppercase; 
+        font-weight: 800; 
+        color: var(--v2-title); 
+        border-bottom: 2px solid var(--v2-border); 
+        text-align: left; 
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
     }
+    .modern-table td { padding: 12px 10px; font-size: 0.8rem; color: var(--v2-text-main); border-bottom: 1px solid #f1f5f9; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; }
+    .modern-table tr:hover td { background: #f8fafc; }
 
-    .activity-meta-details > summary {
-        cursor: pointer;
-        list-style: none;
-        color: var(--color-brand-700);
-        font-size: 0.8rem;
-        font-weight: 600;
-        user-select: none;
-    }
+    /* --- SORTABLE HEADERS (FIXED STICKY BUG) --- */
+    /* Removed 'position: relative;' so it inherits sticky from .modern-table th */
+    th.sortable { cursor: pointer; padding-right: 20px !important; user-select: none; transition: background 0.2s ease; }
+    th.sortable:hover { background: #f1f5f9 !important; }
+    th.sortable::after { content: '↕'; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; opacity: 0.3; color: var(--v2-title); }
+    th.sortable.asc::after { content: '↑'; opacity: 1; color: var(--v2-label); font-weight: bold; }
+    th.sortable.desc::after { content: '↓'; opacity: 1; color: var(--v2-label); font-weight: bold; }
 
-    .activity-meta-details > summary::-webkit-details-marker {
-        display: none;
-    }
+    /* --- FORM INPUTS --- */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 0.7rem; font-weight: 800; color: var(--v2-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    
+    .input-v2 { padding: 6px 12px; font-size: 0.85rem; border: 1px solid var(--v2-border); border-radius: 6px; outline: none; color: var(--v2-text-main); background: #ffffff; height: 34px; width: 100%; box-sizing: border-box; }
+    .input-v2:focus { border-color: var(--v2-label); box-shadow: 0 0 0 3px rgba(0, 102, 140, 0.1); }
 
-    .activity-meta-details > summary::before {
-        content: '▸';
-        display: inline-block;
-        margin-right: 6px;
-        transition: transform 0.15s ease;
-    }
-
-    .activity-meta-details[open] > summary::before {
-        transform: rotate(90deg);
-    }
-
-    .activity-meta-json {
-        margin-top: 6px;
-        max-width: 300px;
-        max-height: 220px;
-        overflow: auto;
-        font-family: var(--font-mono);
-        font-size: 0.75rem;
-        color: var(--color-text-muted);
-        background: var(--color-surface-alt);
-        border: 1px solid var(--color-border);
-        border-radius: 6px;
-        padding: 6px 8px;
-        line-height: 1.3;
-        white-space: pre;
-    }
-
-    .activity-timestamp {
-        white-space: nowrap;
-        font-size: 0.85rem;
-    }
-
+    /* --- PAGINATION --- */
+    .table-footer { padding: 10px 20px; border-top: 1px solid var(--v2-border); display: flex; justify-content: space-between; align-items: center; background: #ffffff; flex-shrink: 0; }
     .ci-pager { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; align-items: center; }
-    .ci-pager li { display: block; }
-    .ci-pager li a, .ci-pager li span { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; font-size: 0.85rem; min-width: 32px; border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-brand-700); text-decoration: none; font-weight: 600; transition: all 0.2s ease; }
-    .ci-pager li a:hover { background: var(--color-brand-100); border-color: var(--color-brand-500); }
-    .ci-pager li.active a { background: var(--color-brand-500); color: #ffffff; border-color: var(--color-brand-600); }
-    .ci-pager li.disabled a { opacity: 0.5; background: var(--color-surface-alt); color: var(--color-text-muted); pointer-events: none; border-color: var(--color-border); }
-    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--color-text-muted); }
+    .ci-pager li a, .ci-pager li span { display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; font-size: 0.75rem; min-width: 28px; border: 1px solid var(--v2-border); border-radius: 4px; background: #ffffff; color: var(--v2-label); text-decoration: none; font-weight: 700; transition: all 0.2s ease; }
+    .ci-pager li a:hover { background: rgba(178, 224, 235, 0.3); border-color: var(--v2-label); }
+    .ci-pager li.active a { background: var(--v2-label); color: #ffffff; border-color: var(--v2-label); }
+    .ci-pager li.disabled a { opacity: 0.5; background: #f1f5f9; color: var(--v2-text-muted); pointer-events: none; border-color: #cbd5e1; }
+    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--v2-text-muted); }
 
-    /* Tab navigation */
-    .section-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--color-border); padding: 0 16px; background: var(--color-surface); border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
-    .section-tab { padding: 12px 24px; font-size: 0.9rem; font-weight: 600; color: var(--color-text-muted); background: none; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px; cursor: pointer; transition: color 0.2s, border-color 0.2s; white-space: nowrap; }
-    .section-tab:hover { color: var(--color-brand-700); }
-    .section-tab.active { color: var(--color-brand-700); border-bottom-color: var(--color-brand-500); }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
-    /* Export dropdown */
+    /* --- EXPORT DROPDOWN --- */
     .export-menu { position: relative; display: inline-block; }
-    .export-menu-items { display: none; position: absolute; right: 0; top: calc(100% + 4px); min-width: 220px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 100; padding: 4px 0; }
+    .export-menu-items { display: none; position: absolute; right: 0; top: 100%; min-width: 220px; background: #ffffff; border: 1px solid var(--v2-border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 50; padding: 8px 0; margin-top: 4px; }
     .export-menu.open .export-menu-items { display: block; }
-    .export-menu-items a { display: block; padding: 8px 16px; font-size: 0.85rem; color: var(--color-text); text-decoration: none; transition: background 0.15s; }
-    .export-menu-items a:hover { background: var(--color-brand-50); }
+    .export-menu-items a { display: block; padding: 8px 16px; font-size: 0.8rem; font-weight: 600; color: var(--v2-text-main); text-decoration: none; transition: background 0.1s; }
+    .export-menu-items a:hover { background: #f1f5f9; color: var(--v2-label); }
 
-    /* Collapsible filter panel */
-    .filter-panel > summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; color: var(--color-brand-700); user-select: none; padding: 6px 14px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); transition: all 0.2s; }
-    .filter-panel > summary:hover { background: var(--color-brand-50); border-color: var(--color-brand-500); }
-    .filter-panel > summary::-webkit-details-marker { display: none; }
-    .filter-panel > summary::after { content: ' \25BE'; font-size: 0.7rem; }
-    .filter-panel[open] > summary::after { content: ' \25B4'; }
-    .filter-panel .filter-body { margin-top: 12px; }
+    /* JSON Chip */
+    .meta-chip { font-family: var(--font-mono); font-size: 0.7rem; color: var(--v2-text-muted); background: #f1f5f9; padding: 4px 8px; border-radius: 4px; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: help; border: 1px solid #e2e8f0; }
+    
+    /* Widget Cards */
+    .widget-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+    .widget-card { background: #ffffff; border: 1px solid var(--v2-border); border-radius: 12px; padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
 </style>
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
-<?php $overviewExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'overview', 'overview_days' => ($overview_days ?? 7)]); ?>
-<?php $eventsExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'events', 'event_name' => ($event_filters['event_name'] ?? ''), 'event_module' => ($event_filters['module'] ?? ''), 'event_actor_id' => ($event_filters['actor_id'] ?? ''), 'event_date_from' => ($event_filters['date_from'] ?? ''), 'event_date_to' => ($event_filters['date_to'] ?? ''), 'event_limit' => ($event_limit ?? 500)]); ?>
-<?php $metricsTrendsExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'trends', 'metric_date_from' => ($metric_date_from ?? ''), 'metric_date_to' => ($metric_date_to ?? ''), 'metric_module' => ($metric_module ?? '')]); ?>
-<?php $metricsDailyExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'metrics', 'metric_date_from' => ($metric_date_from ?? ''), 'metric_date_to' => ($metric_date_to ?? ''), 'metric_module' => ($metric_module ?? '')]); ?>
+<?php 
+    $overviewExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'overview', 'overview_days' => ($overview_days ?? 7)]); 
+    $eventsExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'events', 'event_limit' => ($event_limit ?? 500)]); 
+    $metricsTrendsExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'trends']); 
+    $metricsDailyExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'metrics']); 
+?>
 <div class="export-menu" id="export-menu">
-    <button class="btn btn-outline" type="button" onclick="document.getElementById('export-menu').classList.toggle('open')">Export CSV &#9662;</button>
+    <button class="btn btn-outline" type="button" onclick="document.getElementById('export-menu').classList.toggle('open')" style="font-weight: 800; font-size: 0.85rem;">Export Dataset &#9662;</button>
     <div class="export-menu-items">
-        <a href="<?= site_url('analytics/activity-logs') . '?' . $overviewExportQuery ?>">Overview</a>
-        <a href="<?= site_url('analytics/activity-logs') . '?' . $eventsExportQuery ?>">Event Logs</a>
-        <a href="<?= site_url('analytics/activity-logs') . '?' . $metricsTrendsExportQuery ?>">Trends</a>
-        <a href="<?= site_url('analytics/activity-logs') . '?' . $metricsDailyExportQuery ?>">Daily Metrics</a>
+        <a href="<?= site_url('analytics/activity-logs') . '?' . $overviewExportQuery ?>">Export Overview Stats</a>
+        <a href="<?= site_url('analytics/activity-logs') . '?' . $eventsExportQuery ?>">Export Event Logs</a>
+        <a href="<?= site_url('analytics/activity-logs') . '?' . $metricsTrendsExportQuery ?>">Export Metric Trends</a>
+        <a href="<?= site_url('analytics/activity-logs') . '?' . $metricsDailyExportQuery ?>">Export Daily Snapshots</a>
     </div>
 </div>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="stack-lg">
+<div class="viewport-wrapper">
+    
     <nav class="section-tabs" role="tablist">
-        <button class="section-tab active" data-tab="overview" role="tab">Overview</button>
-        <button class="section-tab" data-tab="events" role="tab">Event Logs</button>
-        <button class="section-tab" data-tab="metrics" role="tab">Metrics</button>
+        <button class="section-tab active" data-tab="overview">Overview</button>
+        <button class="section-tab" data-tab="events">Event Audit Trail</button>
+        <button class="section-tab" data-tab="metrics">Metric Trends</button>
     </nav>
 
     <div class="tab-panel active" data-tab="overview">
-    <section id="overview" class="card stack-md">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
-            <div class="stack-sm">
-                <h2>Overview</h2>
-                <p class="muted">Review operational trends and activity volume.</p>
-            </div>
-            <form class="inline-form" method="get" action="<?= site_url('analytics/activity-logs') ?>#overview">
-                <label for="overview_days" style="font-size: 0.85rem; color: var(--color-text-muted);">Period (days)</label>
-                <input id="overview_days" type="number" min="1" max="30" name="overview_days" value="<?= esc((string) ($overview_days ?? 7)) ?>" style="width: 80px;">
-                <button type="submit" class="btn btn-primary">Apply</button>
-                <a class="btn btn-outline" href="<?= site_url('analytics/activity-logs') ?>#overview">Reset</a>
-            </form>
-        </div>
-
         <div class="kpi-grid">
             <article class="kpi-card">
-                <p class="kpi-label">Total Events</p>
-                <p class="kpi-value"><?= esc((string) ($overview['total_events'] ?? 0)) ?></p>
-                <p class="kpi-note">All tracked events to date.</p>
+                <div class="kpi-icon-box icon-slate"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value"><?= esc((string) ($overview['total_events'] ?? 0)) ?></p>
+                    <p class="kpi-label">Total Events</p>
+                </div>
             </article>
             <article class="kpi-card">
-                <p class="kpi-label">Events Today</p>
-                <p class="kpi-value"><?= esc((string) ($overview['events_today'] ?? 0)) ?></p>
-                <p class="kpi-note">Events created today.</p>
+                <div class="kpi-icon-box icon-teal"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value" style="color: #16a34a;"><?= esc((string) ($overview['events_today'] ?? 0)) ?></p>
+                    <p class="kpi-label">Events Today</p>
+                </div>
             </article>
             <article class="kpi-card">
-                <p class="kpi-label">Last <?= esc((string) $periodDays) ?> Days</p>
-                <p class="kpi-value"><?= esc((string) ($overview['events_last_period'] ?? 0)) ?></p>
-                <p class="kpi-note">Window-based activity volume.</p>
+                <div class="kpi-icon-box icon-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value"><?= esc((string) ($overview['events_last_period'] ?? 0)) ?></p>
+                    <p class="kpi-label">Last <?= esc((string) $periodDays) ?> Days</p>
+                </div>
             </article>
             <article class="kpi-card">
-                <p class="kpi-label">Active Modules</p>
-                <p class="kpi-value"><?= esc((string) count($moduleTotals)) ?></p>
-                <p class="kpi-note">Modules with observed events.</p>
+                <div class="kpi-icon-box icon-purple"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value"><?= esc((string) count($moduleTotals)) ?></p>
+                    <p class="kpi-label">Active Modules</p>
+                </div>
             </article>
         </div>
 
-        <details class="filter-panel">
-            <summary>Detailed Breakdown</summary>
-            <div class="filter-body">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-4);">
-            <div class="table-wrap">
-                <table class="table">
-                    <thead><tr><th>Module</th><th>Events</th></tr></thead>
+        <div class="table-card">
+            <div class="table-toolbar">
+                <h3>Time Window Control</h3>
+                <form method="get" action="<?= site_url('analytics/activity-logs') ?>#overview" style="display: flex; gap: 8px; align-items: center;">
+                    <span style="font-size: 0.75rem; font-weight: 800; color: var(--v2-text-muted);">PERIOD (DAYS):</span>
+                    <input type="number" name="overview_days" value="<?= esc((string) ($overview_days ?? 7)) ?>" class="input-v2" style="width: 70px; text-align: center;" min="1" max="30">
+                    <button type="submit" class="btn btn-primary" style="height: 32px; font-weight: 800; font-size: 0.75rem; border: none; background: var(--v2-label); color: white; border-radius: 6px;">Apply</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="widget-grid">
+            <div class="widget-card">
+                <h3 style="color: var(--v2-title); font-weight: 800; font-size: 0.9rem; margin: 0 0 12px 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;">Module Breakdown</h3>
+                <table class="modern-table" style="box-shadow: none; border: none;">
+                    <colgroup><col style="width: 70%;"><col style="width: 30%;"></colgroup>
                     <tbody>
                         <?php if ($moduleTotals === []): ?>
-                            <tr><td colspan="2" class="empty-state">No activity yet.</td></tr>
+                            <tr><td colspan="2" style="text-align:center; padding:20px; color:var(--v2-text-muted);">No activity yet.</td></tr>
                         <?php else: ?>
-                            <?php foreach (array_slice($moduleTotals, 0, 10) as $row): ?>
-                                <tr><td><?= esc((string) ($row['module'] ?? 'unknown')) ?></td><td><?= esc((string) ($row['total'] ?? 0)) ?></td></tr>
+                            <?php foreach (array_slice($moduleTotals, 0, 8) as $row): ?>
+                                <tr>
+                                    <td style="font-weight: 800; color: var(--v2-label); text-transform: uppercase; font-size: 0.75rem;"><?= esc((string)$row['module']) ?></td>
+                                    <td style="text-align: right; font-weight: 800;"><?= esc((string)$row['total']) ?></td>
+                                </tr>
                             <?php endforeach ?>
                         <?php endif ?>
                     </tbody>
                 </table>
             </div>
-            <div class="table-wrap">
-                <table class="table">
-                    <thead><tr><th>Top Event</th><th>Count</th></tr></thead>
+            
+            <div class="widget-card">
+                <h3 style="color: var(--v2-title); font-weight: 800; font-size: 0.9rem; margin: 0 0 12px 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;">Top Event Types</h3>
+                <table class="modern-table" style="box-shadow: none; border: none;">
+                    <colgroup><col style="width: 75%;"><col style="width: 25%;"></colgroup>
                     <tbody>
                         <?php if ($topEvents === []): ?>
-                            <tr><td colspan="2" class="empty-state">No events yet.</td></tr>
+                            <tr><td colspan="2" style="text-align:center; padding:20px; color:var(--v2-text-muted);">No events yet.</td></tr>
                         <?php else: ?>
-                            <?php foreach (array_slice($topEvents, 0, 10) as $row): ?>
-                                <tr><td><code><?= esc((string) ($row['event_name'] ?? '')) ?></code></td><td><?= esc((string) ($row['total'] ?? 0)) ?></td></tr>
+                            <?php foreach (array_slice($topEvents, 0, 8) as $row): ?>
+                                <tr>
+                                    <td style="font-family: var(--font-mono); font-size: 0.75rem; white-space: normal; word-break: break-all;"><?= esc((string)$row['event_name']) ?></td>
+                                    <td style="text-align: right; font-weight: 800;"><?= esc((string)$row['total']) ?></td>
+                                </tr>
                             <?php endforeach ?>
                         <?php endif ?>
                     </tbody>
                 </table>
             </div>
-            <div class="table-wrap">
-                <table class="table">
-                    <thead><tr><th>Top Route</th><th>Count</th></tr></thead>
+
+            <div class="widget-card">
+                <h3 style="color: var(--v2-title); font-weight: 800; font-size: 0.9rem; margin: 0 0 12px 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;">Heavy Routes</h3>
+                <table class="modern-table" style="box-shadow: none; border: none;">
+                    <colgroup><col style="width: 75%;"><col style="width: 25%;"></colgroup>
                     <tbody>
                         <?php if ($topRoutes === []): ?>
-                            <tr><td colspan="2" class="empty-state">No route activity yet.</td></tr>
+                            <tr><td colspan="2" style="text-align:center; padding:20px; color:var(--v2-text-muted);">No routes yet.</td></tr>
                         <?php else: ?>
-                            <?php foreach (array_slice($topRoutes, 0, 10) as $row): ?>
-                                <tr><td><?= esc((string) ($row['route'] ?? '')) ?></td><td><?= esc((string) ($row['total'] ?? 0)) ?></td></tr>
+                            <?php foreach (array_slice($topRoutes, 0, 8) as $row): ?>
+                                <tr>
+                                    <td style="font-size: 0.75rem; color: var(--v2-text-muted); white-space: normal; word-break: break-all;"><?= esc((string)$row['route']) ?></td>
+                                    <td style="text-align: right; font-weight: 800;"><?= esc((string)$row['total']) ?></td>
+                                </tr>
                             <?php endforeach ?>
                         <?php endif ?>
                     </tbody>
                 </table>
             </div>
         </div>
-
-        <h3>Recent Events</h3>
-        <div class="table-wrap">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ID</th><th>Event</th><th>Module</th><th>Actor</th><th>Route</th><th>Timestamp</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ($recentEvents === []): ?>
-                        <tr><td colspan="6" class="empty-state">No recent events found.</td></tr>
-                    <?php else: ?>
-                        <?php foreach ($recentEvents as $row): ?>
-                            <tr>
-                                <td><?= esc((string) ($row['id'] ?? '')) ?></td>
-                                <td><code><?= esc((string) ($row['event_name'] ?? '')) ?></code></td>
-                                <td><?= esc((string) ($row['module'] ?? '')) ?></td>
-                                <td><?= esc((string) ($row['actor_id'] ?? '')) ?></td>
-                                <td><?= esc((string) ($row['route'] ?? '')) ?></td>
-                                <td><?= esc((string) ($row['created_at'] ?? '')) ?></td>
-                            </tr>
-                        <?php endforeach ?>
-                    <?php endif ?>
-                </tbody>
-            </table>
-        </div>
-            </div>
-        </details>
-    </section>
     </div>
 
     <div class="tab-panel" data-tab="events">
-    <section id="events" class="card stack-md">
-        <div class="stack-sm">
-            <h2>Event Logs</h2>
-            <p class="muted">Raw event records for troubleshooting and usage analysis.</p>
-        </div>
-
         <div class="kpi-grid">
-            <article class="kpi-card"><p class="kpi-label">Events Found</p><p class="kpi-value"><?= esc((string) $eventsShown) ?></p></article>
-            <article class="kpi-card"><p class="kpi-label">Auth</p><p class="kpi-value"><?= esc((string) $authEvents) ?></p></article>
-            <article class="kpi-card"><p class="kpi-label">Procurement</p><p class="kpi-value"><?= esc((string) $procurementEvents) ?></p></article>
-            <article class="kpi-card"><p class="kpi-label">Inventory/Receiving</p><p class="kpi-value"><?= esc((string) $inventoryEvents) ?></p></article>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-slate"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="3.01" y2="6"></line></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value"><?= esc((string) $eventsShown) ?></p>
+                    <p class="kpi-label">Matches</p>
+                </div>
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value"><?= esc((string) $authEvents) ?></p>
+                    <p class="kpi-label">Auth</p>
+                </div>
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value"><?= esc((string) $procurementEvents) ?></p>
+                    <p class="kpi-label">Procurement</p>
+                </div>
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value"><?= esc((string) $inventoryEvents) ?></p>
+                    <p class="kpi-label">Inventory/Recv</p>
+                </div>
+            </article>
         </div>
 
-        <details class="filter-panel">
-            <summary>Filters</summary>
-            <div class="filter-body">
-        <form class="stack-sm" method="get" action="<?= site_url('analytics/activity-logs') ?>#events">
-            <div class="form-grid-2">
-                <div class="field">
-                    <label for="event_name">Event Name</label>
-                    <input id="event_name" name="event_name" value="<?= esc((string) ($event_filters['event_name'] ?? '')) ?>">
-                </div>
-                <div class="field">
-                    <label for="event_module">Module</label>
-                    <input id="event_module" name="event_module" value="<?= esc((string) ($event_filters['module'] ?? '')) ?>">
-                </div>
+        <div class="table-card">
+            <div class="table-toolbar" style="border-bottom: none; padding-bottom: 0;">
+                <h3>Filter Audit Logs</h3>
             </div>
-            <div class="form-grid-2">
-                <div class="field">
-                    <label for="event_actor_id">Actor ID</label>
-                    <input id="event_actor_id" name="event_actor_id" value="<?= esc((string) ($event_filters['actor_id'] ?? '')) ?>">
+            
+            <form method="get" action="<?= site_url('analytics/activity-logs') ?>#events" style="padding: 16px 20px; border-bottom: 1px solid var(--v2-border);">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                    <div class="field"><label>Event Name</label><input name="event_name" value="<?= esc((string) ($event_filters['event_name'] ?? '')) ?>" class="input-v2" placeholder="e.g. pr_submitted"></div>
+                    <div class="field"><label>Module</label><input name="event_module" value="<?= esc((string) ($event_filters['module'] ?? '')) ?>" class="input-v2" placeholder="e.g. auth"></div>
+                    <div class="field"><label>Actor ID</label><input name="event_actor_id" value="<?= esc((string) ($event_filters['actor_id'] ?? '')) ?>" class="input-v2"></div>
+                    <div class="field"><label>From</label><input type="date" name="event_date_from" value="<?= esc((string) ($event_filters['date_from'] ?? '')) ?>" class="input-v2"></div>
+                    <div class="field"><label>To</label><input type="date" name="event_date_to" value="<?= esc((string) ($event_filters['date_to'] ?? '')) ?>" class="input-v2"></div>
+                    <div class="field"><label>Limit</label><input type="number" name="event_limit" value="<?= esc((string) ($event_limit ?? 500)) ?>" class="input-v2" min="1" max="1000"></div>
                 </div>
-                <div class="field">
-                    <label for="event_limit">Database Limit</label>
-                    <input id="event_limit" type="number" min="1" max="1000" name="event_limit" value="<?= esc((string) ($event_limit ?? 500)) ?>">
+                
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="submit" class="btn btn-primary" style="padding: 6px 20px; font-weight: 800; background: var(--v2-label); border: none; border-radius: 6px; color: white;">Apply Filters</button>
+                    <a href="<?= site_url('analytics/activity-logs') ?>#events" class="btn btn-outline" style="padding: 6px 20px; font-weight: 800; border-radius: 6px; text-decoration: none;">Reset</a>
                 </div>
+            </form>
+            
+            <div class="table-scroll-container" style="max-height: 500px;">
+                <table id="events-table" class="modern-table" style="min-width: 1050px;">
+                    <colgroup>
+                        <col style="width: 60px;">  <col style="width: 20%;">   <col style="width: 80px;">  <col style="width: 80px;">  <col style="width: 12%;">   <col style="width: 15%;">   <col style="width: 15%;">   <col style="width: 140px;"> </colgroup>
+                    <thead>
+                        <tr>
+                            <th class="sortable numeric" data-col="0">ID</th>
+                            <th class="sortable" data-col="1">Event</th>
+                            <th class="sortable" data-col="2">Module</th>
+                            <th class="sortable numeric" data-col="3">Actor</th>
+                            <th class="sortable" data-col="4">Ref</th>
+                            <th class="sortable" data-col="5">Route</th>
+                            <th>Metadata</th>
+                            <th class="sortable date" data-col="7">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($eventRows === []): ?>
+                            <tr><td colspan="8" style="text-align:center; padding: 40px; color: var(--v2-text-muted);">No events match the current criteria.</td></tr>
+                        <?php else: ?>
+                            <?php foreach ($eventRows as $row): ?>
+                                <tr class="event-row" style="display: none;">
+                                    <td style="font-weight: 700; color: #94a3b8;"><?= esc((string)$row['id']) ?></td>
+                                    <td style="font-family: var(--font-mono); font-weight: 800; color: var(--v2-label); white-space: normal; word-break: break-all;"><?= esc((string)$row['event_name']) ?></td>
+                                    <td style="font-weight: 800; text-transform: uppercase; font-size: 0.7rem; color: var(--v2-text-muted);"><?= esc((string)$row['module']) ?></td>
+                                    <td style="font-weight: 800;">USR-<?= esc((string)$row['actor_id']) ?></td>
+                                    <td style="font-size: 0.75rem; font-weight: 600; color: var(--v2-text-muted);"><?= esc((string)$row['reference_type']) ?> #<?= esc((string)$row['reference_id']) ?></td>
+                                    <td style="font-size: 0.75rem; color: var(--v2-text-muted); white-space: normal; word-break: break-all;"><?= esc((string)$row['route']) ?></td>
+                                    <td>
+                                        <?php
+                                            $metadataRaw = trim((string) ($row['metadata_json'] ?? ''));
+                                            if ($metadataRaw === '' || $metadataRaw === 'null' || $metadataRaw === '[]'):
+                                        ?>
+                                            <span style="color: var(--v2-border);">-</span>
+                                        <?php else:
+                                            $decodedMetadata = json_decode($metadataRaw, true);
+                                            $metadataPretty = is_array($decodedMetadata) ? json_encode($decodedMetadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : $metadataRaw;
+                                        ?>
+                                            <span class="meta-chip" title="<?= esc((string)$metadataPretty) ?>"><?= esc((string)$metadataRaw) ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td style="white-space: nowrap; font-weight: 600; font-size: 0.75rem;"><?= esc((string)$row['created_at']) ?></td>
+                                </tr>
+                            <?php endforeach ?>
+                        <?php endif ?>
+                    </tbody>
+                </table>
             </div>
-            <div class="form-grid-2">
-                <div class="field">
-                    <label for="event_date_from">Date From</label>
-                    <input id="event_date_from" type="date" name="event_date_from" value="<?= esc((string) ($event_filters['date_from'] ?? '')) ?>">
-                </div>
-                <div class="field">
-                    <label for="event_date_to">Date To</label>
-                    <input id="event_date_to" type="date" name="event_date_to" value="<?= esc((string) ($event_filters['date_to'] ?? '')) ?>">
-                </div>
-            </div>
-            <div class="toolbar">
-                <button type="submit" class="btn btn-primary">Apply Filters</button>
-                <a class="btn btn-outline" href="<?= site_url('analytics/activity-logs') ?>#events">Clear</a>
-            </div>
-        </form>
-            </div>
-        </details>
-
-        <div class="table-wrap">
-            <table id="events-table" class="table activity-events-table">
-                <colgroup>
-                    <col style="width: 60px;">
-                    <col style="width: 20%;">
-                    <col style="width: 10%;">
-                    <col style="width: 8%;">
-                    <col style="width: 14%;">
-                    <col style="width: 20%;">
-                    <col style="width: 18%;">
-                    <col style="width: 150px;">
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th>ID</th><th>Event</th><th>Module</th><th>Actor</th><th>Reference</th><th>Route</th><th>Metadata</th><th>Timestamp</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ($eventRows === []): ?>
-                        <tr><td colspan="8" class="empty-state">No analytics events found.</td></tr>
-                    <?php else: ?>
-                        <?php foreach ($eventRows as $row): ?>
-                            <tr class="event-row">
-                                <td><?= esc((string) ($row['id'] ?? '')) ?></td>
-                                <td class="activity-event-name"><?= esc((string) ($row['event_name'] ?? '')) ?></td>
-                                <td><?= esc((string) ($row['module'] ?? '')) ?></td>
-                                <td><?= esc((string) ($row['actor_id'] ?? '')) ?></td>
-                                <td><?= esc((string) ($row['reference_type'] ?? '')) ?> <?= esc((string) ($row['reference_id'] ?? '')) ?></td>
-                                <td class="activity-route"><?= esc((string) ($row['route'] ?? '')) ?></td>
-                                <td>
-                                    <?php
-                                    $metadataRaw = trim((string) ($row['metadata_json'] ?? ''));
-                                    if ($metadataRaw === ''):
-                                    ?>
-                                        <span class="muted">-</span>
-                                    <?php else:
-                                        $metadataPretty = $metadataRaw;
-                                        $decodedMetadata = json_decode($metadataRaw, true);
-                                        if (is_array($decodedMetadata)) {
-                                            $metadataPretty = (string) json_encode(
-                                                $decodedMetadata,
-                                                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-                                            );
-                                        }
-                                    ?>
-                                        <details class="activity-meta-details">
-                                            <summary>View JSON</summary>
-                                            <pre class="activity-meta-json"><?= esc($metadataPretty) ?></pre>
-                                        </details>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="activity-timestamp"><?= esc((string) ($row['created_at'] ?? '')) ?></td>
-                            </tr>
-                        <?php endforeach ?>
-                    <?php endif ?>
-                </tbody>
-            </table>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; margin-top: 8px; border-top: 1px solid var(--color-border);">
-            <p class="muted" style="margin: 0; font-size: 0.85rem; line-height: 1;">
-                Showing records <span id="events-page-indicator"></span> (Total: <span id="events-total-indicator"><?= esc((string) $eventsShown) ?></span>)
-            </p>
-            <nav aria-label="Events Pagination">
+            <div class="table-footer">
+                <p style="margin:0; font-size: 0.8rem; font-weight: 700; color: var(--v2-text-muted);">Showing <span id="events-page-indicator"></span></p>
                 <ul class="ci-pager" id="events-pager"></ul>
-            </nav>
+            </div>
         </div>
-    </section>
     </div>
 
     <div class="tab-panel" data-tab="metrics">
-    <section id="metrics" class="card stack-md">
-        <div class="stack-sm">
-            <h2>Metrics</h2>
-            <p class="muted">Date-based trends and stored daily metric snapshots.</p>
-        </div>
-
         <div class="kpi-grid">
-            <article class="kpi-card"><p class="kpi-label">Trend Rows</p><p class="kpi-value"><?= esc((string) count($trendRows)) ?></p></article>
-            <article class="kpi-card"><p class="kpi-label">Trend Events Total</p><p class="kpi-value"><?= esc((string) $trendTotal) ?></p></article>
-            <article class="kpi-card"><p class="kpi-label">Persisted Metrics</p><p class="kpi-value"><?= esc((string) count($metricRows)) ?></p></article>
-            <article class="kpi-card"><p class="kpi-label">Module Filter</p><p class="kpi-value"><?= esc(($metric_module ?? '') === '' ? 'All' : (string) $metric_module) ?></p></article>
-        </div>
-
-        <details class="filter-panel">
-            <summary>Filters</summary>
-            <div class="filter-body">
-        <form class="stack-sm" method="get" action="<?= site_url('analytics/activity-logs') ?>#metrics">
-            <div class="form-grid-2">
-                <div class="field">
-                    <label for="metric_date_from">Date From</label>
-                    <input id="metric_date_from" type="date" name="metric_date_from" value="<?= esc((string) ($metric_date_from ?? '')) ?>">
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-slate"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value"><?= esc((string) count($trendRows)) ?></p>
+                    <p class="kpi-label">Trend Rows</p>
                 </div>
-                <div class="field">
-                    <label for="metric_date_to">Date To</label>
-                    <input id="metric_date_to" type="date" name="metric_date_to" value="<?= esc((string) ($metric_date_to ?? '')) ?>">
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value"><?= esc((string) $trendTotal) ?></p>
+                    <p class="kpi-label">Total Events</p>
                 </div>
-            </div>
-            <div class="field">
-                <label for="metric_module">Module</label>
-                <input id="metric_module" type="text" name="metric_module" value="<?= esc((string) ($metric_module ?? '')) ?>" placeholder="optional module filter">
-            </div>
-            <div class="toolbar">
-                <button type="submit" class="btn btn-primary">Apply</button>
-                <a class="btn btn-outline" href="<?= site_url('analytics/activity-logs') ?>#metrics">Reset</a>
-            </div>
-        </form>
-            </div>
-        </details>
-
-        <h3>Event Trends by Date</h3>
-        <div class="table-wrap">
-            <table id="trends-table" class="table">
-                <thead><tr><th>Date</th><th>Module</th><th>Total Events</th></tr></thead>
-                <tbody>
-                    <?php if ($trendRows === []): ?>
-                        <tr><td colspan="3" class="empty-state">No trend data available.</td></tr>
-                    <?php else: ?>
-                        <?php foreach ($trendRows as $row): ?>
-                            <tr class="trend-row"><td><?= esc((string) ($row['metric_date'] ?? '')) ?></td><td><?= esc((string) ($row['module'] ?? '')) ?></td><td><?= esc((string) ($row['total'] ?? 0)) ?></td></tr>
-                        <?php endforeach ?>
-                    <?php endif ?>
-                </tbody>
-            </table>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; margin-top: 8px; border-top: 1px solid var(--color-border);">
-            <p class="muted" style="margin: 0; font-size: 0.85rem; line-height: 1;">
-                Showing records <span id="trends-page-indicator"></span> (Total: <span id="trends-total-indicator"><?= esc((string) count($trendRows)) ?></span>)
-            </p>
-            <nav aria-label="Trends Pagination">
-                <ul class="ci-pager" id="trends-pager"></ul>
-            </nav>
-        </div>
-        <h3>Persisted Daily Metrics</h3>
-        <div class="table-wrap">
-            <table id="metrics-table" class="table">
-                <thead><tr><th>Date</th><th>Metric Key</th><th>Module</th><th>Value</th><th>Dimensions</th><th>Created At</th></tr></thead>
-                <tbody>
-                    <?php if ($metricRows === []): ?>
-                        <tr><td colspan="6" class="empty-state">No persisted metrics yet.</td></tr>
-                    <?php else: ?>
-                        <?php foreach ($metricRows as $row): ?>
-                            <tr class="metric-row">
-                                <td><?= esc((string) ($row['metric_date'] ?? '')) ?></td>
-                                <td><code><?= esc((string) ($row['metric_key'] ?? '')) ?></code></td>
-                                <td><?= esc((string) ($row['module'] ?? '')) ?></td>
-                                <td><?= esc((string) ($row['metric_value'] ?? 0)) ?></td>
-                                <td><code><?= esc((string) ($row['dimension_json'] ?? '')) ?></code></td>
-                                <td><?= esc((string) ($row['created_at'] ?? '')) ?></td>
-                            </tr>
-                        <?php endforeach ?>
-                    <?php endif ?>
-                </tbody>
-            </table>
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value"><?= esc((string) count($metricRows)) ?></p>
+                    <p class="kpi-label">Persisted</p>
+                </div>
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value" style="font-size: 1rem;"><?= esc(($metric_module ?? '') === '' ? 'All' : (string)$metric_module) ?></p>
+                    <p class="kpi-label">Scope</p>
+                </div>
+            </article>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; margin-top: 8px; border-top: 1px solid var(--color-border);">
-            <p class="muted" style="margin: 0; font-size: 0.85rem; line-height: 1;">
-                Showing records <span id="metrics-page-indicator"></span> (Total: <span id="metrics-total-indicator"><?= esc((string) count($metricRows)) ?></span>)
-            </p>
-            <nav aria-label="Metrics Pagination">
-                <ul class="ci-pager" id="metrics-pager"></ul>
-            </nav>
+        <div class="table-card">
+            <div class="table-toolbar" style="border-bottom: none; padding-bottom: 0;">
+                <h3>Filter Metrics</h3>
+            </div>
+            
+            <form method="get" action="<?= site_url('analytics/activity-logs') ?>#metrics" style="padding: 16px 20px; border-bottom: 1px solid var(--v2-border);">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                    <div class="field"><label>Date From</label><input type="date" name="metric_date_from" value="<?= esc((string) ($metric_date_from ?? '')) ?>" class="input-v2"></div>
+                    <div class="field"><label>Date To</label><input type="date" name="metric_date_to" value="<?= esc((string) ($metric_date_to ?? '')) ?>" class="input-v2"></div>
+                    <div class="field"><label>Module</label><input type="text" name="metric_module" value="<?= esc((string) ($metric_module ?? '')) ?>" class="input-v2" placeholder="optional scope"></div>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="submit" class="btn btn-primary" style="padding: 6px 20px; font-weight: 800; background: var(--v2-label); border: none; border-radius: 6px; color: white;">Apply Filters</button>
+                    <a href="<?= site_url('analytics/activity-logs') ?>#metrics" class="btn btn-outline" style="padding: 6px 20px; font-weight: 800; border-radius: 6px; text-decoration: none;">Reset</a>
+                </div>
+            </form>
         </div>
-    </section>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 16px;">
+            
+            <div class="table-card">
+                <div class="table-toolbar"><h3>Event Trends</h3></div>
+                <div class="table-scroll-container" style="max-height: 400px;">
+                    <table id="trends-table" class="modern-table">
+                        <colgroup><col style="width: 35%;"><col style="width: 40%;"><col style="width: 25%;"></colgroup>
+                        <thead><tr><th class="sortable date" data-col="0">Date</th><th class="sortable" data-col="1">Module</th><th class="sortable numeric" data-col="2" style="text-align: right;">Total</th></tr></thead>
+                        <tbody>
+                            <?php if ($trendRows === []): ?>
+                                <tr><td colspan="3" style="text-align: center; padding: 30px; color: var(--v2-text-muted);">No trend data available.</td></tr>
+                            <?php else: ?>
+                                <?php foreach ($trendRows as $row): ?>
+                                    <tr class="trend-row" style="display: none;">
+                                        <td style="font-weight: 700;"><?= esc((string)$row['metric_date']) ?></td>
+                                        <td style="font-weight: 800; text-transform: uppercase; font-size: 0.75rem; color: var(--v2-label);"><?= esc((string)$row['module']) ?></td>
+                                        <td style="text-align: right; font-weight: 900; color: var(--v2-title);"><?= esc((string)$row['total']) ?></td>
+                                    </tr>
+                                <?php endforeach ?>
+                            <?php endif ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer"><p style="margin:0; font-size: 0.8rem; font-weight: 700; color: var(--v2-text-muted);"><span id="trends-page-indicator"></span></p><ul class="ci-pager" id="trends-pager"></ul></div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-toolbar"><h3>Persisted Daily Metrics</h3></div>
+                <div class="table-scroll-container" style="max-height: 400px;">
+                    <table id="metrics-table" class="modern-table">
+                        <colgroup><col style="width: 25%;"><col style="width: 30%;"><col style="width: 25%;"><col style="width: 20%;"></colgroup>
+                        <thead><tr><th class="sortable date" data-col="0">Date</th><th class="sortable" data-col="1">Key</th><th class="sortable" data-col="2">Module</th><th class="sortable numeric" data-col="3" style="text-align: right;">Value</th></tr></thead>
+                        <tbody>
+                            <?php if ($metricRows === []): ?>
+                                <tr><td colspan="4" style="text-align: center; padding: 30px; color: var(--v2-text-muted);">No metrics found.</td></tr>
+                            <?php else: ?>
+                                <?php foreach ($metricRows as $row): ?>
+                                    <tr class="metric-row" style="display: none;">
+                                        <td style="font-weight: 700; font-size: 0.75rem;"><?= esc((string)$row['metric_date']) ?></td>
+                                        <td style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--v2-label); word-break: break-all;"><?= esc((string)$row['metric_key']) ?></td>
+                                        <td style="font-weight: 800; text-transform: uppercase; font-size: 0.7rem; color: var(--v2-text-muted);"><?= esc((string)$row['module']) ?></td>
+                                        <td style="text-align: right; font-weight: 900; color: var(--v2-title);"><?= esc((string)$row['metric_value']) ?></td>
+                                    </tr>
+                                <?php endforeach ?>
+                            <?php endif ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer"><p style="margin:0; font-size: 0.8rem; font-weight: 700; color: var(--v2-text-muted);"><span id="metrics-page-indicator"></span></p><ul class="ci-pager" id="metrics-pager"></ul></div>
+            </div>
+
+        </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    function initPagination(tableId, rowClass, pagerId, indicatorId, totalIndicatorId, perPage) {
-        const tbody = document.querySelector('#' + tableId + ' tbody');
-        if (!tbody || !tbody.querySelector('.' + rowClass)) return;
-
+    
+    // ==========================================
+    // MULTI-TABLE MANAGER (ISOLATED SCOPES)
+    // ==========================================
+    function setupTable(tableId, rowClass, pagerId, indicatorId, perPage) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+        const tbody = table.querySelector('tbody');
         const allRows = Array.from(tbody.querySelectorAll('.' + rowClass));
+        if (allRows.length === 0) return;
+
         let currentRows = [...allRows];
+        let currentPage = 1;
         const pagerContainer = document.getElementById(pagerId);
         const pageIndicator = document.getElementById(indicatorId);
-        let currentPage = 1;
 
         function showPage(page) {
             currentPage = page;
             const totalRows = currentRows.length;
             const totalPages = Math.ceil(totalRows / perPage);
-
             if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
 
             const startPoint = (currentPage - 1) * perPage;
             const endPoint = startPoint + perPage;
 
-            allRows.forEach(row => row.style.display = 'none');
-            currentRows.forEach((row, index) => {
-                if (index >= startPoint && index < endPoint) row.style.display = '';
+            allRows.forEach(r => r.style.display = 'none');
+            currentRows.forEach((r, i) => {
+                if (i >= startPoint && i < endPoint) r.style.display = '';
             });
 
             const actualEnd = Math.min(endPoint, totalRows);
-            if (pageIndicator) pageIndicator.innerText = totalRows === 0 ? '0' : `${startPoint + 1} - ${actualEnd}`;
+            if (pageIndicator) pageIndicator.innerText = `${startPoint + 1} - ${actualEnd} of ${totalRows}`;
+            buildPager(totalPages);
+        }
 
-            if (pagerContainer) {
-                pagerContainer.innerHTML = '';
-                if (totalPages > 1) {
-                    let html = `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo; Prev</a></li>`;
+        function buildPager(totalPages) {
+            if (!pagerContainer) return;
+            pagerContainer.innerHTML = '';
+            if (totalPages <= 1) return;
 
-                    let startPg = Math.max(1, currentPage - 2);
-                    let endPg = Math.min(totalPages, startPg + 4);
-                    if (endPg - startPg < 4) startPg = Math.max(1, endPg - 4);
+            let html = `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo; Prev</a></li>`;
 
-                    if (startPg > 1) {
-                        html += `<li><a href="#" data-page="1">1</a></li>`;
-                        if (startPg > 2) html += `<li><span class="ellipsis">...</span></li>`;
-                    }
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
-                    for (let i = startPg; i <= endPg; i++) {
-                        html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
-                    }
-
-                    if (endPg < totalPages) {
-                        if (endPg < totalPages - 1) html += `<li><span class="ellipsis">...</span></li>`;
-                        html += `<li><a href="#" data-page="${totalPages}">${totalPages}</a></li>`;
-                    }
-
-                    html += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;
-                    pagerContainer.innerHTML = html;
-                }
+            if (startPage > 1) {
+                html += `<li><a href="#" data-page="1">1</a></li>`;
+                if (startPage > 2) html += `<li><span class="ellipsis">...</span></li>`;
             }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += `<li><span class="ellipsis">...</span></li>`;
+                html += `<li><a href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+            }
+
+            html += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;
+            pagerContainer.innerHTML = html;
         }
 
         if (pagerContainer) {
-            pagerContainer.addEventListener('click', function(e) {
+            pagerContainer.addEventListener('click', e => {
                 const link = e.target.closest('a');
                 if (!link) return;
                 e.preventDefault();
-                const li = link.parentElement;
-                if (li.classList.contains('disabled') || li.classList.contains('active')) return;
+                if (link.parentElement.classList.contains('disabled') || link.parentElement.classList.contains('active')) return;
                 showPage(parseInt(link.getAttribute('data-page')));
             });
         }
 
+        // Sorting Logic
+        table.querySelectorAll('th.sortable').forEach(th => {
+            th.addEventListener('click', () => {
+                const colIndex = parseInt(th.getAttribute('data-col'));
+                const isNumericCol = th.classList.contains('numeric');
+                const isDateCol = th.classList.contains('date');
+                const isAsc = th.classList.contains('asc');
+                const direction = isAsc ? -1 : 1;
+
+                table.querySelectorAll('th.sortable').forEach(header => header.classList.remove('asc', 'desc'));
+                th.classList.add(isAsc ? 'desc' : 'asc');
+
+                currentRows.sort((a, b) => {
+                    let aT = a.children[colIndex].innerText.trim();
+                    let bT = b.children[colIndex].innerText.trim();
+
+                    if (isNumericCol) {
+                        aT = aT.replace(/[^\d.-]/g, '');
+                        bT = bT.replace(/[^\d.-]/g, '');
+                        return (parseFloat(aT) - parseFloat(bT)) * direction;
+                    }
+                    if (isDateCol) {
+                        return (new Date(aT).getTime() - new Date(bT).getTime()) * direction;
+                    }
+                    return aT.localeCompare(bT) * direction;
+                });
+
+                currentRows.forEach(row => tbody.appendChild(row));
+                showPage(1);
+            });
+        });
+
+        // Init
         showPage(1);
     }
 
-    initPagination('events-table', 'event-row', 'events-pager', 'events-page-indicator', 'events-total-indicator', 15);
-    initPagination('trends-table', 'trend-row', 'trends-pager', 'trends-page-indicator', 'trends-total-indicator', 15);
-    initPagination('metrics-table', 'metric-row', 'metrics-pager', 'metrics-page-indicator', 'metrics-total-indicator', 15);
+    // Apply to all 3 tables with individual pagination states
+    setupTable('events-table', 'event-row', 'events-pager', 'events-page-indicator', 15);
+    setupTable('trends-table', 'trend-row', 'trends-pager', 'trends-page-indicator', 10);
+    setupTable('metrics-table', 'metric-row', 'metrics-pager', 'metrics-page-indicator', 10);
 
-    // Tab navigation
+    // ==========================================
+    // TAB NAVIGATION
+    // ==========================================
     const tabs = document.querySelectorAll('.section-tab');
     const panels = document.querySelectorAll('.tab-panel');
-
-    function activateTab(tabName) {
-        tabs.forEach(t => t.classList.toggle('active', t.getAttribute('data-tab') === tabName));
-        panels.forEach(p => p.classList.toggle('active', p.getAttribute('data-tab') === tabName));
+    
+    function activateTab(name) {
+        tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+        panels.forEach(p => p.classList.toggle('active', p.dataset.tab === name));
+        history.replaceState(null, '', '#' + name);
     }
 
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const name = tab.getAttribute('data-tab');
-            activateTab(name);
-            history.replaceState(null, '', '#' + name);
-        });
-    });
-
-    // Activate tab from URL hash
+    tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab)));
+    
     const hash = window.location.hash.replace('#', '');
-    if (['overview', 'events', 'metrics'].includes(hash)) activateTab(hash);
+    if (['overview', 'events', 'metrics'].includes(hash)) {
+        activateTab(hash);
+    }
 
-    // Close export dropdown on outside click
-    document.addEventListener('click', function(e) {
+    // ==========================================
+    // EXPORT DROPDOWN TOGGLE
+    // ==========================================
+    document.addEventListener('click', e => {
         const menu = document.getElementById('export-menu');
         if (menu && !menu.contains(e.target)) menu.classList.remove('open');
     });

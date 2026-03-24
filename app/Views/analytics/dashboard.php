@@ -15,305 +15,328 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
 
 <?= $this->section('head') ?>
 <style>
-    /* Force CodeIgniter's default Pager to match your modern button design */
-    .ci-pager {
+    /* --- V2 DESIGN SYSTEM VARIABLES --- */
+    :root {
+        --v2-border: #b2e0eb; 
+        --v2-title: #00476b;  
+        --v2-label: #00668c;  
+        --v2-active-bg: #00638a; 
+        --v2-text-main: #1e3a8a; /* TRUE Dark Blue */
+        --v2-text-muted: #64748b;
+    }
+
+    /* --- VIEWPORT WRAPPER (Scrollable for Dashboards) --- */
+    .viewport-wrapper {
         display: flex;
-        gap: 6px;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        align-items: center; /* Perfectly centers the buttons vertically */
+        flex-direction: column;
+        gap: 20px;
+        height: calc(100vh - 120px); 
+        min-height: 800px;
+        overflow-y: auto;
+        padding-bottom: 40px;
+    }
+
+    /* --- PASTEL KPI CARDS --- */
+    .kpi-grid { 
+        display: grid; 
+        grid-template-columns: repeat(4, 1fr); 
+        gap: 16px; 
+        flex-shrink: 0; 
     }
     
-    .ci-pager li {
-        display: block;
+    .kpi-card { 
+        background: #ffffff; 
+        border: 1px solid var(--v2-border); 
+        border-radius: 12px; 
+        padding: 16px 18px; 
+        display: flex; 
+        align-items: center; 
+        gap: 14px; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
     }
+
+    .kpi-icon-box {
+        width: 46px; height: 46px; 
+        border-radius: 10px; 
+        display: flex; align-items: center; justify-content: center; 
+        flex-shrink: 0;
+    }
+
+    .icon-total { background: #f1f5f9; color: #475569; }        
+    .icon-today { background: #ecfccb; color: #16a34a; } 
+    .icon-period { background: #e0f2fe; color: #0284c7; }   
+    .icon-modules { background: #f5f3ff; color: #8b5cf6; }   
+
+    .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }
     
-    /* Target ONLY the outer link, ignoring CodeIgniter's internal spans */
-    .ci-pager li a {
-        display: inline-flex;
+    .kpi-value { font-size: 1.15rem; font-weight: 800; color: var(--v2-title); line-height: 1.2; margin: 0; }
+    .kpi-label { font-size: 0.75rem; font-weight: 500; color: var(--v2-text-muted); margin: 0; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* --- WIDGET CARDS (For small distribution tables) --- */
+    .widget-card {
+        background: #ffffff;
+        border: 1px solid var(--v2-border);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .widget-card h3 { 
+        margin: 0 0 16px 0; 
+        font-size: 1rem; 
+        color: var(--v2-title); 
+        font-weight: 800; 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between;
+    }
+
+    /* --- V2 TABLE CARD --- */
+    .table-card {
+        background: #ffffff; 
+        border: 1px solid var(--v2-border); 
+        border-radius: 12px; 
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+        overflow: hidden;
+    }
+
+    .table-toolbar {
+        display: flex;
+        justify-content: space-between;
         align-items: center;
-        justify-content: center;
-        padding: 6px 12px;
-        font-size: 0.85rem;
-        min-width: 32px;
-        border: 1px solid var(--color-border-strong);
-        border-radius: var(--radius-sm);
-        background: var(--color-surface);
-        color: var(--color-brand-700);
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.2s ease;
-    }
-
-    .ci-pager li a:hover {
-        background: var(--color-brand-100);
-        border-color: var(--color-brand-500);
-    }
-
-    /* Active State */
-    .ci-pager li.active a {
-        background: var(--color-brand-500);
-        color: #ffffff;
-        border-color: var(--color-brand-600);
-    }
-
-    /* Disabled State */
-    .ci-pager li.disabled a {
-        opacity: 0.5;
-        background: var(--color-surface-alt);
-        color: var(--color-text-muted);
-        pointer-events: none;
-        border-color: var(--color-border);
+        gap: 16px;
+        padding: 14px 20px; 
+        border-bottom: 1px solid var(--v2-border); 
+        background: #ffffff; 
+        flex-shrink: 0;
     }
     
-    /* Strips out the double-border bug from CodeIgniter's internal tags */
-    .ci-pager li span.ellipsis {
-        border: none !important;
-        background: transparent !important;
-        padding: 0 4px !important;
-        min-width: auto;
-        color: var(--color-text-muted);
-    }
+    .table-toolbar h3 { margin: 0; font-size: 1.05rem; color: var(--v2-title); font-weight: 800; }
 
-    /* --- SORTABLE TABLE HEADERS --- */
-    th.sortable {
-        cursor: pointer;
-        position: relative;
-        padding-right: 18px !important;
-        user-select: none;
-        transition: background 0.2s ease;
+    /* Modern Table Styling */
+    .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .modern-table th { 
+        position: sticky; top: 0; z-index: 10;
+        background: #ffffff !important; 
+        padding: 12px 16px; 
+        font-size: 0.75rem; 
+        text-transform: uppercase; 
+        font-weight: 800; 
+        color: var(--v2-title); 
+        border-bottom: 2px solid var(--v2-border); 
+        text-align: left; 
     }
-    th.sortable:hover {
-        background: rgba(0, 0, 0, 0.03) !important;
-    }
-    th.sortable::after {
-        content: '↕';
-        position: absolute;
-        right: 6px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 0.75rem;
-        opacity: 0.3;
-    }
-    th.sortable.asc::after {
-        content: '↑';
-        opacity: 1;
-        color: var(--color-brand-600);
-        font-weight: bold;
-    }
-    th.sortable.desc::after {
-        content: '↓';
-        opacity: 1;
-        color: var(--color-brand-600);
-        font-weight: bold;
-    }
+    .modern-table td { padding: 10px 16px; font-size: 0.85rem; color: var(--v2-text-main); border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .modern-table tr:hover td { background: #f8fafc; }
+
+    /* Pagination */
+    .ci-pager { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; align-items: center; }
+    .ci-pager li a, .ci-pager li span { display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; font-size: 0.75rem; min-width: 28px; border: 1px solid var(--v2-border); border-radius: 4px; background: #ffffff; color: var(--v2-label); text-decoration: none; font-weight: 700; transition: all 0.2s ease; }
+    .ci-pager li a:hover { background: rgba(178, 224, 235, 0.3); border-color: var(--v2-label); }
+    .ci-pager li.active a { background: var(--v2-label); color: #ffffff; border-color: var(--v2-label); }
+    .ci-pager li.disabled a { opacity: 0.5; background: #f1f5f9; color: var(--v2-text-muted); pointer-events: none; border-color: #cbd5e1; }
+
+    /* Form Inputs */
+    .input-v2 { padding: 4px 10px; font-size: 0.85rem; border: 1px solid var(--v2-border); border-radius: 6px; outline: none; color: var(--v2-text-main); background: #ffffff; height: 34px; }
+    .input-v2:focus { border-color: var(--v2-label); box-shadow: 0 0 0 3px rgba(0, 102, 140, 0.1); }
 </style>
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
 <?php $dashboardExportQuery = http_build_query(['export' => 'csv', 'days' => ($days ?? 7)]); ?>
-<a class="btn btn-outline" href="<?= site_url('analytics/dashboard') . '?' . $dashboardExportQuery ?>">Export CSV</a>
-<a class="btn btn-outline" href="<?= site_url('analytics/events') ?>">Event Logs</a>
-<a class="btn btn-outline" href="<?= site_url('analytics/metrics') ?>">Metrics</a>
+<a class="btn btn-outline" href="<?= site_url('analytics/dashboard') . '?' . $dashboardExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('analytics/events') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Event Logs</a>
+<a class="btn btn-outline" href="<?= site_url('analytics/metrics') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Metrics</a>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="stack-lg">
+<div class="viewport-wrapper">
     
-    <section class="card stack-md">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
-            <div class="stack-sm">
-                <h2>Overview & Time Window</h2>
-                <p class="muted">Review operational trends and activity volume.</p>
-            </div>
-            
-            <form class="inline-form" method="get" action="<?= site_url('analytics/dashboard') ?>">
-                <label for="days" style="font-size: 0.85rem; color: var(--color-text-muted);">Period (days)</label>
-                <input id="days" type="number" min="1" max="30" name="days" value="<?= esc((string) $days) ?>" style="width: 80px;">
-                <button type="submit" class="btn btn-primary">Apply</button>
-                <a class="btn btn-outline" href="<?= site_url('analytics/dashboard') ?>">Reset</a>
-            </form>
-        </div>
-
-        <div class="kpi-grid">
-            <article class="kpi-card">
-                <p class="kpi-label">Total Events</p>
-                <p class="kpi-value"><?= esc((string) ($summary['total_events'] ?? 0)) ?></p>
-                <p class="kpi-note">All tracked events to date.</p>
-            </article>
-            <article class="kpi-card">
-                <p class="kpi-label">Events Today</p>
-                <p class="kpi-value"><?= esc((string) ($summary['events_today'] ?? 0)) ?></p>
-                <p class="kpi-note">Events created today.</p>
-            </article>
-            <article class="kpi-card">
-                <p class="kpi-label">Last <?= esc((string) $periodDays) ?> Days</p>
-                <p class="kpi-value"><?= esc((string) ($summary['events_last_period'] ?? 0)) ?></p>
-                <p class="kpi-note">Window-based activity volume.</p>
-            </article>
-            <article class="kpi-card">
-                <p class="kpi-label">Active Modules</p>
-                <p class="kpi-value"><?= esc((string) count($module_totals ?? [])) ?></p>
-                <p class="kpi-note">Modules with observed events.</p>
-            </article>
-        </div>
-    </section>
-
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-4);">
+    <div style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+        <h2 style="margin:0; font-size: 1.6rem; color: var(--v2-title); font-weight: 900; letter-spacing: -0.02em;">Analytics Dashboard</h2>
         
-        <section class="card stack-md">
-            <h3>Module Distribution</h3>
-            <div class="table-wrap" style="border: none; box-shadow: none; overflow: hidden;">
-                <table class="table" style="min-width: 0; table-layout: fixed; width: 100%;">
-                    <colgroup>
-                        <col style="width: 75%;">
-                        <col style="width: 25%;">
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th style="background: transparent; border-bottom: 2px solid var(--color-border-strong);">Module</th>
-                            <th style="background: transparent; text-align: right; border-bottom: 2px solid var(--color-border-strong);">Events</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (($module_totals ?? []) === []): ?>
-                            <tr><td colspan="2" class="empty-state">No activity yet.</td></tr>
-                        <?php else: ?>
-                            <?php foreach (array_slice($module_totals, 0, 10) as $row): ?>
-                                <tr>
-                                    <td style="white-space: normal; word-break: break-word;"><strong><?= esc((string) ($row['module'] ?? 'unknown')) ?></strong></td>
-                                    <td style="text-align: right;"><?= esc((string) ($row['total'] ?? 0)) ?></td>
-                                </tr>
-                            <?php endforeach ?>
-                        <?php endif ?>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="card stack-md">
-            <h3>Top Events</h3>
-            <div class="table-wrap" style="border: none; box-shadow: none; overflow: hidden;">
-                <table class="table" style="min-width: 0; table-layout: fixed; width: 100%;">
-                    <colgroup>
-                        <col style="width: 80%;">
-                        <col style="width: 20%;">
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th style="background: transparent; border-bottom: 2px solid var(--color-border-strong);">Event Name</th>
-                            <th style="background: transparent; text-align: right; border-bottom: 2px solid var(--color-border-strong);">Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (($top_events ?? []) === []): ?>
-                            <tr><td colspan="2" class="empty-state">No events yet.</td></tr>
-                        <?php else: ?>
-                            <?php foreach (array_slice($top_events, 0, 10) as $row): ?>
-                                <tr>
-                                    <td style="white-spac   e: normal; word-break: break-all; font-family: var(--font-mono); color: var(--color-brand-700); font-size: 0.85rem;"><?= esc((string) ($row['event_name'] ?? '')) ?></td>
-                                    <td style="text-align: right;"><?= esc((string) ($row['total'] ?? 0)) ?></td>
-                                </tr>
-                            <?php endforeach ?>
-                        <?php endif ?>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="card stack-md">
-            <h3>Top Routes</h3>
-            <div class="table-wrap" style="border: none; box-shadow: none; overflow: hidden;">
-                <table class="table" style="min-width: 0; table-layout: fixed; width: 100%;">
-                    <colgroup>
-                        <col style="width: 80%;">
-                        <col style="width: 20%;">
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th style="background: transparent; border-bottom: 2px solid var(--color-border-strong);">Route</th>
-                            <th style="background: transparent; text-align: right; border-bottom: 2px solid var(--color-border-strong);">Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (($top_routes ?? []) === []): ?>
-                            <tr><td colspan="2" class="empty-state">No route activity yet.</td></tr>
-                        <?php else: ?>
-                            <?php foreach (array_slice($top_routes, 0, 10) as $row): ?>
-                                <tr>
-                                    <td style="white-space: normal; word-break: break-all; color: var(--color-text-muted); font-size: 0.85rem;"><?= esc((string) ($row['route'] ?? '')) ?></td>
-                                    <td style="text-align: right;"><?= esc((string) ($row['total'] ?? 0)) ?></td>
-                                </tr>
-                            <?php endforeach ?>
-                        <?php endif ?>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-        
+        <form method="get" action="<?= site_url('analytics/dashboard') ?>" style="display: flex; gap: 8px; align-items: center; margin: 0;">
+            <span style="font-size: 0.75rem; font-weight: 800; color: var(--v2-text-muted); text-transform: uppercase;">Window:</span>
+            <input type="number" min="1" max="30" name="days" value="<?= esc((string) $days) ?>" class="input-v2" style="width: 70px; text-align: center;">
+            <button type="submit" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 800; border: none; background: var(--v2-label); color: white; border-radius: 6px;">Apply</button>
+            <a class="btn btn-outline" href="<?= site_url('analytics/dashboard') ?>" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 800; border-radius: 6px; text-decoration: none;">Reset</a>
+        </form>
     </div>
 
-    <section class="card stack-md">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2>Recent Events</h2>
-            <a href="<?= site_url('analytics/events') ?>" class="btn btn-outline" style="font-size: 0.8rem; padding: 4px 10px;">View Full Log &rarr;</a>
-        </div>
-        
-        <div id="recent-events-container">
-            <div class="table-wrap">
-                <table class="table" id="recent-events-table" style="table-layout: fixed; width: 100%; min-width: 900px;">
-                    <colgroup>
-                        <col style="width: 60px;">  <col style="width: 25%;">   <col style="width: 15%;">   <col style="width: 10%;">   <col style="width: 30%;">   <col style="width: 160px;"> </colgroup>
-                    <thead>
-                        <tr>
-                            <th class="sortable" data-col="0">ID</th>
-                            <th class="sortable" data-col="1">Event</th>
-                            <th class="sortable" data-col="2">Module</th>
-                            <th class="sortable" data-col="3">Actor</th>
-                            <th class="sortable" data-col="4">Route</th>
-                            <th class="sortable" data-col="5">Timestamp</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (($recent_events ?? []) === []): ?>
-                            <tr><td colspan="6" class="empty-state">No recent events found.</td></tr>
-                        <?php else: ?>
-                            <?php foreach ($recent_events as $row): ?>
-                                <tr class="event-row" style="display: none;">
-                                    <td><?= esc((string) ($row['id'] ?? '')) ?></td>
-                                    <td style="font-family: var(--font-mono); color: var(--color-brand-700); font-size: 0.85rem; word-break: break-all;"><?= esc((string) ($row['event_name'] ?? '')) ?></td>
-                                    <td><?= esc((string) ($row['module'] ?? '')) ?></td>
-                                    <td><strong><?= esc((string) ($row['actor_id'] ?? '')) ?></strong></td>
-                                    <td style="color: var(--color-text-muted); font-size: 0.85rem; word-break: break-all;"><?= esc((string) ($row['route'] ?? '')) ?></td>
-                                    <td style="white-space: nowrap;"><?= esc((string) ($row['created_at'] ?? '')) ?></td>
-                                </tr>
-                            <?php endforeach ?>
-                        <?php endif ?>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--color-border);">
-                <p class="muted" style="margin: 0; font-size: 0.85rem; line-height: 1;">
-                    Showing records <span id="page-indicator"></span> (Total: <?= esc((string) ($total_events ?? 0)) ?>)
-                </p>
-                
-                <nav aria-label="Recent Events Pagination">
-                    <ul class="ci-pager" id="client-pager"></ul>
-                </nav>
-            </div>
+    <section style="flex-shrink: 0;">
+        <div class="kpi-grid">
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-total"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value"><?= esc((string) ($summary['total_events'] ?? 0)) ?></span>
+                    <span class="kpi-label">Total Events</span>
+                </div>
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-today"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" style="color: #16a34a;"><?= esc((string) ($summary['events_today'] ?? 0)) ?></span>
+                    <span class="kpi-label">Events Today</span>
+                </div>
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-period"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" style="color: var(--v2-label);"><?= esc((string) ($summary['events_last_period'] ?? 0)) ?></span>
+                    <span class="kpi-label">Last <?= esc((string) $periodDays) ?> Days</span>
+                </div>
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-modules"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg></div>
+                <div class="kpi-details">
+                    <span class="kpi-value" style="color: #8b5cf6;"><?= esc((string) count($module_totals ?? [])) ?></span>
+                    <span class="kpi-label">Active Modules</span>
+                </div>
+            </article>
         </div>
     </section>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; flex-shrink: 0;">
+        
+        <div class="widget-card">
+            <h3>Module Distribution</h3>
+            <table class="modern-table" style="box-shadow: none; border: none;">
+                <thead>
+                    <tr>
+                        <th style="padding-left:0; background:transparent !important; border-bottom: 2px solid #f1f5f9;">Module</th>
+                        <th style="text-align: right; padding-right:0; background:transparent !important; border-bottom: 2px solid #f1f5f9;">Events</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (($module_totals ?? []) === []): ?>
+                        <tr><td colspan="2" style="text-align: center; padding: 20px; color: var(--v2-text-muted);">No activity yet.</td></tr>
+                    <?php else: ?>
+                        <?php foreach (array_slice($module_totals, 0, 5) as $row): ?>
+                            <tr>
+                                <td style="padding-left:0; font-weight: 800; color: var(--v2-label);"><?= esc((string) ($row['module'] ?? 'unknown')) ?></td>
+                                <td style="text-align: right; padding-right:0; font-weight: 800; color: var(--v2-title);"><?= esc((string) ($row['total'] ?? 0)) ?></td>
+                            </tr>
+                        <?php endforeach ?>
+                    <?php endif ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="widget-card">
+            <h3>Top Events</h3>
+            <table class="modern-table" style="box-shadow: none; border: none;">
+                <thead>
+                    <tr>
+                        <th style="padding-left:0; background:transparent !important; border-bottom: 2px solid #f1f5f9;">Event Name</th>
+                        <th style="text-align: right; padding-right:0; background:transparent !important; border-bottom: 2px solid #f1f5f9;">Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (($top_events ?? []) === []): ?>
+                        <tr><td colspan="2" style="text-align: center; padding: 20px; color: var(--v2-text-muted);">No events yet.</td></tr>
+                    <?php else: ?>
+                        <?php foreach (array_slice($top_events, 0, 5) as $row): ?>
+                            <tr>
+                                <td style="padding-left:0; font-family: var(--font-mono); color: var(--v2-text-main); font-size: 0.8rem;"><?= esc((string) ($row['event_name'] ?? '')) ?></td>
+                                <td style="text-align: right; padding-right:0; font-weight: 800; color: var(--v2-title);"><?= esc((string) ($row['total'] ?? 0)) ?></td>
+                            </tr>
+                        <?php endforeach ?>
+                    <?php endif ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="widget-card">
+            <h3>Top Routes</h3>
+            <table class="modern-table" style="box-shadow: none; border: none;">
+                <thead>
+                    <tr>
+                        <th style="padding-left:0; background:transparent !important; border-bottom: 2px solid #f1f5f9;">Route Path</th>
+                        <th style="text-align: right; padding-right:0; background:transparent !important; border-bottom: 2px solid #f1f5f9;">Hits</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (($top_routes ?? []) === []): ?>
+                        <tr><td colspan="2" style="text-align: center; padding: 20px; color: var(--v2-text-muted);">No route activity yet.</td></tr>
+                    <?php else: ?>
+                        <?php foreach (array_slice($top_routes, 0, 5) as $row): ?>
+                            <tr>
+                                <td style="padding-left:0; font-size: 0.8rem; color: var(--v2-text-muted); word-break: break-all;"><?= esc((string) ($row['route'] ?? '')) ?></td>
+                                <td style="text-align: right; padding-right:0; font-weight: 800; color: var(--v2-title);"><?= esc((string) ($row['total'] ?? 0)) ?></td>
+                            </tr>
+                        <?php endforeach ?>
+                    <?php endif ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-toolbar">
+            <h3>Recent Operational Events</h3>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 0.75rem; color: var(--v2-text-muted); font-weight: 600;">Full Audit Trail:</span>
+                <a href="<?= site_url('analytics/events') ?>" style="font-size: 0.75rem; font-weight: 800; color: var(--v2-label); text-decoration: none;">View Event Logs &rarr;</a>
+            </div>
+        </div>
+        
+        <div class="table-scroll-container">
+            <table class="modern-table" id="recent-events-table" style="table-layout: fixed; width: 100%;">
+                <colgroup>
+                    <col style="width: 60px;">
+                    <col style="width: 25%;">
+                    <col style="width: 15%;">
+                    <col style="width: 10%;">
+                    <col style="width: 30%;">
+                    <col style="width: 160px;">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th class="sortable" data-col="0">ID</th>
+                        <th class="sortable" data-col="1">Event</th>
+                        <th class="sortable" data-col="2">Module</th>
+                        <th class="sortable" data-col="3">Actor</th>
+                        <th class="sortable" data-col="4">Route Path</th>
+                        <th class="sortable" data-col="5">Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (($recent_events ?? []) === []): ?>
+                        <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--v2-text-muted);">No recent events recorded.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($recent_events as $row): ?>
+                            <tr class="event-row" style="display: none;">
+                                <td style="font-weight: 700; color: #94a3b8;"><?= esc((string) ($row['id'] ?? '')) ?></td>
+                                <td style="font-family: var(--font-mono); font-weight: 800; color: var(--v2-label); font-size: 0.85rem; word-break: break-all;"><?= esc((string) ($row['event_name'] ?? '')) ?></td>
+                                <td style="font-weight: 600; text-transform: uppercase; font-size: 0.75rem;"><?= esc((string) ($row['module'] ?? '')) ?></td>
+                                <td style="font-weight: 800;">USR-<?= esc((string) ($row['actor_id'] ?? '')) ?></td>
+                                <td style="color: var(--v2-text-muted); font-size: 0.8rem; word-break: break-all;"><?= esc((string) ($row['route'] ?? '')) ?></td>
+                                <td style="white-space: nowrap; font-weight: 600; font-size: 0.8rem;"><?= esc((string) ($row['created_at'] ?? '')) ?></td>
+                            </tr>
+                        <?php endforeach ?>
+                    <?php endif ?>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="table-footer">
+            <p style="margin: 0; font-size: 0.8rem; font-weight: 700; color: var(--v2-text-muted);">
+                Showing entries <span id="page-indicator" style="color: var(--v2-title);"></span>
+            </p>
+            <nav aria-label="Recent Events Pagination">
+                <ul class="ci-pager" id="client-pager"></ul>
+            </nav>
+        </div>
+    </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const rowsPerPage = 10; // Keep dashboard compact with 10 rows
+        const rowsPerPage = 10;
         const tbody = document.querySelector('#recent-events-table tbody');
         if (!tbody) return;
 
-        // Convert to Array so we can sort
         let rowsArray = Array.from(tbody.querySelectorAll('.event-row'));
         const pagerContainer = document.getElementById('client-pager');
         const pageIndicator = document.getElementById('page-indicator');
@@ -324,9 +347,6 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
         const totalPages = Math.ceil(totalRows / rowsPerPage);
         let currentPage = 1;
 
-        // ==========================================
-        // 1. PAGINATION LOGIC
-        // ==========================================
         function showPage(page) {
             currentPage = page;
             const startPoint = (page - 1) * rowsPerPage;
@@ -337,41 +357,25 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
             });
 
             const actualEnd = Math.min(endPoint, totalRows);
-            if (pageIndicator) pageIndicator.innerText = `${startPoint + 1} - ${actualEnd}`;
+            if (pageIndicator) pageIndicator.innerText = `${startPoint + 1} - ${actualEnd} of ${totalRows}`;
 
-            buildPaginationButtons();
+            buildPager();
         }
 
-        function buildPaginationButtons() {
+        function buildPager() {
             if (!pagerContainer) return;
             pagerContainer.innerHTML = '';
             if (totalPages <= 1) return;
 
-            let html = `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo; Prev</a></li>`;
-
-            let startPage = Math.max(1, currentPage - 2);
-            let endPage = Math.min(totalPages, startPage + 4);
-            
-            if (endPage - startPage < 4) {
-                startPage = Math.max(1, endPage - 4);
+            let html = `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo;</a></li>`;
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    html += `<li><span class="ellipsis">...</span></li>`;
+                }
             }
-
-            if (startPage > 1) {
-                html += `<li><a href="#" data-page="1">1</a></li>`;
-                if (startPage > 2) html += `<li><span class="ellipsis">...</span></li>`;
-            }
-
-            for (let i = startPage; i <= endPage; i++) {
-                html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
-            }
-
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) html += `<li><span class="ellipsis">...</span></li>`;
-                html += `<li><a href="#" data-page="${totalPages}">${totalPages}</a></li>`;
-            }
-
-            html += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;
-
+            html += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">&raquo;</a></li>`;
             pagerContainer.innerHTML = html;
         }
 
@@ -380,52 +384,31 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
                 const link = e.target.closest('a');
                 if (!link) return;
                 e.preventDefault();
-
                 const li = link.parentElement;
                 if (li.classList.contains('disabled') || li.classList.contains('active')) return;
-
-                const targetPage = parseInt(link.getAttribute('data-page'));
-                showPage(targetPage);
+                showPage(parseInt(link.getAttribute('data-page')));
             });
         }
 
-        // ==========================================
-        // 2. SORTING LOGIC
-        // ==========================================
         document.querySelectorAll('#recent-events-table th.sortable').forEach(th => {
             th.addEventListener('click', () => {
                 const colIndex = parseInt(th.getAttribute('data-col'));
-                const isAsc = th.classList.contains('asc');
-                const direction = isAsc ? -1 : 1; 
-                
-                // Reset styling on all headers
-                document.querySelectorAll('#recent-events-table th.sortable').forEach(header => {
-                    header.classList.remove('asc', 'desc');
-                });
-                
-                th.classList.add(isAsc ? 'desc' : 'asc');
+                const direction = th.classList.contains('asc') ? -1 : 1; 
+                document.querySelectorAll('#recent-events-table th.sortable').forEach(h => h.classList.remove('asc', 'desc'));
+                th.classList.add(direction === 1 ? 'asc' : 'desc');
                 
                 rowsArray.sort((a, b) => {
-                    let aText = a.children[colIndex].innerText.trim();
-                    let bText = b.children[colIndex].innerText.trim();
-                    
-                    // ID (0) and Actor (3) are sorted mathematically
-                    if (colIndex === 0 || colIndex === 3) {
-                        return (parseFloat(aText) - parseFloat(bText)) * direction;
-                    }
-                    
-                    return aText.localeCompare(bText) * direction;
+                    let aT = a.children[colIndex].innerText.trim();
+                    let bT = b.children[colIndex].innerText.trim();
+                    if (colIndex === 0 || colIndex === 3) return (parseFloat(aT.replace(/[^\d.]/g, '')) - parseFloat(bT.replace(/[^\d.]/g, ''))) * direction;
+                    return aT.localeCompare(bT) * direction;
                 });
                 
-                // Re-append sorted rows
                 rowsArray.forEach(row => tbody.appendChild(row));
-                
-                // Go back to page 1
                 showPage(1);
-            });
+            }); 
         });
 
-        // Initialize table on Page 1
         showPage(1);
     });
 </script>
