@@ -209,28 +209,28 @@ $available = array_sum(array_map(static fn (array $row): float => (float) ($row[
 
     <section style="flex-shrink: 0;">
         <div class="kpi-grid">
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-slate">
                 <div class="kpi-icon-box icon-total"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" id="kpi-skus"><?= esc((string) $totalSkus) ?></span>
                     <span class="kpi-label">Visible SKUs</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-sky">
                 <div class="kpi-icon-box icon-onhand"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" id="kpi-onhand"><?= esc(number_format($onHand, 0)) ?></span>
                     <span class="kpi-label">On Hand</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-amber">
                 <div class="kpi-icon-box icon-reserved"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" id="kpi-reserved" style="color: #d97706;"><?= esc(number_format($reserved, 0)) ?></span>
                     <span class="kpi-label">Reserved</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-green">
                 <div class="kpi-icon-box icon-available"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" id="kpi-available" style="color: #15803d;"><?= esc(number_format($available, 0)) ?></span>

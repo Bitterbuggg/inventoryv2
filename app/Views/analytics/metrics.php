@@ -159,28 +159,28 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
 
     <section style="flex-shrink: 0;">
         <div class="kpi-grid">
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-slate">
                 <div class="kpi-icon-box icon-trends"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value"><?= esc((string) count($trendRows)) ?></span>
                     <span class="kpi-label">Trend Entries</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-sky">
                 <div class="kpi-icon-box icon-events"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value"><?= esc((string) $trendTotal) ?></span>
                     <span class="kpi-label">Total Events</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-green">
                 <div class="kpi-icon-box icon-persisted"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value"><?= esc((string) count($metricRows)) ?></span>
                     <span class="kpi-label">Metric Records</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-violet">
                 <div class="kpi-icon-box icon-module"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value"><?= esc($module === '' ? 'All' : $module) ?></span>

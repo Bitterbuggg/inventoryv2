@@ -207,28 +207,28 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
 
     <section style="flex-shrink: 0;">
         <div class="kpi-grid">
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-slate">
                 <div class="kpi-icon-box icon-rows"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" id="kpi-rows"><?= esc((string) $totalMovements) ?></span>
                     <span class="kpi-label">Movement Rows</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-green">
                 <div class="kpi-icon-box icon-in"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" id="kpi-in" style="color: #16a34a;"><?= esc(number_format($totalIn, 0)) ?></span>
                     <span class="kpi-label">Total Qty In</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-red">
                 <div class="kpi-icon-box icon-out"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 15 21 21 15 21"></polyline><polyline points="3 9 3 3 9 3"></polyline><line x1="21" y1="21" x2="14" y2="14"></line><line x1="3" y1="3" x2="10" y2="10"></line></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" id="kpi-out" style="color: #ef4444;"><?= esc(number_format($totalOut, 0)) ?></span>
                     <span class="kpi-label">Total Qty Out</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-sky">
                 <div class="kpi-icon-box icon-distinct"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" id="kpi-distinct"><?= esc((string) $distinctItems) ?></span>

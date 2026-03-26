@@ -166,28 +166,28 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
 
     <section style="flex-shrink: 0;">
         <div class="kpi-grid">
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-slate">
                 <div class="kpi-icon-box icon-total"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value"><?= esc((string) ($summary['total_events'] ?? 0)) ?></span>
                     <span class="kpi-label">Total Events</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-green">
                 <div class="kpi-icon-box icon-today"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" style="color: #16a34a;"><?= esc((string) ($summary['events_today'] ?? 0)) ?></span>
                     <span class="kpi-label">Events Today</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-sky">
                 <div class="kpi-icon-box icon-period"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" style="color: var(--v2-label);"><?= esc((string) ($summary['events_last_period'] ?? 0)) ?></span>
                     <span class="kpi-label">Last <?= esc((string) $periodDays) ?> Days</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-violet">
                 <div class="kpi-icon-box icon-modules"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" style="color: #8b5cf6;"><?= esc((string) count($module_totals ?? [])) ?></span>

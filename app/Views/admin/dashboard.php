@@ -8,10 +8,10 @@ $pageSubtitle = 'Operational snapshot aligned to your current workflow modules.'
 
 // Mapped to specific pastel icon styles and actual relevant concepts
 $moduleStatus = [
-    ['name' => 'Auth & RBAC', 'note' => 'Shield login, security', 'icon' => 'auth'], 
-    ['name' => 'Procurement', 'note' => 'PR, approvals, PO', 'icon' => 'procurement'], 
-    ['name' => 'Receiving', 'note' => 'Draft, validate, post', 'icon' => 'receiving'], 
-    ['name' => 'Inventory', 'note' => 'Issuance, analytics', 'icon' => 'inventory'], 
+    ['name' => 'Auth & RBAC', 'note' => 'Shield login, security', 'icon' => 'auth', 'accent' => 'kpi-accent-slate'], 
+    ['name' => 'Procurement', 'note' => 'PR, approvals, PO', 'icon' => 'procurement', 'accent' => 'kpi-accent-violet'], 
+    ['name' => 'Receiving', 'note' => 'Draft, validate, post', 'icon' => 'receiving', 'accent' => 'kpi-accent-royal'], 
+    ['name' => 'Inventory', 'note' => 'Issuance, analytics', 'icon' => 'inventory', 'accent' => 'kpi-accent-amber'], 
 ];
 ?>
 <?= $this->extend('layouts/main_layout') ?>
@@ -225,7 +225,7 @@ $moduleStatus = [
     <section style="flex-shrink: 0;">
         <div class="kpi-grid">
             <?php foreach ($moduleStatus as $card): ?>
-                <article class="kpi-card">
+                <article class="kpi-card <?= esc((string) $card['accent']) ?>">
                     <div class="kpi-icon-box icon-<?= $card['icon'] ?>">
                         <?php if($card['icon'] === 'auth'): ?>
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>

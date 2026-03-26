@@ -190,28 +190,28 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
 
     <div class="tab-panel active" data-tab="overview">
         <div class="kpi-grid">
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-slate">
                 <div class="kpi-icon-box icon-slate"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
                 <div class="kpi-details">
                     <p class="kpi-value"><?= esc((string) ($overview['total_events'] ?? 0)) ?></p>
                     <p class="kpi-label">Total Events</p>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-teal">
                 <div class="kpi-icon-box icon-teal"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
                 <div class="kpi-details">
                     <p class="kpi-value" style="color: #16a34a;"><?= esc((string) ($overview['events_today'] ?? 0)) ?></p>
                     <p class="kpi-label">Events Today</p>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-sky">
                 <div class="kpi-icon-box icon-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
                 <div class="kpi-details">
                     <p class="kpi-value"><?= esc((string) ($overview['events_last_period'] ?? 0)) ?></p>
                     <p class="kpi-label">Last <?= esc((string) $periodDays) ?> Days</p>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-violet">
                 <div class="kpi-icon-box icon-purple"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg></div>
                 <div class="kpi-details">
                     <p class="kpi-value"><?= esc((string) count($moduleTotals)) ?></p>
@@ -293,28 +293,28 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
 
     <div class="tab-panel" data-tab="events">
         <div class="kpi-grid">
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-slate">
                 <div class="kpi-icon-box icon-slate"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="3.01" y2="6"></line></svg></div>
                 <div class="kpi-details">
                     <p class="kpi-value"><?= esc((string) $eventsShown) ?></p>
                     <p class="kpi-label">Matches</p>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-sky">
                 <div class="kpi-icon-box icon-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
                 <div class="kpi-details">
                     <p class="kpi-value"><?= esc((string) $authEvents) ?></p>
                     <p class="kpi-label">Auth</p>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-teal">
                 <div class="kpi-icon-box icon-teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path></svg></div>
                 <div class="kpi-details">
                     <p class="kpi-value"><?= esc((string) $procurementEvents) ?></p>
                     <p class="kpi-label">Procurement</p>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-amber">
                 <div class="kpi-icon-box icon-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg></div>
                 <div class="kpi-details">
                     <p class="kpi-value"><?= esc((string) $inventoryEvents) ?></p>
@@ -401,28 +401,28 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
 
     <div class="tab-panel" data-tab="metrics">
         <div class="kpi-grid">
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-slate">
                 <div class="kpi-icon-box icon-slate"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
                 <div class="kpi-details">
                     <p class="kpi-value"><?= esc((string) count($trendRows)) ?></p>
                     <p class="kpi-label">Trend Rows</p>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-sky">
                 <div class="kpi-icon-box icon-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg></div>
                 <div class="kpi-details">
                     <p class="kpi-value"><?= esc((string) $trendTotal) ?></p>
                     <p class="kpi-label">Total Events</p>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-teal">
                 <div class="kpi-icon-box icon-teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path></svg></div>
                 <div class="kpi-details">
                     <p class="kpi-value"><?= esc((string) count($metricRows)) ?></p>
                     <p class="kpi-label">Persisted</p>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-violet">
                 <div class="kpi-icon-box icon-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg></div>
                 <div class="kpi-details">
                     <p class="kpi-value" style="font-size: 1rem;"><?= esc(($metric_module ?? '') === '' ? 'All' : (string)$metric_module) ?></p>

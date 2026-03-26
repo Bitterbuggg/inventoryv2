@@ -199,28 +199,28 @@ $maxQty = $topItemQty > 0 ? $topItemQty : 1;
 
     <section style="flex-shrink: 0;">
         <div class="kpi-grid">
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-slate">
                 <div class="kpi-icon-box icon-ranked"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" id="kpi-ranked"><?= esc((string) $totalRows) ?></span>
                     <span class="kpi-label">Ranked Items</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-sky">
                 <div class="kpi-icon-box icon-qty"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" id="kpi-qty"><?= esc(number_format($totalQtyOut, 0)) ?></span>
                     <span class="kpi-label">Total Volume</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-amber">
                 <div class="kpi-icon-box icon-top"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value" style="font-size: 0.9rem; word-break: break-all; line-height: 1.1;"><?= esc((string) $topItem) ?></span>
                     <span class="kpi-label">#1 Top Item</span>
                 </div>
             </article>
-            <article class="kpi-card">
+            <article class="kpi-card kpi-accent-green">
                 <div class="kpi-icon-box icon-topqty"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
                 <div class="kpi-details">
                     <span class="kpi-value"><?= esc(number_format($topItemQty, 0)) ?></span>
