@@ -44,6 +44,20 @@ class ReportingController extends BaseController
 
     public function stockMovements(): string|ResponseInterface
     {
+        $movementTypeLabels = [
+            'receiving'      => 'Receiving',
+            'issuance'       => 'Issuance',
+            'adjustment_in'  => 'Stock Adjustment In',
+            'adjustment_out' => 'Stock Disposal',
+            'return'         => 'Return',
+        ];
+
+        $referenceTypeLabels = [
+            'receiving'         => 'Receiving',
+            'issuance'          => 'Issuance',
+            'manual_adjustment' => 'Stock Disposal',
+        ];
+
         $dateFrom     = trim((string) $this->request->getGet('date_from'));
         $dateTo       = trim((string) $this->request->getGet('date_to'));
         $movementType = trim((string) $this->request->getGet('movement_type'));
@@ -66,8 +80,8 @@ class ReportingController extends BaseController
                 array_map(static fn (array $row): array => [
                     (string) ($row['id'] ?? ''),
                     (string) ($row['movement_number'] ?? ''),
-                    (string) ($row['movement_type'] ?? ''),
-                    (string) ($row['reference_type'] ?? ''),
+                    $movementTypeLabels[(string) ($row['movement_type'] ?? '')] ?? ucwords(str_replace('_', ' ', (string) ($row['movement_type'] ?? ''))),
+                    $referenceTypeLabels[(string) ($row['reference_type'] ?? '')] ?? ucwords(str_replace('_', ' ', (string) ($row['reference_type'] ?? ''))),
                     (string) ($row['reference_id'] ?? ''),
                     (string) ($row['item_name'] ?? ''),
                     (string) ($row['unit'] ?? ''),

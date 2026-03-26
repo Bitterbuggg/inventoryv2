@@ -393,7 +393,7 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
                                         <?php if ((float)$stock['on_hand_qty'] > 0): ?>
                                             <button type="button" class="btn-table-danger-outline" 
                                                     onclick="openDisposalModal(<?= $stock['id'] ?>, '<?= esc(addslashes((string)$stock['item_name'])) ?>', <?= (float)$stock['on_hand_qty'] ?>)"
-                                                    title="Adjust or dispose of stock">
+                                                    title="Record stock disposal">
                                                 Dispose
                                             </button>
                                         <?php endif; ?>
@@ -421,7 +421,7 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
 <div class="modal-overlay" id="disposalModal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Dispose / Adjust Stock</h3>
+            <h3>Record Stock Disposal</h3>
             <button type="button" class="btn-close-modal" onclick="closeDisposalModal()">&times;</button>
         </div>
         <form id="disposalForm" method="post">
@@ -433,7 +433,7 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
                     <input type="number" id="disposal_qty" name="qty" step="1" min="1" class="modal-input" required>
                 </div>
                 <div class="field" style="margin-top:12px;">
-                    <label for="disposal_reason">Reason for Adjustment: <span style="color:#ef4444;">*</span></label>
+                    <label for="disposal_reason">Reason for Disposal: <span style="color:#ef4444;">*</span></label>
                     <select id="disposal_reason" name="reason" class="modal-select" required>
                         <option value="Expired">Expired / Expired Material</option>
                         <option value="Damaged">Damaged / Broken</option>
@@ -444,7 +444,7 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-outline" style="padding: 8px 16px; border-radius: 6px; font-weight: 800; font-size: 0.85rem;" onclick="closeDisposalModal()">Cancel</button>
-                <button type="submit" class="btn-danger-solid">Confirm Adjustment</button>
+                <button type="submit" class="btn-danger-solid">Confirm Disposal</button>
             </div>
         </form>
     </div>
@@ -458,7 +458,7 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
         const qtyInput = document.getElementById('disposal_qty');
         
         form.action = "<?= site_url('inventory/quantities/') ?>" + stockId + "/adjust-out";
-        text.innerHTML = `You are adjusting <strong>${itemName}</strong>.<br>Max available on-hand: <strong style="color: var(--v2-title);">${maxQty}</strong>`;
+        text.innerHTML = `You are recording a disposal for <strong>${itemName}</strong>.<br>Max available on-hand: <strong style="color: var(--v2-title);">${maxQty}</strong>`;
         qtyInput.max = maxQty;
         qtyInput.value = maxQty;
         

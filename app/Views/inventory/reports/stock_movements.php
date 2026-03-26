@@ -9,6 +9,20 @@ $crumbs = [
     ['label' => 'Reports'],
     ['label' => 'Stock Movements'],
 ];
+
+$movementTypeLabels = [
+    'receiving'      => 'Receiving',
+    'issuance'       => 'Issuance',
+    'adjustment_in'  => 'Stock Adjustment In',
+    'adjustment_out' => 'Stock Disposal',
+    'return'         => 'Return',
+];
+
+$referenceTypeLabels = [
+    'receiving'         => 'Receiving',
+    'issuance'          => 'Issuance',
+    'manual_adjustment' => 'Stock Disposal',
+];
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -260,7 +274,7 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
                         <select name="movement_type" class="select-v2">
                             <option value="">All Types</option>
                             <?php foreach (['receiving', 'issuance', 'adjustment_in', 'adjustment_out', 'return'] as $type): ?>
-                                <option value="<?= esc($type) ?>" <?= (($movement_type ?? '') === $type) ? 'selected' : '' ?>><?= esc(ucwords(str_replace('_', ' ', $type))) ?></option>
+                                <option value="<?= esc($type) ?>" <?= (($movement_type ?? '') === $type) ? 'selected' : '' ?>><?= esc($movementTypeLabels[$type] ?? ucwords(str_replace('_', ' ', $type))) ?></option>
                             <?php endforeach ?>
                         </select>
                     </div>
@@ -308,11 +322,14 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
                         </tr>
                     <?php else: ?>
                         <?php foreach ($rows as $row): ?>
-                            <tr class="movement-row" style="display: none;">
+                            <tr class="movement-row" style="display: none;" data-movement-type="<?= esc((string) ($row['movement_type'] ?? '')) ?>">
                                 <td style="font-weight: 700; color: #94a3b8;"><?= esc((string) $row['id']) ?></td>
                                 <td style="font-family: var(--font-mono); font-weight: 800; color: var(--v2-label); font-size: 0.85rem;"><?= esc((string) $row['movement_number']) ?></td>
-                                <td><span class="m-badge"><?= esc(str_replace('_', ' ', (string)$row['movement_type'])) ?></span></td>
-                                <td style="font-size: 0.8rem; color: var(--v2-text-muted); font-weight: 600;"><?= esc((string) $row['reference_type']) ?> #<?= esc((string) $row['reference_id']) ?></td>
+                                <td><span class="m-badge"><?= esc($movementTypeLabels[(string) ($row['movement_type'] ?? '')] ?? ucwords(str_replace('_', ' ', (string) ($row['movement_type'] ?? '')))) ?></span></td>
+                                <td style="font-size: 0.8rem; color: var(--v2-text-muted); font-weight: 600;">
+                                    <?= esc($referenceTypeLabels[(string) ($row['reference_type'] ?? '')] ?? ucwords(str_replace('_', ' ', (string) ($row['reference_type'] ?? '')))) ?>
+                                    <?= ($row['reference_id'] ?? null) !== null ? ' #' . esc((string) $row['reference_id']) : '' ?>
+                                </td>
                                 <td style="font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= esc((string) $row['item_name']) ?>"><?= esc((string) $row['item_name']) ?></td>
                                 <td style="font-size: 0.85rem; color: var(--v2-text-muted);"><?= esc((string) $row['unit']) ?></td>
                                 <td style="text-align: right; color: #16a34a; font-weight: 800;"><?= esc((string) $row['qty_in']) ?></td>
@@ -359,6 +376,13 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
         if (allRows.length === 0) return;
 
         const typeCycle = ['All', 'receiving', 'issuance', 'adjustment_in', 'adjustment_out', 'return'];
+        const typeLabels = {
+            receiving: 'Receiving',
+            issuance: 'Issuance',
+            adjustment_in: 'Stock Adjustment In',
+            adjustment_out: 'Stock Disposal',
+            return: 'Return',
+        };
         let cycleIndex = 0;
 
         function updateKPIs() {
@@ -434,9 +458,13 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
                 if (colIndex === 2) {
                     cycleIndex = (cycleIndex + 1) % typeCycle.length;
                     const activeType = typeCycle[cycleIndex];
-                    typeHeader.innerHTML = activeType === 'All' ? `Type (All)` : `Type <br><span class="filter-active-text">${activeType.replace('_', ' ')}</span>`;
+                    typeHeader.innerHTML = activeType === 'All'
+                        ? `Type (All)`
+                        : `Type <br><span class="filter-active-text">${typeLabels[activeType] ?? activeType.replace('_', ' ')}</span>`;
 
-                    currentRows = activeType === 'All' ? [...allRows] : allRows.filter(row => row.children[2].innerText.trim().toLowerCase() === activeType.replace('_', ' ').toLowerCase());
+                    currentRows = activeType === 'All'
+                        ? [...allRows]
+                        : allRows.filter(row => row.getAttribute('data-movement-type') === activeType);
                     updateKPIs();
                     showPage(1);
                     return;

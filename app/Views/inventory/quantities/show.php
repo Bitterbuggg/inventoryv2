@@ -9,6 +9,20 @@ $crumbs = [
     ['label' => 'Inventory Quantities', 'url' => site_url('inventory/quantities')],
     ['label' => 'Stock Details'],
 ];
+
+$movementTypeLabels = [
+    'receiving'      => 'Receiving',
+    'issuance'       => 'Issuance',
+    'adjustment_in'  => 'Stock Adjustment In',
+    'adjustment_out' => 'Stock Disposal',
+    'return'         => 'Return',
+];
+
+$referenceTypeLabels = [
+    'receiving'         => 'Receiving',
+    'issuance'          => 'Issuance',
+    'manual_adjustment' => 'Stock Disposal',
+];
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -93,8 +107,11 @@ $totalOut = array_sum(array_map(static fn (array $row): float => (float) ($row['
                             <tr>
                                 <td><?= esc((string) $movement['id']) ?></td>
                                 <td><?= esc((string) $movement['movement_number']) ?></td>
-                                <td><?= esc((string) $movement['movement_type']) ?></td>
-                                <td><?= esc((string) $movement['reference_type']) ?> #<?= esc((string) $movement['reference_id']) ?></td>
+                                <td><?= esc($movementTypeLabels[(string) ($movement['movement_type'] ?? '')] ?? ucwords(str_replace('_', ' ', (string) ($movement['movement_type'] ?? '')))) ?></td>
+                                <td>
+                                    <?= esc($referenceTypeLabels[(string) ($movement['reference_type'] ?? '')] ?? ucwords(str_replace('_', ' ', (string) ($movement['reference_type'] ?? '')))) ?>
+                                    <?= ($movement['reference_id'] ?? null) !== null ? ' #' . esc((string) $movement['reference_id']) : '' ?>
+                                </td>
                                 <td><?= esc((string) $movement['qty_in']) ?></td>
                                 <td><?= esc((string) $movement['qty_out']) ?></td>
                                 <td><?= esc((string) $movement['balance_after']) ?></td>

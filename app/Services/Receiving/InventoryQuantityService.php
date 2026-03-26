@@ -84,7 +84,7 @@ class InventoryQuantityService
                 'unit_cost'          => (float)$stock['average_unit_cost'],
                 'performed_by'       => $actorId,
                 'performed_at'       => date('Y-m-d H:i:s'),
-                'remarks'            => "Manual Adjustment Out: " . $reason,
+                'remarks'            => "Stock Disposal: " . $reason,
             ]);
 
             $this->db->transCommit();

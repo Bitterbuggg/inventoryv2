@@ -71,7 +71,7 @@ class InventoryQuantityController extends BaseController
     {
         $rules = [
             'qty'    => 'required|is_natural_no_zero',
-            'reason' => 'required|in_list[Expired,Damaged,Recall]',
+            'reason' => 'required|in_list[Expired,Damaged,Recall,Lost]',
         ];
 
         if (! $this->validate($rules)) {
@@ -90,7 +90,7 @@ class InventoryQuantityController extends BaseController
                 $reason
             );
 
-            return redirect()->to('/inventory/quantities')->with('message', "Successfully disposed {$qty} units (Reason: {$reason}).");
+            return redirect()->to('/inventory/quantities')->with('message', "Stock disposal recorded for {$qty} units (Reason: {$reason}).");
         } catch (\Throwable $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
