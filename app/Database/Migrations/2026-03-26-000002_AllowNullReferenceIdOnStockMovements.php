@@ -8,6 +8,10 @@ class AllowNullReferenceIdOnStockMovements extends Migration
 {
     public function up(): void
     {
+        if (! $this->db->tableExists('stock_movements')) {
+            return;
+        }
+
         $this->forge->modifyColumn('stock_movements', [
             'reference_id' => [
                 'name'       => 'reference_id',
@@ -21,7 +25,14 @@ class AllowNullReferenceIdOnStockMovements extends Migration
 
     public function down(): void
     {
-        $this->db->query('UPDATE stock_movements SET reference_id = 0 WHERE reference_id IS NULL');
+        if (! $this->db->tableExists('stock_movements')) {
+            return;
+        }
+
+        $this->db->table('stock_movements')
+            ->where('reference_id', null)
+            ->set(['reference_id' => 0])
+            ->update();
 
         $this->forge->modifyColumn('stock_movements', [
             'reference_id' => [
