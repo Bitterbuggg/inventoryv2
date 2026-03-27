@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 $title = 'System Architecture - InventoryV2';
 $pageTitle = 'System Architecture';
-$pageSubtitle = 'Implemented module map, request pipeline, and end-to-end operational flow for the current application.';
+$pageSubtitle = 'Implemented module map, module flowcharts, role journeys, request pipeline, and end-to-end operational flow for the current application.';
 $crumbs = [
     ['label' => 'Analytics'],
     ['label' => 'System Architecture'],
@@ -275,6 +275,124 @@ $moduleCards = [
     ],
 ];
 
+$moduleFlowcharts = [
+    'Foundation and Runtime' => [
+        'A browser request enters a grouped route.',
+        'Auth, role, CSRF, and multi-session filters run.',
+        'The matched controller calls services and repositories.',
+        'A view or redirect response is returned to the user.',
+    ],
+    'Auth and RBAC' => [
+        'The user opens signup or login.',
+        'Credentials or registration input are validated.',
+        'Shield authenticates the account and resolves the base group.',
+        'Protected routes check role membership before module access is allowed.',
+    ],
+    'Multi-Session Tracking' => [
+        'A successful login creates a tracked multi_sessions row.',
+        'The active browser session stores the tracked account context.',
+        'Each protected request verifies the current session against the authenticated user.',
+        'Logout deactivates the current session or restores another active one.',
+    ],
+    'Admin and User Management' => [
+        'Admin opens the Users screen.',
+        'Account details are created or edited.',
+        'The base role is assigned as admin, it_staff, or employee.',
+        'Module permissions are granted or revoked to shape navigation and actions.',
+    ],
+    'Procurement' => [
+        'A purchase request draft is created with item, unit, quantity, and cost.',
+        'The draft is submitted and a pending approval record is created.',
+        'Admin or IT staff approves or rejects the request.',
+        'An approved request is converted into a purchase order and then a PO request.',
+        'Admin approves the PO request so receiving can begin.',
+    ],
+    'Receiving' => [
+        'Admin or IT staff opens an approved PO request.',
+        'The system builds a receiving draft from remaining purchase order balances.',
+        'Received, accepted, rejected, batch, lot, and expiry values are entered.',
+        'Validation checks quantity balance, expiry rules, and over-receipt.',
+        'The receiving is saved as draft, then posted or voided.',
+    ],
+    'Inventory Stock Ledger' => [
+        'Posting a receiving sends accepted quantities into inventory.',
+        'Stock rows are created or updated by item, unit, batch, lot, and expiry.',
+        'Average cost and stock balances are recalculated.',
+        'Movement rows record inbound stock and later adjustment-out activity.',
+        'Users review quantities, lot history, and movement details.',
+    ],
+    'Issuance' => [
+        'A draft issuance request is created from available item and unit pairs.',
+        'The request is submitted and queued for approval.',
+        'Admin approves or rejects the issuance.',
+        'The system allocates stock from available lots using expiry-first ordering.',
+        'Admin releases the issuance and outbound movement history is written.',
+    ],
+    'Reporting' => [
+        'Admin or IT staff opens a report and applies filters.',
+        'ReportingService queries live stock, movement, and issuance tables.',
+        'The screen summarizes the current operational state.',
+        'CSV export is generated when the user needs an extract.',
+    ],
+    'Analytics and Internal Telemetry' => [
+        'A controller action emits an analytics event.',
+        'The event is stored in analytics_events.',
+        'Aggregation builds daily metrics from raw activity.',
+        'Admin or IT staff reviews logs, metrics, and this reference page.',
+    ],
+    'Audit Logging' => [
+        'A critical workflow transition occurs inside a service.',
+        'AuditService is called with the actor, action, and context.',
+        'An audit_logs row is persisted for traceability.',
+        'The team can inspect the resulting business trail later.',
+    ],
+];
+
+$roleJourneys = [
+    [
+        'role' => 'Admin',
+        'summary' => 'Full control over user access, procurement approvals, stock release decisions, reports, and internal analytics.',
+        'access' => ['Admin', 'Procurement', 'Receiving', 'Inventory', 'Reports', 'Analytics'],
+        'boundary' => 'Only admin can issue purchase orders, approve PO requests, approve issuances, and release stock out of inventory.',
+        'flow' => [
+            'Log in and land on the admin or operations workspace.',
+            'Create users, assign base roles, and manage module permissions.',
+            'Approve purchase requests and issue purchase orders.',
+            'Approve PO requests so receiving can be converted and posted.',
+            'Approve and release issuance requests after stock review.',
+            'Review reports, activity logs, and architecture references.',
+        ],
+    ],
+    [
+        'role' => 'IT Staff',
+        'summary' => 'Operational support role focused on approvals, receiving, inventory monitoring, reports, and analytics.',
+        'access' => ['Procurement', 'Receiving', 'Inventory', 'Reports', 'Analytics'],
+        'boundary' => 'IT staff can review and post operational work, but admin still owns PO issuance, PO request approval, and issuance release.',
+        'flow' => [
+            'Log in and open procurement or receiving work queues.',
+            'Review submitted purchase requests and approve or reject them.',
+            'Monitor purchase orders and wait for admin-approved PO requests.',
+            'Convert approved PO requests into receivings and validate line data.',
+            'Post inventory updates, inspect stock balances, and handle quantity review.',
+            'Use reports and activity logs to monitor operations.',
+        ],
+    ],
+    [
+        'role' => 'Employee',
+        'summary' => 'Request initiator role that creates procurement and issuance drafts and monitors inventory visibility.',
+        'access' => ['Procurement', 'Inventory Quantities', 'Issuance Drafts'],
+        'boundary' => 'Employees can initiate requests and view stock, but they cannot approve procurement, post receiving, or release issuance.',
+        'flow' => [
+            'Log in and open the purchase request or issuance screens.',
+            'Create or edit draft purchase requests and submit them for approval.',
+            'Track request status while admin or IT staff handles the approval chain.',
+            'View inventory quantities and movement history for reference.',
+            'Create and submit issuance drafts when stock is needed.',
+            'Wait for admin approval and release before items leave inventory.',
+        ],
+    ],
+];
+
 $interconnections = [
     'The same role and permission rules control both route access and sidebar navigation visibility.',
     'Procurement creates the records that receiving needs. Receiving cannot start until a PO request is approved.',
@@ -288,6 +406,7 @@ $implementationNotes = [
     'The implemented application currently uses free-form item_name, unit, and supplier_name strings throughout procurement, receiving, inventory, and issuance. The richer product and supplier catalog described in docs is not yet the runtime source of truth.',
     'RepositoryServices is the central dependency registry for most workflows, but Admin\\UserController still talks directly to Shield UserModel for several user-management operations.',
     'The Activity Logs page is the current unified analytics surface for overview, event logs, and metrics. The older dashboard, events, and metrics routes still map into that area.',
+    'The create-user form exposes a custom frontend option, but the runtime base group still resolves to employee and then layers granular permissions on top.',
 ];
 ?>
 <?= $this->extend('layouts/main_layout') ?>
@@ -308,6 +427,7 @@ $implementationNotes = [
     .summary-card,
     .pipeline-card,
     .module-card,
+    .role-card,
     .flow-stage,
     .mini-card,
     .module-block,
@@ -335,14 +455,21 @@ $implementationNotes = [
     }
 
     .architecture-page code {
-        overflow-wrap: anywhere;
-        word-break: break-word;
+        display: inline;
+        white-space: nowrap;
+        overflow-wrap: normal;
+        word-break: normal;
+    }
+
+    .architecture-callout-copy {
+        margin: 0;
     }
 
     .architecture-summary-grid,
     .pipeline-grid,
     .module-grid,
-    .flow-meta-grid {
+    .flow-meta-grid,
+    .role-grid {
         display: grid;
         gap: var(--space-3);
     }
@@ -354,6 +481,7 @@ $implementationNotes = [
     .summary-card,
     .pipeline-card,
     .module-card,
+    .role-card,
     .flow-stage,
     .mini-card {
         background: var(--color-surface);
@@ -364,6 +492,7 @@ $implementationNotes = [
     .summary-card,
     .pipeline-card,
     .module-card,
+    .role-card,
     .mini-card {
         padding: var(--space-3);
     }
@@ -512,6 +641,31 @@ $implementationNotes = [
         gap: 12px;
     }
 
+    .role-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .role-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--color-brand-100);
+        border: 1px solid var(--color-border);
+        color: var(--color-brand-700);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
     .module-meta {
         display: grid;
         grid-template-columns: 1fr;
@@ -554,6 +708,65 @@ $implementationNotes = [
         gap: var(--space-3);
     }
 
+    .process-flow {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .process-step {
+        position: relative;
+        display: grid;
+        grid-template-columns: 40px minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+    }
+
+    .process-step:not(:last-child) {
+        padding-bottom: 6px;
+    }
+
+    .process-step:not(:last-child)::before {
+        content: '';
+        position: absolute;
+        left: 19px;
+        top: 40px;
+        bottom: -6px;
+        width: 2px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(0, 119, 182, 0.35), rgba(0, 119, 182, 0.1));
+    }
+
+    .process-step-no {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: var(--color-brand-100);
+        border: 1px solid var(--color-border);
+        color: var(--color-brand-700);
+        font-size: 0.78rem;
+        font-weight: 800;
+    }
+
+    .process-step-copy {
+        min-width: 0;
+        padding: 10px 12px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--color-border);
+        background: #fbfdff;
+        color: var(--color-text);
+        line-height: 1.55;
+    }
+
     @media (max-width: 1100px) {
         .flow-columns,
         .module-grid {
@@ -564,7 +777,8 @@ $implementationNotes = [
     @media (max-width: 1200px) {
         .architecture-summary-grid,
         .pipeline-grid,
-        .mini-grid {
+        .mini-grid,
+        .role-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
@@ -589,7 +803,8 @@ $implementationNotes = [
         .architecture-summary-grid,
         .pipeline-grid,
         .module-grid,
-        .mini-grid {
+        .mini-grid,
+        .role-grid {
             grid-template-columns: 1fr;
         }
 
@@ -597,6 +812,7 @@ $implementationNotes = [
         .summary-card,
         .pipeline-card,
         .module-card,
+        .role-card,
         .mini-card {
             padding: var(--space-3);
         }
@@ -650,9 +866,11 @@ $implementationNotes = [
         </div>
 
         <div class="status-callout status-callout-info">
-            <strong>Implementation note:</strong>
-            The current operational workflow uses transactional tables built around <code>item_name</code>, <code>unit</code>, and <code>supplier_name</code>.
-            The richer product and supplier catalog described in project docs is not yet the runtime source of truth.
+            <p class="architecture-callout-copy">
+                <strong>Implementation note:</strong>
+                The current operational workflow uses transactional tables built around <code>item_name</code>, <code>unit</code>, and <code>supplier_name</code>.
+                The richer product and supplier catalog described in project docs is not yet the runtime source of truth.
+            </p>
         </div>
     </section>
 
@@ -749,6 +967,7 @@ $implementationNotes = [
 
         <div class="module-grid">
             <?php foreach ($moduleCards as $module): ?>
+                <?php $sampleFlow = $moduleFlowcharts[$module['title']] ?? []; ?>
                 <article class="module-card">
                     <div class="stack-sm">
                         <h3><?= esc($module['title']) ?></h3>
@@ -811,6 +1030,64 @@ $implementationNotes = [
                                 <?php endforeach ?>
                             </ul>
                         </div>
+                    </div>
+
+                    <?php if ($sampleFlow !== []): ?>
+                        <div class="module-block">
+                            <div class="module-block-title">Sample Flowchart</div>
+                            <ol class="process-flow">
+                                <?php foreach ($sampleFlow as $index => $item): ?>
+                                    <li class="process-step">
+                                        <span class="process-step-no"><?= esc(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) ?></span>
+                                        <div class="process-step-copy"><?= esc($item) ?></div>
+                                    </li>
+                                <?php endforeach ?>
+                            </ol>
+                        </div>
+                    <?php endif ?>
+                </article>
+            <?php endforeach ?>
+        </div>
+    </section>
+
+    <section class="card stack-md">
+        <div class="stack-sm">
+            <h2>Role-Based Sample Flows</h2>
+            <p class="page-subtitle">These journeys reflect the actual route guards in the application plus the user-management controls exposed from Admin.</p>
+        </div>
+
+        <div class="role-grid">
+            <?php foreach ($roleJourneys as $role): ?>
+                <article class="role-card">
+                    <div class="stack-sm">
+                        <span class="role-badge"><?= esc($role['role']) ?></span>
+                        <p class="muted"><?= esc($role['summary']) ?></p>
+                    </div>
+
+                    <div class="module-block">
+                        <div class="module-block-title">Primary Access</div>
+                        <div class="chip-list">
+                            <?php foreach ($role['access'] as $access): ?>
+                                <span class="chip"><?= esc($access) ?></span>
+                            <?php endforeach ?>
+                        </div>
+                    </div>
+
+                    <div class="module-block">
+                        <div class="module-block-title">Typical Step-By-Step Flow</div>
+                        <ol class="process-flow">
+                            <?php foreach ($role['flow'] as $index => $step): ?>
+                                <li class="process-step">
+                                    <span class="process-step-no"><?= esc(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) ?></span>
+                                    <div class="process-step-copy"><?= esc($step) ?></div>
+                                </li>
+                            <?php endforeach ?>
+                        </ol>
+                    </div>
+
+                    <div class="module-block">
+                        <div class="module-block-title">Key Boundary</div>
+                        <p class="muted architecture-callout-copy"><?= esc($role['boundary']) ?></p>
                     </div>
                 </article>
             <?php endforeach ?>
