@@ -93,5 +93,6 @@ $routes->group('analytics', ['filter' => 'auth'], static function (RouteCollecti
     $routes->get('dashboard', 'Analytics\AnalyticsController::dashboard', ['filter' => 'role:admin,it_staff']);
     $routes->get('events', 'Analytics\AnalyticsController::events', ['filter' => 'role:admin,it_staff']);
     $routes->get('metrics', 'Analytics\AnalyticsController::metrics', ['filter' => 'role:admin,it_staff']);
+    $routes->get('system-architecture', 'Analytics\AnalyticsController::systemArchitecture', ['filter' => 'role:admin,it_staff']);
     $routes->post('track', 'Analytics\AnalyticsController::track', ['filter' => 'role:admin,employee,it_staff']);
 });

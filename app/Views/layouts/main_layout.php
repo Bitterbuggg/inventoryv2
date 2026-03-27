@@ -47,7 +47,10 @@ $isActivePath = static function (string $target) use ($currentPath): bool {
     }
 
     $cleanPath = str_replace('index.php/', '', $currentPath);
-    if ($target === 'analytics/activity-logs' && str_starts_with($cleanPath, 'analytics/')) {
+    if (
+        $target === 'analytics/activity-logs'
+        && in_array($cleanPath, ['analytics/activity-logs', 'analytics/dashboard', 'analytics/events', 'analytics/metrics'], true)
+    ) {
         return true;
     }
 
@@ -125,6 +128,7 @@ if ($isAdmin || $canViewReports || $isItStaff) {
 
     if ($isAdmin || $isItStaff) {
         $reportItems[] = ['path' => 'analytics/activity-logs', 'label' => 'Activity Logs'];
+        $reportItems[] = ['path' => 'analytics/system-architecture', 'label' => 'System Architecture'];
     }
 
     if ($reportItems !== []) {

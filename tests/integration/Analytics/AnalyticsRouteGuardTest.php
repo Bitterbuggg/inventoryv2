@@ -47,6 +47,39 @@ final class AnalyticsRouteGuardTest extends CIUnitTestCase
         $response->assertOK();
     }
 
+    public function testGuestIsRedirectedFromAnalyticsSystemArchitecture(): void
+    {
+        $response = $this->get('/analytics/system-architecture');
+        $response->assertRedirectTo('/login');
+    }
+
+    public function testAdminCanAccessAnalyticsSystemArchitecture(): void
+    {
+        $admin = $this->findUserByEmail('admin@local.test');
+        auth('session')->login($admin);
+
+        $response = $this->withSession(session()->get())->get('/analytics/system-architecture');
+        $response->assertOK();
+    }
+
+    public function testItStaffCanAccessAnalyticsSystemArchitecture(): void
+    {
+        $itStaff = $this->findUserByEmail('itstaff@local.test');
+        auth('session')->login($itStaff);
+
+        $response = $this->withSession(session()->get())->get('/analytics/system-architecture');
+        $response->assertOK();
+    }
+
+    public function testEmployeeIsForbiddenFromAnalyticsSystemArchitecture(): void
+    {
+        $employee = $this->findUserByEmail('employee@local.test');
+        auth('session')->login($employee);
+
+        $response = $this->withSession(session()->get())->get('/analytics/system-architecture');
+        $response->assertStatus(403);
+    }
+
     public function testEmployeeIsForbiddenFromAnalyticsDashboard(): void
     {
         $employee = $this->findUserByEmail('employee@local.test');

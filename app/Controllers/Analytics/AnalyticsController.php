@@ -23,6 +23,16 @@ class AnalyticsController extends BaseController
         return $this->activityLogs('metrics');
     }
 
+    public function systemArchitecture(): string
+    {
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'analytics.system_architecture_viewed',
+            'analytics',
+        );
+
+        return view('analytics/system_architecture');
+    }
+
     public function activityLogs(?string $legacySource = null): string|ResponseInterface
     {
         $source = $legacySource ?? $this->detectLegacySourceFromPath();
