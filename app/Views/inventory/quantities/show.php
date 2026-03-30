@@ -47,12 +47,12 @@ $totalOut = array_sum(array_map(static fn (array $row): float => (float) ($row['
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">On Hand</p>
-                <p class="kpi-value"><?= esc((string) ($stock['on_hand_qty'] ?? '0')) ?></p>
+                <p class="kpi-value"><?= esc(app_format_quantity($stock['on_hand_qty'] ?? 0)) ?></p>
                 <p class="kpi-note">Total physical balance.</p>
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Available</p>
-                <p class="kpi-value"><?= esc((string) ($stock['available_qty'] ?? '0')) ?></p>
+                <p class="kpi-value"><?= esc(app_format_quantity($stock['available_qty'] ?? 0)) ?></p>
                 <p class="kpi-note">On hand minus reserved quantity.</p>
             </article>
             <article class="kpi-card">
@@ -73,18 +73,18 @@ $totalOut = array_sum(array_map(static fn (array $row): float => (float) ($row['
             </div>
             <div class="detail-item">
                 <span class="detail-label">On Hand</span>
-                <span class="detail-value"><?= esc((string) ($stock['on_hand_qty'] ?? '0')) ?></span>
+                <span class="detail-value"><?= esc(app_format_quantity($stock['on_hand_qty'] ?? 0)) ?></span>
             </div>
             <div class="detail-item">
                 <span class="detail-label">Available</span>
-                <span class="detail-value"><?= esc((string) ($stock['available_qty'] ?? '0')) ?></span>
+                <span class="detail-value"><?= esc(app_format_quantity($stock['available_qty'] ?? 0)) ?></span>
             </div>
         </div>
     </section>
 
     <section class="card stack-md">
         <h2>Stock Movements</h2>
-        <p class="split-note"><span>Total In: <?= esc(number_format($totalIn, 0)) ?></span><span>Total Out: <?= esc(number_format($totalOut, 0)) ?></span></p>
+        <p class="split-note"><span>Total In: <?= esc(app_format_quantity($totalIn)) ?></span><span>Total Out: <?= esc(app_format_quantity($totalOut)) ?></span></p>
         <div class="table-wrap">
             <table class="table">
                 <thead>
@@ -112,9 +112,9 @@ $totalOut = array_sum(array_map(static fn (array $row): float => (float) ($row['
                                     <?= esc($referenceTypeLabels[(string) ($movement['reference_type'] ?? '')] ?? ucwords(str_replace('_', ' ', (string) ($movement['reference_type'] ?? '')))) ?>
                                     <?= ($movement['reference_id'] ?? null) !== null ? ' #' . esc((string) $movement['reference_id']) : '' ?>
                                 </td>
-                                <td><?= esc((string) $movement['qty_in']) ?></td>
-                                <td><?= esc((string) $movement['qty_out']) ?></td>
-                                <td><?= esc((string) $movement['balance_after']) ?></td>
+                                <td><?= esc(app_format_quantity($movement['qty_in'] ?? 0)) ?></td>
+                                <td><?= esc(app_format_quantity($movement['qty_out'] ?? 0)) ?></td>
+                                <td><?= esc(app_format_quantity($movement['balance_after'] ?? 0)) ?></td>
                                 <td><?= esc((string) $movement['performed_at']) ?></td>
                             </tr>
                         <?php endforeach ?>

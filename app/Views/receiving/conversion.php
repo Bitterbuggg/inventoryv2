@@ -185,9 +185,9 @@ $todayDate = date('Y-m-d');
                                     <div class="unit-text"><?= esc((string) ($item['unit'] ?? 'unit')) ?></div>
                                 </td>
                                 
-                                <td><input type="number" step="1" min="0" name="received_qty[]" class="table-control" value="<?= esc((string) old('received_qty.' . $index, (string) ($item['received_qty'] ?? 0))) ?>" required></td>
-                                <td><input type="number" step="1" min="0" name="accepted_qty[]" class="table-control" value="<?= esc((string) old('accepted_qty.' . $index, (string) ($item['accepted_qty'] ?? 0))) ?>" required></td>
-                                <td><input type="number" step="1" min="0" name="rejected_qty[]" class="table-control" value="<?= esc((string) old('rejected_qty.' . $index, (string) ($item['rejected_qty'] ?? 0))) ?>" required></td>
+                                <td><input type="number" step="1" min="0" name="received_qty[]" class="table-control" value="<?= esc(app_format_quantity(old('received_qty.' . $index, $item['received_qty'] ?? 0), '', 3, false)) ?>" required></td>
+                                <td><input type="number" step="1" min="0" name="accepted_qty[]" class="table-control" value="<?= esc(app_format_quantity(old('accepted_qty.' . $index, $item['accepted_qty'] ?? 0), '', 3, false)) ?>" required></td>
+                                <td><input type="number" step="1" min="0" name="rejected_qty[]" class="table-control" value="<?= esc(app_format_quantity(old('rejected_qty.' . $index, $item['rejected_qty'] ?? 0), '', 3, false)) ?>" required></td>
                                 
                                 <td><input type="text" name="batch_no[]" class="table-control solid-input" placeholder="Required" value="<?= esc((string) old('batch_no.' . $index)) ?>" pattern="[A-Z0-9\-_]{3,}" title="Minimum 3 characters, alphanumeric, hyphen, or underscore only." required></td>
                                 <td><input type="text" name="lot_no[]" class="table-control solid-input" placeholder="Optional" value="<?= esc((string) old('lot_no.' . $index)) ?>" pattern="[A-Z0-9\-_]{3,}" title="Minimum 3 characters, alphanumeric, hyphen, or underscore only."></td>

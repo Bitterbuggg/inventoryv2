@@ -231,14 +231,14 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
             <article class="kpi-card kpi-accent-green">
                 <div class="kpi-icon-box icon-in"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg></div>
                 <div class="kpi-details">
-                    <span class="kpi-value" id="kpi-in" style="color: #16a34a;"><?= esc(number_format($totalIn, 0)) ?></span>
+                    <span class="kpi-value" id="kpi-in" style="color: #16a34a;"><?= esc(app_format_quantity($totalIn)) ?></span>
                     <span class="kpi-label">Total Qty In</span>
                 </div>
             </article>
             <article class="kpi-card kpi-accent-red">
                 <div class="kpi-icon-box icon-out"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 15 21 21 15 21"></polyline><polyline points="3 9 3 3 9 3"></polyline><line x1="21" y1="21" x2="14" y2="14"></line><line x1="3" y1="3" x2="10" y2="10"></line></svg></div>
                 <div class="kpi-details">
-                    <span class="kpi-value" id="kpi-out" style="color: #ef4444;"><?= esc(number_format($totalOut, 0)) ?></span>
+                    <span class="kpi-value" id="kpi-out" style="color: #ef4444;"><?= esc(app_format_quantity($totalOut)) ?></span>
                     <span class="kpi-label">Total Qty Out</span>
                 </div>
             </article>
@@ -332,9 +332,9 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
                                 </td>
                                 <td style="font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= esc((string) $row['item_name']) ?>"><?= esc((string) $row['item_name']) ?></td>
                                 <td style="font-size: 0.85rem; color: var(--v2-text-muted);"><?= esc((string) $row['unit']) ?></td>
-                                <td style="text-align: right; color: #16a34a; font-weight: 800;"><?= esc((string) $row['qty_in']) ?></td>
-                                <td style="text-align: right; color: #ef4444; font-weight: 800;"><?= esc((string) $row['qty_out']) ?></td>
-                                <td style="text-align: right; font-weight: 900; color: var(--v2-title);"><?= esc((string) $row['balance_after']) ?></td>
+                                <td style="text-align: right; color: #16a34a; font-weight: 800;"><?= esc(app_format_quantity($row['qty_in'] ?? 0)) ?></td>
+                                <td style="text-align: right; color: #ef4444; font-weight: 800;"><?= esc(app_format_quantity($row['qty_out'] ?? 0)) ?></td>
+                                <td style="text-align: right; font-weight: 900; color: var(--v2-title);"><?= esc(app_format_quantity($row['balance_after'] ?? 0)) ?></td>
                                 <td style="font-size: 0.85rem; font-weight: 600;"><?= esc((string) $row['performed_at']) ?></td>
                             </tr>
                         <?php endforeach ?>

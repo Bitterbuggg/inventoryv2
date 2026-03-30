@@ -112,13 +112,13 @@ $productOptions = array_map(static fn (array $product): array => [
                                         <option value="">Select product...</option>
                                         <?php foreach ($products as $product): ?>
                                             <option value="<?= esc((string) ($product['id'] ?? '')) ?>" data-unit="<?= esc((string) ($product['unit'] ?? 'unit')) ?>" data-available="<?= esc((string) ($product['available_qty'] ?? '0')) ?>" <?= old('product_id.' . $i) == ($product['id'] ?? '') ? 'selected' : '' ?>>
-                                                <?= esc((string) ($product['product_name'] ?? '')) ?> (<?= esc((string) ($product['unit'] ?? 'unit')) ?>) - Available: <?= esc(number_format((float) ($product['available_qty'] ?? 0), 0)) ?>
+                                                <?= esc((string) ($product['product_name'] ?? '')) ?> (<?= esc((string) ($product['unit'] ?? 'unit')) ?>) - Available: <?= esc(app_format_quantity($product['available_qty'] ?? 0)) ?>
                                             </option>
                                         <?php endforeach ?>
                                     </select>
                                 </td>
                                 <td><input type="text" class="table-control unit-display" value="" readonly></td>
-                                <td><input type="number" step="1" min="1" name="requested_qty[]" class="table-control" value="<?= esc((string) old('requested_qty.' . $i)) ?>"></td>
+                                <td><input type="number" step="1" min="1" name="requested_qty[]" class="table-control" value="<?= esc(app_format_quantity(old('requested_qty.' . $i), '', 3, false)) ?>"></td>
                                 <td>
                                     <div class="notes-cell">
                                         <input type="text" name="item_remarks[]" class="table-control" value="<?= esc((string) old('item_remarks.' . $i)) ?>" placeholder="Optional remarks">
@@ -146,7 +146,7 @@ $productOptions = array_map(static fn (array $product): array => [
                 <option value="">Select product...</option>
                 <?php foreach ($products as $product): ?>
                     <option value="<?= esc((string) ($product['id'] ?? '')) ?>" data-unit="<?= esc((string) ($product['unit'] ?? 'unit')) ?>" data-available="<?= esc((string) ($product['available_qty'] ?? '0')) ?>">
-                        <?= esc((string) ($product['product_name'] ?? '')) ?> (<?= esc((string) ($product['unit'] ?? 'unit')) ?>) - Available: <?= esc(number_format((float) ($product['available_qty'] ?? 0), 0)) ?>
+                        <?= esc((string) ($product['product_name'] ?? '')) ?> (<?= esc((string) ($product['unit'] ?? 'unit')) ?>) - Available: <?= esc(app_format_quantity($product['available_qty'] ?? 0)) ?>
                     </option>
                 <?php endforeach ?>
             </select>

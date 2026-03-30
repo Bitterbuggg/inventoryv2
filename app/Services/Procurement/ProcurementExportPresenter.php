@@ -37,7 +37,7 @@ class ProcurementExportPresenter
             'headers' => ['Item Name', 'Requested Qty', 'Unit', 'Estimated Unit Cost', 'Notes'],
             'rows' => array_map(static fn (array $row): array => [
                 (string) ($row['item_name'] ?? ''),
-                (string) ($row['requested_qty'] ?? '0'),
+                app_format_quantity($row['requested_qty'] ?? 0, '0', 3, false),
                 (string) ($row['unit'] ?? ''),
                 number_format((float) ($row['estimated_unit_cost'] ?? 0), 2, '.', ''),
                 (string) ($row['notes'] ?? ''),

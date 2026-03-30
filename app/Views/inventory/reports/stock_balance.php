@@ -219,21 +219,21 @@ $available = array_sum(array_map(static fn (array $row): float => (float) ($row[
             <article class="kpi-card kpi-accent-sky">
                 <div class="kpi-icon-box icon-onhand"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg></div>
                 <div class="kpi-details">
-                    <span class="kpi-value" id="kpi-onhand"><?= esc(number_format($onHand, 0)) ?></span>
+                    <span class="kpi-value" id="kpi-onhand"><?= esc(app_format_quantity($onHand)) ?></span>
                     <span class="kpi-label">On Hand</span>
                 </div>
             </article>
             <article class="kpi-card kpi-accent-amber">
                 <div class="kpi-icon-box icon-reserved"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
                 <div class="kpi-details">
-                    <span class="kpi-value" id="kpi-reserved" style="color: #d97706;"><?= esc(number_format($reserved, 0)) ?></span>
+                    <span class="kpi-value" id="kpi-reserved" style="color: #d97706;"><?= esc(app_format_quantity($reserved)) ?></span>
                     <span class="kpi-label">Reserved</span>
                 </div>
             </article>
             <article class="kpi-card kpi-accent-green">
                 <div class="kpi-icon-box icon-available"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
                 <div class="kpi-details">
-                    <span class="kpi-value" id="kpi-available" style="color: #15803d;"><?= esc(number_format($available, 0)) ?></span>
+                    <span class="kpi-value" id="kpi-available" style="color: #15803d;"><?= esc(app_format_quantity($available)) ?></span>
                     <span class="kpi-label">Available</span>
                 </div>
             </article>
@@ -329,14 +329,14 @@ $available = array_sum(array_map(static fn (array $row): float => (float) ($row[
                                 <td style="font-size: 0.85rem; font-family: var(--font-mono);"><?= esc((string) ($row['batch_no'] ?? '')) ?></td>
                                 <td style="font-size: 0.85rem; font-family: var(--font-mono);"><?= esc((string) ($row['lot_no'] ?? '')) ?></td>
                                 <td style="font-size: 0.85rem; <?= $expiryClass ?>"><?= esc($expiryRaw) ?></td>
-                                <td style="text-align: right; font-weight: 600;"><?= esc((string) $row['on_hand_qty']) ?></td>
-                                <td style="text-align: right; font-weight: 600; color: #d97706;"><?= esc((string) $row['reserved_qty']) ?></td>
+                                <td style="text-align: right; font-weight: 600;"><?= esc(app_format_quantity($row['on_hand_qty'] ?? 0)) ?></td>
+                                <td style="text-align: right; font-weight: 600; color: #d97706;"><?= esc(app_format_quantity($row['reserved_qty'] ?? 0)) ?></td>
                                 
                                 <?php 
                                     $availQty = (float) $row['available_qty'];
                                     $qtyColor = $availQty <= 0 ? 'color: #ef4444; font-weight: 800;' : 'font-weight: 800; color: #15803d;';
                                 ?>
-                                <td style="text-align: right; <?= $qtyColor ?>"><?= esc((string) $row['available_qty']) ?></td>
+                                <td style="text-align: right; <?= $qtyColor ?>"><?= esc(app_format_quantity($row['available_qty'] ?? 0)) ?></td>
                                 
                                 <td style="text-align: right; font-family: var(--font-mono); font-size: 0.85rem;">₱<?= esc(number_format((float) ($row['average_unit_cost'] ?? 0), 2)) ?></td>
                             </tr>
@@ -359,6 +359,15 @@ $available = array_sum(array_map(static fn (array $row): float => (float) ($row[
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        function formatQuantity(value) {
+            if (!Number.isFinite(value)) return '0';
+            if (Math.abs(value - Math.round(value)) <= 0.00001) {
+                return Math.round(value).toLocaleString('en-US');
+            }
+
+            return value.toLocaleString('en-US', {maximumFractionDigits: 3});
+        }
+
         const rowsPerPage = 15;
         const tbody = document.querySelector('#balance-table tbody');
         if (!tbody) return;
@@ -438,9 +447,9 @@ $available = array_sum(array_map(static fn (array $row): float => (float) ($row[
             });
             
             kpiSkus.innerText = currentRows.length;
-            kpiOnHand.innerText = sumOnHand.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
-            kpiReserved.innerText = sumReserved.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
-            kpiAvailable.innerText = sumAvailable.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            kpiOnHand.innerText = formatQuantity(sumOnHand);
+            kpiReserved.innerText = formatQuantity(sumReserved);
+            kpiAvailable.innerText = formatQuantity(sumAvailable);
         }
 
         if(searchInput) searchInput.addEventListener('input', applySearch);

@@ -21,9 +21,9 @@ class ReportingExportPresenter
                 (string) ($row['batch_no'] ?? ''),
                 (string) ($row['lot_no'] ?? ''),
                 (string) ($row['expiry_date'] ?? ''),
-                (string) ($row['on_hand_qty'] ?? '0'),
-                (string) ($row['reserved_qty'] ?? '0'),
-                (string) ($row['available_qty'] ?? '0'),
+                app_format_quantity($row['on_hand_qty'] ?? 0, '0', 3, false),
+                app_format_quantity($row['reserved_qty'] ?? 0, '0', 3, false),
+                app_format_quantity($row['available_qty'] ?? 0, '0', 3, false),
                 number_format((float) ($row['average_cost'] ?? 0), 2, '.', ''),
             ], $rows),
         ];
@@ -47,9 +47,9 @@ class ReportingExportPresenter
                 (string) ($row['reference_id'] ?? ''),
                 (string) ($row['item_name'] ?? ''),
                 (string) ($row['unit'] ?? ''),
-                (string) ($row['qty_in'] ?? '0'),
-                (string) ($row['qty_out'] ?? '0'),
-                (string) ($row['balance_after'] ?? '0'),
+                app_format_quantity($row['qty_in'] ?? 0, '0', 3, false),
+                app_format_quantity($row['qty_out'] ?? 0, '0', 3, false),
+                app_format_quantity($row['balance_after'] ?? 0, '0', 3, false),
                 (string) ($row['performed_at'] ?? ''),
             ], $rows),
         ];
@@ -72,8 +72,8 @@ class ReportingExportPresenter
                 (string) ($row['issue_date'] ?? ''),
                 (string) ($row['department'] ?? ''),
                 (string) ($row['status'] ?? ''),
-                (string) ($row['total_requested_qty'] ?? '0'),
-                (string) ($row['total_issued_qty'] ?? '0'),
+                app_format_quantity($row['total_requested_qty'] ?? 0, '0', 3, false),
+                app_format_quantity($row['total_issued_qty'] ?? 0, '0', 3, false),
             ], $rows),
         ];
     }
@@ -100,9 +100,9 @@ class ReportingExportPresenter
                 (string) ($row['batch_no'] ?? ''),
                 (string) ($row['lot_no'] ?? ''),
                 (string) ($row['expiry_date'] ?? ''),
-                (string) ($row['available_qty'] ?? '0'),
-                (string) ($row['on_hand_qty'] ?? '0'),
-                (string) ($row['reserved_qty'] ?? '0'),
+                app_format_quantity($row['available_qty'] ?? 0, '0', 3, false),
+                app_format_quantity($row['on_hand_qty'] ?? 0, '0', 3, false),
+                app_format_quantity($row['reserved_qty'] ?? 0, '0', 3, false),
             ], $filteredRows),
         ];
     }
@@ -122,7 +122,7 @@ class ReportingExportPresenter
                 (string) $rank,
                 (string) ($row['item_name'] ?? ''),
                 (string) ($row['unit'] ?? ''),
-                number_format((float) ($row['total_qty_out'] ?? 0), 2, '.', ''),
+                app_format_quantity($row['total_qty_out'] ?? 0, '0', 3, false),
             ];
             $rank++;
         }

@@ -222,7 +222,7 @@ $nearExpiryRows = count(array_filter(
             <article class="kpi-card kpi-accent-green">
                 <div class="kpi-icon-box icon-available"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
                 <div class="kpi-details">
-                    <span class="kpi-value" id="kpi-available"><?= esc(number_format($totalAvailable, 0)) ?></span>
+                    <span class="kpi-value" id="kpi-available"><?= esc(app_format_quantity($totalAvailable)) ?></span>
                     <span class="kpi-label">Total Available</span>
                 </div>
             </article>
@@ -247,13 +247,13 @@ $nearExpiryRows = count(array_filter(
         <div class="table-toolbar">
             <div>
                 <h3>Replenishment List</h3>
-                <p style="margin: 2px 0 0 0; font-size: 0.75rem; color: var(--v2-text-muted);">Threshold: <strong><?= esc((string)$thresholdValue) ?> units</strong></p>
+                <p style="margin: 2px 0 0 0; font-size: 0.75rem; color: var(--v2-text-muted);">Threshold: <strong><?= esc(app_format_quantity($thresholdValue)) ?> units</strong></p>
             </div>
             
             <div class="toolbar-controls">
                 <form method="get" action="<?= site_url('reports/low-stock') ?>" style="display: flex; gap: 8px; align-items: center; margin: 0; border-right: 1px solid var(--v2-border); padding-right: 12px; margin-right: 4px;">
                     <span style="font-size: 0.7rem; font-weight: 800; color: var(--v2-text-muted); text-transform: uppercase;">Threshold:</span>
-                    <input type="number" name="threshold" value="<?= esc((string) $thresholdValue) ?>" class="input-threshold" min="0">
+                    <input type="number" name="threshold" value="<?= esc(app_format_quantity($thresholdValue, '', 3, false)) ?>" class="input-threshold" min="0">
                     <button type="submit" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 800; background: var(--v2-label); border: none; border-radius: 6px; color: white;">Apply</button>
                 </form>
 
@@ -303,7 +303,7 @@ $nearExpiryRows = count(array_filter(
                         <tr class="no-records-row">
                             <td colspan="9" style="text-align: center; padding: 40px; color: var(--v2-text-muted);">
                                 <strong>Great news! No low stock items found.</strong><br>
-                                <span style="font-size: 0.8rem;">All items are currently above the <?= esc((string)$thresholdValue) ?> unit threshold.</span>
+                                <span style="font-size: 0.8rem;">All items are currently above the <?= esc(app_format_quantity($thresholdValue)) ?> unit threshold.</span>
                             </td>
                         </tr>
                     <?php else: ?>
@@ -336,9 +336,9 @@ $nearExpiryRows = count(array_filter(
                                 <td style="font-size: 0.85rem; font-family: var(--font-mono);"><?= esc((string) ($row['batch_no'] ?? '')) ?></td>
                                 <td style="font-size: 0.85rem; font-family: var(--font-mono);"><?= esc((string) ($row['lot_no'] ?? '')) ?></td>
                                 <td style="font-size: 0.85rem; <?= $expiryClass ?>"><?= esc($expiryRaw) ?></td>
-                                <td style="text-align: right; font-size: 1rem; <?= $qtyStyle ?>"><?= esc((string) $row['available_qty']) ?></td>
-                                <td style="text-align: right; font-weight: 600; color: var(--v2-text-main);"><?= esc((string) $row['on_hand_qty']) ?></td>
-                                <td style="text-align: right; font-weight: 600; color: var(--v2-text-muted);"><?= esc((string) $row['reserved_qty']) ?></td>
+                                <td style="text-align: right; font-size: 1rem; <?= $qtyStyle ?>"><?= esc(app_format_quantity($row['available_qty'] ?? 0)) ?></td>
+                                <td style="text-align: right; font-weight: 600; color: var(--v2-text-main);"><?= esc(app_format_quantity($row['on_hand_qty'] ?? 0)) ?></td>
+                                <td style="text-align: right; font-weight: 600; color: var(--v2-text-muted);"><?= esc(app_format_quantity($row['reserved_qty'] ?? 0)) ?></td>
                             </tr>
                         <?php endforeach ?>
                     <?php endif ?>

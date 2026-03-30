@@ -56,7 +56,7 @@ foreach ($products as $product) {
             min="1"
             name="requested_qty[]"
             class="table-control"
-            value="<?= esc($requestedQty) ?>"
+            value="<?= esc(app_format_quantity($requestedQty, '', 3, false)) ?>"
         >
     </td>
     <td>

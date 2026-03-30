@@ -22,7 +22,7 @@ $canApprovePr = (bool) ($canApprovePr ?? false);
         </article>
         <article class="kpi-card">
             <p class="kpi-label">Total Qty</p>
-            <p class="kpi-value"><?= esc(number_format($totalRequested, 0)) ?></p>
+            <p class="kpi-value"><?= esc(app_format_quantity($totalRequested)) ?></p>
             <p class="kpi-note">Whole-number item request quantity.</p>
         </article>
         <article class="kpi-card">

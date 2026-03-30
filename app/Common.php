@@ -27,3 +27,44 @@ if (! function_exists('app_forbidden_response')) {
             ->setBody((string) view('errors/html/error_403', ['message' => $message]));
     }
 }
+
+if (! function_exists('app_format_quantity')) {
+    /**
+     * Quantity fields are stored in DECIMAL columns, but most workflows expect
+     * whole-number display unless there is a real fractional value to show.
+     */
+    function app_format_quantity(
+        mixed $value,
+        string $empty = '0',
+        int $precision = 3,
+        bool $useGrouping = true
+    ): string {
+        if ($value === null) {
+            return $empty;
+        }
+
+        if (is_string($value)) {
+            $value = trim($value);
+
+            if ($value === '') {
+                return $empty;
+            }
+        }
+
+        if (! is_numeric($value)) {
+            return (string) $value;
+        }
+
+        $number = (float) $value;
+        $thousandsSeparator = $useGrouping ? ',' : '';
+
+        if (abs($number - round($number)) <= 0.00001) {
+            return number_format((float) round($number), 0, '.', $thousandsSeparator);
+        }
+
+        return rtrim(
+            rtrim(number_format($number, $precision, '.', $thousandsSeparator), '0'),
+            '.'
+        );
+    }
+}

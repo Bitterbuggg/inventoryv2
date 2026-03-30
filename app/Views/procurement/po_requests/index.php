@@ -161,7 +161,7 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                                         <?php foreach (array_slice($items, 0, 4) as $item): ?>
                                                             <li>
                                                                 <?= esc((string) ($item['item_name'] ?? '')) ?>
-                                                                (<?= esc((string) ((int) round((float) ($item['ordered_qty'] ?? 0)))) ?>
+                                                                (<?= esc(app_format_quantity($item['ordered_qty'] ?? 0)) ?>
                                                                 <?= esc((string) ($item['unit'] ?? 'unit')) ?>)
                                                             </li>
                                                         <?php endforeach ?>

@@ -266,14 +266,14 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
             <article class="kpi-card kpi-accent-sky">
                 <div class="kpi-icon-box icon-onhand"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg></div>
                 <div class="kpi-details">
-                    <span class="kpi-value" id="kpi-onhand"><?= esc(number_format($totalOnHand, 0)) ?></span>
+                    <span class="kpi-value" id="kpi-onhand"><?= esc(app_format_quantity($totalOnHand)) ?></span>
                     <span class="kpi-label">Total On Hand</span>
                 </div>
             </article>
             <article class="kpi-card kpi-accent-green">
                 <div class="kpi-icon-box icon-available"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
                 <div class="kpi-details">
-                    <span class="kpi-value" id="kpi-available" style="color: #15803d;"><?= esc(number_format($totalAvailable, 0)) ?></span>
+                    <span class="kpi-value" id="kpi-available" style="color: #15803d;"><?= esc(app_format_quantity($totalAvailable)) ?></span>
                     <span class="kpi-label">Available</span>
                 </div>
             </article>
@@ -378,14 +378,14 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
                                 <td style="font-size: 0.85rem; font-family: var(--font-mono);"><?= esc((string) ($stock['batch_no'] ?? '')) ?></td>
                                 <td style="font-size: 0.85rem; font-family: var(--font-mono);"><?= esc((string) ($stock['lot_no'] ?? '')) ?></td>
                                 <td style="font-size: 0.85rem; <?= $expiryClass ?>"><?= esc($expiryRaw) ?></td>
-                                <td style="text-align: right; font-weight: 600;"><?= esc((string) $stock['on_hand_qty']) ?></td>
-                                <td style="text-align: right; font-weight: 600;"><?= esc((string) $stock['reserved_qty']) ?></td>
+                                <td style="text-align: right; font-weight: 600;"><?= esc(app_format_quantity($stock['on_hand_qty'] ?? 0)) ?></td>
+                                <td style="text-align: right; font-weight: 600;"><?= esc(app_format_quantity($stock['reserved_qty'] ?? 0)) ?></td>
                                 
                                 <?php 
                                     $availQty = (float) $stock['available_qty'];
                                     $qtyColor = $availQty <= 0 ? 'color: #ef4444; font-weight: 800;' : 'font-weight: 800; color: var(--v2-title);';
                                 ?>
-                                <td style="text-align: right; <?= $qtyColor ?>"><?= esc((string) $stock['available_qty']) ?></td>
+                                <td style="text-align: right; <?= $qtyColor ?>"><?= esc(app_format_quantity($stock['available_qty'] ?? 0)) ?></td>
                                 <td style="text-align: right; font-family: var(--font-mono); font-size: 0.85rem;">₱<?= esc(number_format((float) ($stock['average_unit_cost'] ?? 0), 2)) ?></td>
                                 
                                 <td style="text-align: right;">
@@ -470,6 +470,15 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        function formatQuantity(value) {
+            if (!Number.isFinite(value)) return '0';
+            if (Math.abs(value - Math.round(value)) <= 0.00001) {
+                return Math.round(value).toLocaleString('en-US');
+            }
+
+            return value.toLocaleString('en-US', {maximumFractionDigits: 3});
+        }
+
         const rowsPerPage = 15;
         const tbody = document.querySelector('#inventory-table tbody');
         if (!tbody) return;
@@ -550,8 +559,8 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
             });
             
             kpiSkus.innerText = currentRows.length;
-            kpiOnHand.innerText = sumOnHand.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
-            kpiAvailable.innerText = sumAvailable.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            kpiOnHand.innerText = formatQuantity(sumOnHand);
+            kpiAvailable.innerText = formatQuantity(sumAvailable);
             kpiZero.innerText = countZero;
         }
 

@@ -40,12 +40,12 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Accepted Qty</p>
-                <p class="kpi-value"><?= esc(number_format($totalAccepted, 0)) ?></p>
+                <p class="kpi-value"><?= esc(app_format_quantity($totalAccepted)) ?></p>
                 <p class="kpi-note">Total accepted quantity.</p>
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Rejected Qty</p>
-                <p class="kpi-value"><?= esc(number_format($totalRejected, 0)) ?></p>
+                <p class="kpi-value"><?= esc(app_format_quantity($totalRejected)) ?></p>
                 <p class="kpi-note">Total rejected quantity.</p>
             </article>
         </div>
@@ -155,9 +155,9 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
                                                         <?= esc((string)$item['item_name']) ?>
                                                         <input type="hidden" name="items[<?= $idx ?>][id]" value="<?= $item['id'] ?>">
                                                     </td>
-                                                    <td style="font-size:0.85rem;"><?= esc((string)$item['accepted_qty']) ?></td>
+                                                    <td style="font-size:0.85rem;"><?= esc(app_format_quantity($item['accepted_qty'] ?? 0)) ?></td>
                                                     <td>
-                                                        <input type="number" name="items[<?= $idx ?>][qty]" step="1" min="0" max="<?= $item['accepted_qty'] ?>" class="table-control" value="0">
+                                                        <input type="number" name="items[<?= $idx ?>][qty]" step="1" min="0" max="<?= esc(app_format_quantity($item['accepted_qty'] ?? 0, '0', 3, false)) ?>" class="table-control" value="0">
                                                     </td>
                                                 </tr>
                                             <?php endif; ?>
@@ -214,9 +214,9 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
                                 <td><?= esc((string) $item['purchase_order_item_id']) ?></td>
                                 <td><?= esc((string) $item['item_name']) ?></td>
                                 <td><?= esc((string) $item['unit']) ?></td>
-                                <td><?= esc((string) $item['received_qty']) ?></td>
-                                <td><?= esc((string) $item['accepted_qty']) ?></td>
-                                <td><?= esc((string) $item['rejected_qty']) ?></td>
+                                <td><?= esc(app_format_quantity($item['received_qty'] ?? 0)) ?></td>
+                                <td><?= esc(app_format_quantity($item['accepted_qty'] ?? 0)) ?></td>
+                                <td><?= esc(app_format_quantity($item['rejected_qty'] ?? 0)) ?></td>
                                 <td><?= esc((string) ($item['batch_no'] ?? '')) ?></td>
                                 <td><?= esc((string) ($item['lot_no'] ?? '')) ?></td>
                                 <td><?= esc((string) ($item['expiry_date'] ?? '')) ?></td>

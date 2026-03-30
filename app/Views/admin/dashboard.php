@@ -32,9 +32,8 @@ $moduleStatus = [
         display: flex;
         flex-direction: column;
         gap: 20px;
-        height: calc(100vh - 120px); 
-        min-height: 640px;
-        overflow: hidden;
+        min-height: calc(100vh - 120px);
+        padding-bottom: 20px;
     }
 
     /* --- PASTEL KPI CARDS --- */
@@ -163,13 +162,13 @@ $moduleStatus = [
         font-weight: 800; 
     }
 
-    .action-grid-wrap { padding: 20px; }
+    .action-grid-wrap { padding: 14px 20px 20px; }
 
     /* --- ACTION CARDS --- */
     .action-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr); 
-        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
     }
 
     .action-card {
@@ -177,6 +176,7 @@ $moduleStatus = [
         align-items: center;
         gap: 14px; 
         padding: 14px 16px; 
+        min-height: 72px;
         background: #ffffff;
         border: 1px solid var(--v2-border); 
         border-radius: 8px;
@@ -232,6 +232,20 @@ $moduleStatus = [
     .action-card:hover .action-label,
     .action-card:hover .action-desc {
         color: #ffffff;
+    }
+
+    @media (max-width: 900px) {
+        .viewport-wrapper {
+            min-height: auto;
+        }
+
+        .action-grid-wrap {
+            padding: 12px 16px 16px;
+        }
+
+        .dashboard-section-header {
+            padding: 12px 16px;
+        }
     }
 </style>
 <?= $this->endSection() ?>

@@ -33,9 +33,9 @@ class InventoryQuantityController extends BaseController
                     (string) ($row['batch_no'] ?? ''),
                     (string) ($row['lot_no'] ?? ''),
                     (string) ($row['expiry_date'] ?? ''),
-                    (string) ($row['on_hand_qty'] ?? '0'),
-                    (string) ($row['reserved_qty'] ?? '0'),
-                    (string) ($row['available_qty'] ?? '0'),
+                    app_format_quantity($row['on_hand_qty'] ?? 0, '0', 3, false),
+                    app_format_quantity($row['reserved_qty'] ?? 0, '0', 3, false),
+                    app_format_quantity($row['available_qty'] ?? 0, '0', 3, false),
                     number_format((float) ($row['average_unit_cost'] ?? 0), 2, '.', ''),
                 ], $stocks),
             );

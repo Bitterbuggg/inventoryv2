@@ -45,12 +45,12 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Requested Qty</p>
-                <p class="kpi-value"><?= esc(number_format($totalRequested, 0)) ?></p>
+                <p class="kpi-value"><?= esc(app_format_quantity($totalRequested)) ?></p>
                 <p class="kpi-note">Total requested quantity.</p>
             </article>
             <article class="kpi-card">
                 <p class="kpi-label">Issued Qty</p>
-                <p class="kpi-value"><?= esc(number_format($totalIssued, 0)) ?></p>
+                <p class="kpi-value"><?= esc(app_format_quantity($totalIssued)) ?></p>
                 <p class="kpi-note">Total released quantity.</p>
             </article>
         </div>
@@ -153,8 +153,8 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
                                 <td><?= esc((string) $item['id']) ?></td>
                                 <td><?= esc((string) $item['item_name']) ?></td>
                                 <td><?= esc((string) $item['unit']) ?></td>
-                                <td><?= esc((string) $item['requested_qty']) ?></td>
-                                <td><?= esc((string) $item['issued_qty']) ?></td>
+                                <td><?= esc(app_format_quantity($item['requested_qty'] ?? 0)) ?></td>
+                                <td><?= esc(app_format_quantity($item['issued_qty'] ?? 0)) ?></td>
                                 <td><?= esc(number_format((float) ($item['unit_cost'] ?? 0), 2)) ?></td>
                                 <td><?= esc(number_format((float) ($item['line_total'] ?? 0), 2)) ?></td>
                                 <td><?= esc((string) ($item['inventory_stock_id'] ?? '')) ?></td>
@@ -193,7 +193,7 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
                                 <td><?= esc((string) ($allocation['batch_no'] ?? '')) ?></td>
                                 <td><?= esc((string) ($allocation['lot_no'] ?? '')) ?></td>
                                 <td><?= esc((string) ($allocation['expiry_date'] ?? '')) ?></td>
-                                <td><?= esc((string) ($allocation['qty_issued'] ?? '0')) ?></td>
+                                <td><?= esc(app_format_quantity($allocation['qty_issued'] ?? 0)) ?></td>
                                 <td><?= esc(number_format((float) ($allocation['unit_cost'] ?? 0), 2)) ?></td>
                                 <td><?= esc(number_format((float) ($allocation['line_total'] ?? 0), 2)) ?></td>
                             </tr>
