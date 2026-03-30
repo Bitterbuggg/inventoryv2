@@ -494,7 +494,7 @@ foreach ($usersList as $userRow) {
                         <th style="width: 250px;">User Profile</th>
                         <th style="width: 150px;">Assigned Role</th>
                         <th>Module Access</th>
-                        <th style="width: 160px; text-align: right;">Actions</th>
+                        <th class="actions" style="width: 160px; text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>

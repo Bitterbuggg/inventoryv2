@@ -128,7 +128,7 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                             Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>
                         </th>
                         <th class="sortable" data-col="5">Action By</th>
-                        <th>Actions</th>
+                        <th class="actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody>

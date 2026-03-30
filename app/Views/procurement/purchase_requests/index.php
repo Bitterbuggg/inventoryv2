@@ -129,13 +129,13 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                     <tr>
                         <th class="sortable numeric" data-col="0">ID</th>
                         <th class="sortable" data-col="1">PR Number</th>
-                        <th class="sortable" data-col="2" style="text-align: center;">Requested By</th>
+                        <th class="sortable" data-col="2">Requested By</th>
                         <th class="sortable date" data-col="3">Date</th>
                         <th class="sortable" data-col="4" id="status-header" title="Click to cycle status filters!">
                             Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>
                         </th>
                         <th>Remarks</th>
-                        <th>Actions</th>
+                        <th class="actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -151,7 +151,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                             <tr class="pr-row" style="display: none;" data-status="<?= esc(strtolower((string) ($request['status'] ?? ''))) ?>">
                                 <td style="font-weight: 800; color: #94a3b8;"><?= esc((string) $request['id']) ?></td>
                                 <td><a href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>" style="font-family: var(--font-mono); font-weight: 800; color: var(--v2-label); text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'"><?= esc((string)$request['pr_number']) ?></a></td>
-                                <td style="font-weight: 800; color: var(--v2-text-main); text-align: center;"><?= esc((string) $request['requested_by']) ?></td>
+                                <td style="font-weight: 800; color: var(--v2-text-main);"><?= esc((string) $request['requested_by']) ?></td>
                                 <td style="white-space: nowrap; font-size: 0.8rem; font-weight: 600; color: var(--v2-text-main);"><?= esc((string) $request['request_date']) ?></td>
                                 
                                 <td class="status-cell">

@@ -615,6 +615,7 @@ if ($canViewReports || $canViewAudit) {
                 });
             })();
         </script>
+        <script src="<?= base_url('assets/js/table-alignment.js') ?>"></script>
         <?= $this->renderSection('scripts') ?>
 </body>
 </html>

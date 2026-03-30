@@ -253,33 +253,6 @@
     line-height: 1.35;
 }
 
-.procurement-queue--purchase-requests #pr-table th,
-.procurement-queue--purchase-requests #pr-table td {
-    text-align: center;
-}
-
-.procurement-queue--purchase-requests #pr-table .action-row {
-    justify-content: center;
-}
-
-.procurement-queue--purchase-orders #po-table th,
-.procurement-queue--purchase-orders #po-table td {
-    text-align: center;
-}
-
-.procurement-queue--purchase-orders #po-table .action-forms-container {
-    justify-content: center;
-}
-
-.procurement-queue--po-requests #po-req-table th,
-.procurement-queue--po-requests #po-req-table td {
-    text-align: center;
-}
-
-.procurement-queue--po-requests #po-req-table .action-forms-container {
-    justify-content: center;
-}
-
 .procurement-queue .modern-table tr:hover td {
     background: #f8fafc;
 }
@@ -399,7 +372,7 @@
 }
 
 .procurement-queue .action-forms-container {
-    justify-content: flex-start;
+    justify-content: flex-end;
     flex-wrap: wrap;
 }
 

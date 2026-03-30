@@ -130,7 +130,7 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
                             Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>
                         </th>
                         <th class="sortable numeric" data-col="6">Total</th>
-                        <th>Actions</th>
+                        <th class="actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -343,7 +343,7 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
                         <th class="sortable numeric" data-col="7" style="text-align: right;">Reserved</th>
                         <th class="sortable numeric" data-col="8" style="text-align: right;">Available</th>
                         <th class="sortable numeric" data-col="9" style="text-align: right;">Avg Cost</th>
-                        <th style="text-align: right;">Action</th>
+                        <th class="actions" style="text-align: right;">Action</th>
                     </tr>
                 </thead>
                 <tbody>

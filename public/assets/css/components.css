@@ -622,6 +622,35 @@ textarea {
     white-space: nowrap;
 }
 
+table.table th.numeric,
+table.table td.is-numeric,
+table.modern-table th.numeric,
+table.modern-table td.is-numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+table.table th.center,
+table.table td.is-center,
+table.modern-table th.center,
+table.modern-table td.is-center {
+    text-align: center;
+}
+
+table.table th.actions,
+table.table td.actions,
+table.table td.is-actions,
+table.modern-table th.actions,
+table.modern-table td.is-actions {
+    text-align: right;
+    white-space: nowrap;
+}
+
+table.table td.table-empty,
+table.modern-table td.table-empty {
+    text-align: center !important;
+}
+
 .alert {
     display: flex;
     align-items: flex-start;
@@ -1237,12 +1266,6 @@ textarea {
 .action-row .btn-outline {
     order: 10;
 }
-
-.table td.actions,
-.table th.actions {
-    text-align: right;
-}
-
 
 .modal-dialog {
     background: var(--color-surface);

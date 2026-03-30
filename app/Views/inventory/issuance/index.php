@@ -301,7 +301,7 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
                         <th class="sortable" data-col="5" id="status-header" title="Click to cycle status filters!">
                             Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>
                         </th>
-                        <th style="text-align: right;">Action</th>
+                        <th class="actions" style="text-align: right;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
