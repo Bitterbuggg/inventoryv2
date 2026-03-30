@@ -93,7 +93,7 @@ This section provides a high-level overview of the project's directory and file 
 ## 2. High-Level System Diagram
 Provide a simple block diagram (e.g., a C4 Model Level 1: System Context diagram, or a basic component diagram) or a clear text-based description of the major components and their interactions. Focus on how data flows, services communicate, and key architectural boundaries.
 
-[Admin / Employee / IT Dev/Staff] <--> [CodeIgniter 4 Web App (Views + Controllers)]
+[Admin / Employee / IT Staff] <--> [CodeIgniter 4 Web App (Views + Controllers)]
                                             |
                                             v
                                   [Service Layer (Business Rules)]
@@ -155,7 +155,7 @@ Deployment: Apache via XAMPP (local development and staging)
 
 Name: Auth & RBAC Service
 
-Description: Handles signup, login, logout, session lifecycle, password hashing, role membership, granular ability checks, and tracked multi-session validation for `admin`, `employee`, and `IT dev/staff`.
+Description: Handles signup, login, logout, session lifecycle, password hashing, role membership, granular ability checks, and tracked multi-session validation for `admin`, `employee`, and `it_staff`.
 
 Key Components:
 - `AuthenticationService`: Signup, login orchestration, and password handling
@@ -230,9 +230,9 @@ Deployment: Runs inside the CodeIgniter 4 monolith on Apache/XAMPP
 
 #### 3.2.6. Inventory Reporting Service
 
-Name: Reports & Analytics Engine
+Name: Inventory Reporting Engine
 
-Description: Provides comprehensive inventory reporting with multiple report types (stock balance, movements, issuance, low stock, fast movers) and export capabilities. Includes read-model pattern for optimized analytics queries and presenters for CSV export formatting.
+Description: Provides comprehensive inventory reporting with multiple report types (stock balance, movements, issuance, low stock, fast movers) and export capabilities. Uses read models for report-specific queries and `ReportingExportPresenter` for CSV shaping.
 
 Key Components:
 - **Read Models**:
@@ -243,7 +243,6 @@ Key Components:
   - `FastMovingReportReadModel`: Most-issued items ranked by volume
 - **Exporters**:
   - `ReportingExportPresenter`: Formats all report types to CSV with proper headers and value normalization
-- Analytics query aggregation for event trends and daily metrics
 
 Technologies: PHP 8.x, CodeIgniter 4 Query Builder, CSV serialization
 
@@ -251,17 +250,35 @@ Deployment: Runs inside the CodeIgniter 4 monolith on Apache/XAMPP
 
 #### 3.2.7. Activity Logging & Analytics Service
 
-Name: Event Analytics and Audit Trail
+Name: Activity Logs and Internal Telemetry
 
-Description: Captures system activity events and provides analytics aggregation for dashboard summaries, trends, and metrics. Enables event-based audit trails for compliance and troubleshooting.
+Description: Captures controller-level system activity events, aggregates daily metrics, and powers the unified Activity Logs surface. The legacy `/analytics/dashboard`, `/analytics/events`, and `/analytics/metrics` routes now feed the same underlying screen and export pipeline.
 
 Key Components:
+- `AnalyticsService`: Writes controller-level telemetry into `analytics_events`
 - `ActivityLogQueryService`: Builds complex view data combining dashboard summaries, event listings, trends, and daily metrics
 - `AnalyticsExportPresenter`: Formats analytics events and metrics to CSV for export/reporting
+- `AnalyticsController`: Serves the Activity Logs area, legacy alias routes, and the system architecture page
 - Event filtering by module, date range, and metadata
 - Daily metrics aggregation with dimension support
 
 Technologies: PHP 8.x, CodeIgniter 4 Query Aggregation, JSON metadata storage
+
+Deployment: Runs inside the CodeIgniter 4 monolith on Apache/XAMPP
+
+#### 3.2.8. Audit Logging Service
+
+Name: Business Audit Trail
+
+Description: Stores service-level workflow transitions where the business-state change matters independently from page-view or controller telemetry. Receiving and issuance flows use this trail for traceability around approvals, posting, rejection, release, cancellation, and voiding.
+
+Key Components:
+- `AuditService`: Central write path for business audit entries
+- `AuditLogRepository`: Repository abstraction over audit storage
+- `AuditLogModel`: Direct table model for `audit_logs`
+- Receiving and issuance services: Main producers of audit events
+
+Technologies: PHP 8.x, CodeIgniter 4 Services + Repositories
 
 Deployment: Runs inside the CodeIgniter 4 monolith on Apache/XAMPP
 
@@ -305,7 +322,7 @@ Monitoring & Logging: CodeIgniter logs (`writable/logs`), Apache logs, MySQL slo
 
 Authentication: Session-based authentication with secure password hashing (`password_hash`), login validation, and session regeneration on login
 
-Authorization: `RoleFilter` protects admin-only routes, `PermissionFilter` enforces ability-based access across operational modules, and sidebar visibility mirrors granted permissions for `admin`, `employee`, and `IT dev/staff`
+Authorization: `RoleFilter` protects admin-only routes, `PermissionFilter` enforces ability-based access across operational modules, and sidebar visibility mirrors granted permissions for `admin`, `employee`, and `it_staff`
 
 Data Encryption: TLS in transit outside local environments; password hashes at rest; secure handling of `.env` secrets
 

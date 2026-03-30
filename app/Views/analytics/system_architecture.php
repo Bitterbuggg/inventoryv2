@@ -168,7 +168,7 @@ $systemFlow = [
         'summary' => 'The final layer reads the operational trail to explain what happened, who did it, and how often it occurs.',
         'happens' => [
             'ReportingService reads stock balances, movement history, issuance summaries, low-stock rows, and fast-moving items directly from transactional tables.',
-            'AnalyticsController and AnalyticsService record controller-level telemetry into analytics_events and aggregate daily metrics.',
+            'AnalyticsController and AnalyticsService record controller-level telemetry into analytics_events, aggregate daily metrics, and route the legacy dashboard/events/metrics URLs into the unified Activity Logs surface.',
             'AuditService records service-level state transitions for critical workflows like receiving and issuance.',
             'This page sits in the same internal reference area as Activity Logs.',
         ],
@@ -291,7 +291,7 @@ $moduleCards = [
     ],
     [
         'title' => 'Analytics and Internal Telemetry',
-        'purpose' => 'Captures controller-level events, aggregates daily metrics, and exposes analytics screens and exports.',
+        'purpose' => 'Captures controller-level events, aggregates daily metrics, and powers the unified Activity Logs area plus its legacy analytics aliases.',
         'controllers' => ['Analytics\\AnalyticsController'],
         'services' => ['AnalyticsService', 'ActivityLogQueryService', 'AnalyticsExportPresenter'],
         'repositories' => ['AnalyticsRepository'],
@@ -386,7 +386,7 @@ $moduleFlowcharts = [
         'A controller action emits an analytics event.',
         'The event is stored in analytics_events.',
         'Aggregation builds daily metrics from raw activity.',
-        'A user with audit.view reviews logs, metrics, and this reference page.',
+        'A user with audit.view reviews the unified Activity Logs screen, its legacy aliases, and this reference page.',
     ],
     'Audit Logging' => [
         'A critical workflow transition occurs inside a service.',
@@ -414,9 +414,9 @@ $roleJourneys = [
     ],
     [
         'role' => 'IT Staff',
-        'summary' => 'Operational support role focused on approvals, receiving, inventory monitoring, reports, and analytics.',
+        'summary' => 'Default operational support role focused on purchase-request approvals, receiving, inventory monitoring, reports, and analytics.',
         'access' => ['Procurement', 'Receiving', 'Inventory', 'Reports', 'Analytics'],
-        'boundary' => 'The default IT staff role focuses on approvals, receiving, inventory review, reports, and analytics, but explicit permission grants can widen that scope.',
+        'boundary' => 'The default IT staff role can approve purchase requests and operate receiving and inventory review flows, but PO-request management and issuance release still require explicit extra permissions.',
         'flow' => [
             'Log in and open procurement or receiving work queues.',
             'Review submitted purchase requests and approve or reject them.',
@@ -470,6 +470,8 @@ $implementationNotes = [
     'PurchaseOrderController no longer pre-scans the order list to block duplicate PR conversion. Duplicate purchase-order prevention now stays inside PurchaseOrderService as the single source of truth, while the controller only remaps the domain error into a cleaner flash message.',
     'Procurement controllers now delegate approval-list enrichment, procurement status-label presentation, and CSV payload shaping to ProcurementListPresenter and ProcurementExportPresenter instead of carrying those display maps and export schemas inline.',
     'The Activity Logs page is the current unified analytics surface for overview, event logs, and metrics. The older dashboard, events, and metrics routes still map into that area.',
+    'Controller-level analytics and service-level audit logging are intentionally separate pipelines, so analytics_events captures page and action telemetry while audit_logs captures business-state transitions such as receiving posts, voids, approvals, rejections, and releases.',
+    'Presenter-based CSV shaping is adopted in procurement, reporting, and analytics, but admin user exports plus some receiving and issuance exports still generate CSV rows inline inside their controllers.',
     'Admin user creation now uses only real base roles. Granular permission overrides are still available, but they no longer rely on a pseudo custom role.',
 ];
 ?>
