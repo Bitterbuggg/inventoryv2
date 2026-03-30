@@ -104,42 +104,63 @@ $pageSubtitle = $pageSubtitle ?? null;
                 button.dataset.lastClickAt = String(now);
             }, true);
         })();
+
+        (function () {
+            document.querySelectorAll('.alert[data-auto-dismiss]').forEach(function (alert) {
+                const ms = parseInt(alert.dataset.autoDismiss, 10) || 5000;
+
+                const dismiss = function () {
+                    alert.classList.add('alert-dismissing');
+                    setTimeout(function () { alert.remove(); }, 350);
+                };
+
+                setTimeout(dismiss, ms);
+            });
+
+            document.addEventListener('click', function (event) {
+                const button = event.target.closest('.alert-close');
+                if (!button) {
+                    return;
+                }
+
+                const alert = button.closest('.alert');
+                if (!alert) {
+                    return;
+                }
+
+                alert.classList.add('alert-dismissing');
+                setTimeout(function () { alert.remove(); }, 350);
+            });
+        })();
+
+        (function () {
+            document.addEventListener('click', function (event) {
+                const button = event.target.closest('[data-pw-toggle]');
+                if (!button) {
+                    return;
+                }
+
+                const input = document.getElementById(button.dataset.pwToggle);
+                if (!input) {
+                    return;
+                }
+
+                const isHidden = input.type === 'password';
+                input.type = isHidden ? 'text' : 'password';
+                button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+
+                const eyeIcon = button.querySelector('.icon-eye');
+                const eyeOff = button.querySelector('.icon-eye-off');
+                if (eyeIcon) {
+                    eyeIcon.style.display = isHidden ? 'none' : '';
+                }
+
+                if (eyeOff) {
+                    eyeOff.style.display = isHidden ? '' : 'none';
+                }
+            });
+        })();
     </script>
-
-            // Auto-dismiss alerts
-            (function () {
-                document.querySelectorAll('.alert[data-auto-dismiss]').forEach(function (alert) {
-                    const ms = parseInt(alert.dataset.autoDismiss, 10) || 5000;
-                    setTimeout(function () {
-                        alert.classList.add('alert-dismissing');
-                        setTimeout(function () { alert.remove(); }, 350);
-                    }, ms);
-                });
-                document.addEventListener('click', function (e) {
-                    const btn = e.target.closest('.alert-close');
-                    if (btn) {
-                        const a = btn.closest('.alert');
-                        if (a) { a.classList.add('alert-dismissing'); setTimeout(function () { a.remove(); }, 350); }
-                    }
-                });
-            })();
-
-            // Password visibility toggle
-            (function () {
-                document.addEventListener('click', function (e) {
-                    const btn = e.target.closest('[data-pw-toggle]');
-                    if (!btn) return;
-                    const input = document.getElementById(btn.dataset.pwToggle);
-                    if (!input) return;
-                    const isHidden = input.type === 'password';
-                    input.type = isHidden ? 'text' : 'password';
-                    btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
-                    const eyeIcon = btn.querySelector('.icon-eye');
-                    const eyeOff  = btn.querySelector('.icon-eye-off');
-                    if (eyeIcon) eyeIcon.style.display = isHidden ? 'none' : '';
-                    if (eyeOff)  eyeOff.style.display  = isHidden ? '' : 'none';
-                });
-            })();
-        </script>
+    <?= $this->renderSection('scripts') ?>
 </body>
 </html>

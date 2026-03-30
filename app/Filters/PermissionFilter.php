@@ -38,7 +38,7 @@ class PermissionFilter implements FilterInterface
             }
         }
 
-        return service('response')->setStatusCode(403, 'Forbidden');
+        return app_forbidden_response(service('response'));
     }
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)

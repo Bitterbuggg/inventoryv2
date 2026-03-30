@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filters;
 
 use CodeIgniter\Filters\FilterInterface;
@@ -36,7 +38,7 @@ class RoleFilter implements FilterInterface
             }
         }
 
-        return service('response')->setStatusCode(403, 'Forbidden');
+        return app_forbidden_response(service('response'));
     }
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
