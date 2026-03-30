@@ -192,7 +192,7 @@
 .procurement-queue .table-scroll-container {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
+    overflow: auto;
     background: #ffffff;
 }
 
@@ -224,6 +224,60 @@
     color: var(--v2-text-main);
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
+}
+
+.procurement-queue .status-cell,
+.procurement-queue .remarks-cell {
+    min-width: 0;
+}
+
+.procurement-queue .status-cell {
+    white-space: nowrap;
+}
+
+.procurement-queue .status-cell .status-badge,
+.procurement-queue .status-cell .status-badge-special {
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+.procurement-queue .remarks-cell {
+    color: var(--v2-text-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+}
+
+.procurement-queue--purchase-requests #pr-table th,
+.procurement-queue--purchase-requests #pr-table td {
+    text-align: center;
+}
+
+.procurement-queue--purchase-requests #pr-table .action-row {
+    justify-content: center;
+}
+
+.procurement-queue--purchase-orders #po-table th,
+.procurement-queue--purchase-orders #po-table td {
+    text-align: center;
+}
+
+.procurement-queue--purchase-orders #po-table .action-forms-container {
+    justify-content: center;
+}
+
+.procurement-queue--po-requests #po-req-table th,
+.procurement-queue--po-requests #po-req-table td {
+    text-align: center;
+}
+
+.procurement-queue--po-requests #po-req-table .action-forms-container {
+    justify-content: center;
 }
 
 .procurement-queue .modern-table tr:hover td {
@@ -469,12 +523,17 @@
 .procurement-queue .action-badge-success,
 .procurement-queue .action-badge-waiting,
 .procurement-queue .action-badge-done {
+    display: inline-block;
+    max-width: 100%;
     padding: 3px 10px;
     font-size: 0.7rem;
     font-weight: 800;
     border-radius: 4px;
     text-transform: uppercase;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
 }
 
 .procurement-queue .action-badge-neutral,
@@ -569,6 +628,7 @@
 }
 
 .procurement-queue .status-badge-special {
+    max-width: 100%;
     padding: 3px 10px;
     font-size: 0.7rem;
     font-weight: 800;
@@ -577,6 +637,9 @@
     display: inline-block;
     letter-spacing: 0.05em;
     text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
 }
 
 .procurement-queue .status-badge-special--sky {

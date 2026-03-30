@@ -115,27 +115,27 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
         </div>
 
         <div class="table-scroll-container">
-            <table class="modern-table" id="pr-table" style="table-layout: fixed; width: 100%;">
+            <table class="modern-table" id="pr-table" style="table-layout: fixed; width: 100%; min-width: 1320px;">
                 <colgroup>
-                    <col style="width: 5%;">  
-                    <col style="width: 14%;">   
-                    <col style="width: 14%;">   
-                    <col style="width: 10%;">   
-                    <col style="width: 11%;">   
-                    <col style="width: 16%;">    
-                    <col style="width: 30%;"> 
+                    <col style="width: 6%;">  
+                    <col style="width: 16%;">   
+                    <col style="width: 15%;">   
+                    <col style="width: 12%;">   
+                    <col style="width: 15%;">   
+                    <col style="width: 18%;">    
+                    <col style="width: 18%;"> 
                 </colgroup>
                 <thead>
                     <tr>
                         <th class="sortable numeric" data-col="0">ID</th>
                         <th class="sortable" data-col="1">PR Number</th>
-                        <th class="sortable" data-col="2">Requested By</th>
+                        <th class="sortable" data-col="2" style="text-align: center;">Requested By</th>
                         <th class="sortable date" data-col="3">Date</th>
                         <th class="sortable" data-col="4" id="status-header" title="Click to cycle status filters!">
                             Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>
                         </th>
                         <th>Remarks</th>
-                        <th style="text-align: right;">Actions</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -151,12 +151,12 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                             <tr class="pr-row" style="display: none;" data-status="<?= esc(strtolower((string) ($request['status'] ?? ''))) ?>">
                                 <td style="font-weight: 800; color: #94a3b8;"><?= esc((string) $request['id']) ?></td>
                                 <td><a href="<?= site_url('procurement/purchase-requests/' . $request['id']) ?>" style="font-family: var(--font-mono); font-weight: 800; color: var(--v2-label); text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'"><?= esc((string)$request['pr_number']) ?></a></td>
-                                <td style="font-weight: 800; color: var(--v2-text-main);"><?= esc((string) $request['requested_by']) ?></td>
+                                <td style="font-weight: 800; color: var(--v2-text-main); text-align: center;"><?= esc((string) $request['requested_by']) ?></td>
                                 <td style="white-space: nowrap; font-size: 0.8rem; font-weight: 600; color: var(--v2-text-main);"><?= esc((string) $request['request_date']) ?></td>
                                 
-                                <td>
+                                <td class="status-cell">
                                     <?php if ((bool) ($request['uses_special_status_badge'] ?? false)): ?>
-                                        <span class="status-badge-special status-badge-special--sky"><?= esc((string) ($request['status_label'] ?? 'Converted to PO')) ?></span>
+                                        <span class="status-badge-special status-badge-special--sky" title="<?= esc((string) ($request['status_label'] ?? 'Converted to PO')) ?>"><?= esc((string) ($request['status_label'] ?? 'Converted to PO')) ?></span>
                                     <?php else: ?>
                                         <?= view('components/shared/table_status_badge', [
                                             'status' => $request['status'] ?? 'unknown',
@@ -165,7 +165,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                     <?php endif ?>
                                 </td>
                                 
-                                <td style="color: var(--v2-text-muted); font-size: 0.8rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= esc((string) ($request['remarks'] ?? '')) ?>"><?= esc((string) ($request['remarks'] ?? '')) ?></td>
+                                <td class="remarks-cell" title="<?= esc((string) ($request['remarks'] ?? '')) ?>"><?= esc((string) ($request['remarks'] ?? '')) ?></td>
                                 
                                 <td>
                                     <div class="action-row">

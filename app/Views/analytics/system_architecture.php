@@ -505,12 +505,17 @@ $implementationNotes = [
             linear-gradient(135deg, rgba(3, 4, 94, 0.06), rgba(0, 119, 182, 0.03));
     }
 
-    .architecture-hero .page-subtitle,
     .card .page-subtitle,
     .muted {
         max-width: 78ch;
         line-height: 1.6;
         overflow-wrap: anywhere;
+    }
+
+    .architecture-hero .page-subtitle {
+        max-width: none;
+        line-height: 1.6;
+        text-wrap: wrap;
     }
 
     .architecture-page p,
@@ -891,11 +896,6 @@ $implementationNotes = [
         }
     }
 </style>
-<?= $this->endSection() ?>
-
-<?= $this->section('page_actions') ?>
-<a class="btn btn-outline" href="<?= site_url('analytics/activity-logs') ?>">Activity Logs</a>
-<a class="btn btn-outline" href="<?= site_url('analytics/dashboard') ?>">Analytics Dashboard</a>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>

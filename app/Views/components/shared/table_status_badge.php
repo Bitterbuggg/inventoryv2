@@ -10,6 +10,6 @@ $statusClass = $statusClass !== '' ? $statusClass : 'unknown';
 $label = $label ?? str_replace('_', ' ', $statusText);
 $label = ucwords((string) $label);
 ?>
-<span class="status-badge status-<?= esc($statusClass) ?>">
+<span class="status-badge status-<?= esc($statusClass) ?>" title="<?= esc((string) $label) ?>">
     <?= esc((string) $label) ?>
 </span>

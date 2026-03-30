@@ -86,7 +86,7 @@ $prApprovals = count(array_filter($rows, static fn (array $row): bool => (string
         </div>
 
         <div class="table-scroll-container">
-            <table class="modern-table" id="approvals-table" style="table-layout: fixed; width: 100%;">
+            <table class="modern-table" id="approvals-table" style="table-layout: fixed; width: 100%; min-width: 980px;">
                 <colgroup>
                     <col style="width: 5%;">  
                     <col style="width: 30%;">   

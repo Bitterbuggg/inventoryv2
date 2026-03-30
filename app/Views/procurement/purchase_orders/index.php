@@ -129,8 +129,8 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
                         <th class="sortable" data-col="5" id="status-header">
                             Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>
                         </th>
-                        <th class="sortable numeric" data-col="6" style="text-align: right;">Total</th>
-                        <th style="text-align: right;">Actions</th>
+                        <th class="sortable numeric" data-col="6">Total</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -156,7 +156,7 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
                                     </span>
                                 </td>
                                 
-                                <td style="text-align: right; font-family: var(--font-mono); font-weight: 700; color: var(--v2-title);">
+                                <td style="font-family: var(--font-mono); font-weight: 700; color: var(--v2-title);">
                                     <?= esc(number_format((float) ($order['total_amount'] ?? 0), 2)) ?>
                                 </td>
                                 

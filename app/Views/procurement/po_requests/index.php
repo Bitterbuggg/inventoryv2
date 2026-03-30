@@ -179,7 +179,7 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                 
                                 <td>
                                     <?php if ((bool) ($poRequest['uses_special_status_badge'] ?? false)): ?>
-                                        <span class="status-badge-special status-badge-special--indigo"><?= esc((string) ($poRequest['status_label'] ?? 'Converted to Receiving')) ?></span>
+                                        <span class="status-badge-special status-badge-special--indigo" title="<?= esc((string) ($poRequest['status_label'] ?? 'Converted to Receiving')) ?>"><?= esc((string) ($poRequest['status_label'] ?? 'Converted to Receiving')) ?></span>
                                     <?php else: ?>
                                         <?= view('components/shared/table_status_badge', [
                                             'status' => $poRequest['status'] ?? 'unknown',
