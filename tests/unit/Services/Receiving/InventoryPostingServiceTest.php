@@ -1,7 +1,7 @@
 <?php
 
+use App\Repositories\Contracts\Inventory\InventoryStockRepositoryInterface;
 use App\Repositories\Contracts\Procurement\PurchaseOrderRepositoryInterface;
-use App\Repositories\Contracts\Receiving\InventoryStockRepositoryInterface;
 use App\Services\Receiving\InventoryPostingService;
 use App\Services\Receiving\StockMovementService;
 use CodeIgniter\Test\CIUnitTestCase;

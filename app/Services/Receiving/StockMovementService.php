@@ -2,7 +2,7 @@
 
 namespace App\Services\Receiving;
 
-use App\Repositories\Contracts\Receiving\StockMovementRepositoryInterface;
+use App\Repositories\Contracts\Inventory\StockMovementRepositoryInterface;
 
 class StockMovementService
 {
@@ -15,8 +15,7 @@ class StockMovementService
      */
     public function recordReceivingMovement(array $data): int
     {
-        return $this->stockMovements->create([
-            'movement_number'   => $this->generateMovementNumber(),
+        $movementData = [
             'movement_type'     => 'receiving',
             'reference_type'    => 'receiving',
             'reference_id'      => (int) ($data['reference_id'] ?? 0),
@@ -30,13 +29,85 @@ class StockMovementService
             'performed_by'      => (int) ($data['performed_by'] ?? 0),
             'performed_at'      => date('Y-m-d H:i:s'),
             'remarks'           => $data['remarks'] ?? null,
-        ]);
+        ];
+
+        if (($data['product_id'] ?? null) !== null) {
+            $movementData['product_id'] = (int) $data['product_id'];
+        }
+
+        return $this->createMovement('MOV', $movementData);
     }
 
-    private function generateMovementNumber(): string
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function recordAdjustmentOutMovement(array $data): int
+    {
+        $movementData = [
+            'movement_type'      => 'adjustment_out',
+            'reference_type'     => 'manual_adjustment',
+            'reference_id'       => null,
+            'item_name'          => (string) ($data['item_name'] ?? ''),
+            'inventory_stock_id' => (int) ($data['inventory_stock_id'] ?? 0),
+            'unit'               => (string) ($data['unit'] ?? 'unit'),
+            'qty_in'             => 0,
+            'qty_out'            => (float) ($data['qty_out'] ?? 0),
+            'balance_after'      => (float) ($data['balance_after'] ?? 0),
+            'unit_cost'          => (float) ($data['unit_cost'] ?? 0),
+            'performed_by'       => (int) ($data['performed_by'] ?? 0),
+            'performed_at'       => date('Y-m-d H:i:s'),
+            'remarks'            => 'Stock Disposal: ' . trim((string) ($data['reason'] ?? '')),
+        ];
+
+        if (($data['product_id'] ?? null) !== null) {
+            $movementData['product_id'] = (int) $data['product_id'];
+        }
+
+        return $this->createMovement('MOVADJ', $movementData);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function recordIssuanceMovement(array $data): int
+    {
+        $movementData = [
+            'movement_type'      => 'issuance',
+            'reference_type'     => 'issuance',
+            'reference_id'       => (int) ($data['reference_id'] ?? 0),
+            'item_name'          => (string) ($data['item_name'] ?? ''),
+            'inventory_stock_id' => (int) ($data['inventory_stock_id'] ?? 0),
+            'unit'               => (string) ($data['unit'] ?? 'unit'),
+            'qty_in'             => 0,
+            'qty_out'            => (float) ($data['qty_out'] ?? 0),
+            'balance_after'      => (float) ($data['balance_after'] ?? 0),
+            'unit_cost'          => (float) ($data['unit_cost'] ?? 0),
+            'performed_by'       => (int) ($data['performed_by'] ?? 0),
+            'performed_at'       => date('Y-m-d H:i:s'),
+            'remarks'            => $data['remarks'] ?? 'Issuance release',
+        ];
+
+        if (($data['product_id'] ?? null) !== null) {
+            $movementData['product_id'] = (int) $data['product_id'];
+        }
+
+        return $this->createMovement('MOVOUT', $movementData);
+    }
+
+    /**
+     * @param array<string, mixed> $movementData
+     */
+    private function createMovement(string $prefix, array $movementData): int
+    {
+        $movementData['movement_number'] = $this->generateMovementNumber($prefix);
+
+        return $this->stockMovements->create($movementData);
+    }
+
+    private function generateMovementNumber(string $prefix): string
     {
         do {
-            $number = 'MOV-' . date('Ymd-His') . '-' . substr((string)round(microtime(true) * 1000), -4);
+            $number = $prefix . '-' . date('Ymd-His') . '-' . substr((string) round(microtime(true) * 1000), -4);
         } while ($this->stockMovements->findByNumber($number) !== null);
 
         return $number;

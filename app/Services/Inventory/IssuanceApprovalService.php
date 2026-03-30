@@ -3,14 +3,14 @@
 namespace App\Services\Inventory;
 
 use App\Repositories\Contracts\Inventory\IssuanceRepositoryInterface;
-use App\Repositories\Contracts\Procurement\ApprovalRepositoryInterface;
 use App\Services\Shared\AuditService;
+use App\Services\Shared\ApprovalWorkflowService;
 
 class IssuanceApprovalService
 {
     public function __construct(
         private readonly IssuanceRepositoryInterface $issuances,
-        private readonly ApprovalRepositoryInterface $approvals,
+        private readonly ApprovalWorkflowService $approvalWorkflow,
         private readonly AuditService $audit,
     ) {
     }
@@ -27,20 +27,15 @@ class IssuanceApprovalService
             throw new \DomainException('Only submitted issuances can be approved.');
         }
 
-        $pendingApproval = $this->approvals->findPendingByReference('issuance', $issuanceId);
+        $resolvedApproval = $this->approvalWorkflow->resolvePendingApprovalByReference(
+            'issuance',
+            $issuanceId,
+            $approverId,
+            'approved',
+            $comments,
+        );
 
-        if ($pendingApproval === null) {
-            throw new \DomainException('Pending approval record for issuance was not found.');
-        }
-
-        $now = date('Y-m-d H:i:s');
-
-        $this->approvals->update((int) $pendingApproval['id'], [
-            'approver_id' => $approverId,
-            'decision'    => 'approved',
-            'decision_at' => $now,
-            'comments'    => $this->nullableString($comments),
-        ]);
+        $now = (string) ($resolvedApproval['decision_at'] ?? date('Y-m-d H:i:s'));
 
         $this->issuances->update($issuanceId, [
             'status'           => 'approved',
@@ -58,7 +53,7 @@ class IssuanceApprovalService
             referenceType: 'issuance',
             referenceId: $issuanceId,
             oldValues: ['status' => 'submitted'],
-            newValues: ['status' => 'approved', 'comments' => $this->nullableString($comments)],
+            newValues: ['status' => 'approved', 'comments' => $resolvedApproval['comments'] ?? null],
         );
     }
 
@@ -80,20 +75,15 @@ class IssuanceApprovalService
             throw new \DomainException('Only submitted issuances can be rejected.');
         }
 
-        $pendingApproval = $this->approvals->findPendingByReference('issuance', $issuanceId);
+        $resolvedApproval = $this->approvalWorkflow->resolvePendingApprovalByReference(
+            'issuance',
+            $issuanceId,
+            $approverId,
+            'rejected',
+            $reason,
+        );
 
-        if ($pendingApproval === null) {
-            throw new \DomainException('Pending approval record for issuance was not found.');
-        }
-
-        $now = date('Y-m-d H:i:s');
-
-        $this->approvals->update((int) $pendingApproval['id'], [
-            'approver_id' => $approverId,
-            'decision'    => 'rejected',
-            'decision_at' => $now,
-            'comments'    => $reason,
-        ]);
+        $now = (string) ($resolvedApproval['decision_at'] ?? date('Y-m-d H:i:s'));
 
         $this->issuances->update($issuanceId, [
             'status'           => 'rejected',
@@ -111,13 +101,6 @@ class IssuanceApprovalService
             oldValues: ['status' => 'submitted'],
             newValues: ['status' => 'rejected', 'reason' => $reason],
         );
-    }
-
-    private function nullableString(?string $value): ?string
-    {
-        $text = trim((string) $value);
-
-        return $text === '' ? null : $text;
     }
 
     /**

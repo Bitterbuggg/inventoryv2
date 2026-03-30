@@ -15,7 +15,7 @@ class PurchaseRequestController extends BaseController
     public function index(): string|ResponseInterface
     {
         $status = trim((string) $this->request->getGet('status'));
-        $requests = RepositoryServices::purchaseRequestService()->list($status === '' ? null : $status);
+        $requests = RepositoryServices::procurementListPresenter()->listPurchaseRequests($status === '' ? null : $status);
 
         RepositoryServices::analyticsService()->trackCurrentUser(
             'procurement.pr_list_viewed',
@@ -26,23 +26,20 @@ class PurchaseRequestController extends BaseController
         );
 
         if ($this->shouldExportCsv()) {
+            $csv = RepositoryServices::procurementExportPresenter()->purchaseRequestsCsv($requests);
+
             return $this->csvResponse(
-                'purchase_requests_' . date('Ymd_His') . '.csv',
-                ['ID', 'PR Number', 'Requested By', 'Request Date', 'Status', 'Remarks'],
-                array_map(static fn (array $row): array => [
-                    (string) ($row['id'] ?? ''),
-                    (string) ($row['pr_number'] ?? ''),
-                    (string) ($row['requested_by'] ?? ''),
-                    (string) ($row['request_date'] ?? ''),
-                    (string) ($row['status'] ?? ''),
-                    (string) ($row['remarks'] ?? ''),
-                ], $requests),
+                $csv['filename'],
+                $csv['headers'],
+                $csv['rows'],
             );
         }
 
         return view('procurement/purchase_requests/index', [
-            'requests' => $requests,
-            'status'   => $status,
+            'requests'      => $requests,
+            'status'        => $status,
+            'statusOptions' => RepositoryServices::procurementListPresenter()->purchaseRequestStatusOptions(),
+            'suppliers'     => RepositoryServices::purchaseOrderService()->listActiveSuppliers(),
         ]);
     }
 
@@ -68,18 +65,8 @@ class PurchaseRequestController extends BaseController
 
     public function create()
     {
-        // Connect to your database
-        $db = \Config\Database::connect();
-        
-        // Fetch unique item names currently in your inventory to populate the dropdown
-        $query = $db->table('inventory_stocks')->select('item_name')->distinct()->orderBy('item_name', 'ASC')->get();
-        $existingItems = $query->getResultArray();
-        
-        // Convert the database results into a simple array of strings
-        $itemsList = array_column($existingItems, 'item_name');
-
         return view('procurement/purchase_requests/create', [
-            'dbItems' => $itemsList
+            'products' => RepositoryServices::purchaseRequestService()->listFormProducts(),
         ]);
     }
 
@@ -97,6 +84,10 @@ class PurchaseRequestController extends BaseController
 
         return view('procurement/purchase_requests/edit', [
             'purchaseRequest' => $purchaseRequest,
+            'products'        => RepositoryServices::purchaseRequestService()->listFormProducts(array_map(
+                static fn (array $item): int => (int) ($item['product_id'] ?? 0),
+                (array) ($purchaseRequest['items'] ?? []),
+            )),
         ]);
     }
 
@@ -109,17 +100,15 @@ class PurchaseRequestController extends BaseController
         }
 
         $rows = $purchaseRequest['items'] ?? [];
+        $csv = RepositoryServices::procurementExportPresenter()->purchaseRequestItemsCsv(
+            (string) ($purchaseRequest['pr_number'] ?? $id),
+            $rows,
+        );
 
         return $this->csvResponse(
-            'purchase_request_items_' . ((string) ($purchaseRequest['pr_number'] ?? $id)) . '.csv',
-            ['Item Name', 'Requested Qty', 'Unit', 'Estimated Unit Cost', 'Notes'],
-            array_map(static fn (array $row): array => [
-                (string) ($row['item_name'] ?? ''),
-                (string) ($row['requested_qty'] ?? '0'),
-                (string) ($row['unit'] ?? ''),
-                number_format((float) ($row['estimated_unit_cost'] ?? 0), 2, '.', ''),
-                (string) ($row['notes'] ?? ''),
-            ], $rows),
+            $csv['filename'],
+            $csv['headers'],
+            $csv['rows'],
         );
     }
 
@@ -240,6 +229,7 @@ class PurchaseRequestController extends BaseController
      */
     private function extractItemsFromPost(): array
     {
+        $productIds         = (array) $this->request->getPost('product_id');
         $itemNames          = (array) $this->request->getPost('item_name');
         $requestedQuantites = (array) $this->request->getPost('requested_qty');
         $units              = (array) $this->request->getPost('unit');
@@ -248,11 +238,14 @@ class PurchaseRequestController extends BaseController
 
         $items = [];
 
-        foreach ($itemNames as $index => $itemName) {
+        $rowCount = max(count($productIds), count($itemNames), count($requestedQuantites));
+
+        for ($index = 0; $index < $rowCount; $index++) {
             $items[] = [
-                'item_name'           => (string) $itemName,
+                'product_id'          => $productIds[$index] ?? null,
+                'item_name'           => $itemNames[$index] ?? null,
+                'unit'                => $units[$index] ?? null,
                 'requested_qty'       => $requestedQuantites[$index] ?? null,
-                'unit'                => $units[$index] ?? 'unit',
                 'estimated_unit_cost' => $estimatedUnitCosts[$index] ?? null,
                 'notes'               => $notes[$index] ?? null,
             ];

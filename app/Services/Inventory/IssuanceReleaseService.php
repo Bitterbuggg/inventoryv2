@@ -6,7 +6,7 @@ use App\Repositories\Contracts\Inventory\IssuanceItemAllocationRepositoryInterfa
 use App\Repositories\Contracts\Inventory\IssuanceItemRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceRepositoryInterface;
 use App\Repositories\Contracts\Inventory\InventoryStockRepositoryInterface;
-use App\Repositories\Contracts\Inventory\StockMovementRepositoryInterface;
+use App\Services\Receiving\StockMovementService;
 use App\Services\Shared\AuditService;
 use CodeIgniter\Database\BaseConnection;
 
@@ -17,7 +17,7 @@ class IssuanceReleaseService
         private readonly IssuanceItemRepositoryInterface $issuanceItems,
         private readonly IssuanceItemAllocationRepositoryInterface $issuanceItemAllocations,
         private readonly InventoryStockRepositoryInterface $inventoryStocks,
-        private readonly StockMovementRepositoryInterface $stockMovements,
+        private readonly StockMovementService $movementRecorder,
         private readonly InventoryAvailabilityService $availability,
         private readonly AuditService $audit,
         private readonly BaseConnection $db,
@@ -52,6 +52,7 @@ class IssuanceReleaseService
 
         try {
             foreach ($items as $item) {
+                $productId    = (int) ($item['product_id'] ?? 0) ?: null;
                 $itemName     = (string) ($item['item_name'] ?? '');
                 $unit         = (string) ($item['unit'] ?? 'unit');
                 $requestedQty = (float) ($item['requested_qty'] ?? 0);
@@ -93,24 +94,20 @@ class IssuanceReleaseService
                         'last_movement_at' => date('Y-m-d H:i:s'),
                     ]);
 
-                    $this->stockMovements->create([
-                        'movement_number'    => $this->generateMovementNumber(),
-                        'movement_type'      => 'issuance',
-                        'reference_type'     => 'issuance',
+                    $this->movementRecorder->recordIssuanceMovement([
+                        'product_id'         => $productId ?? $stock['product_id'] ?? null,
                         'reference_id'       => $issuanceId,
                         'item_name'          => $itemName,
                         'inventory_stock_id' => $stockId,
                         'unit'               => $unit,
-                        'qty_in'             => 0,
                         'qty_out'            => $qty,
                         'balance_after'      => $newOnHandQty,
                         'unit_cost'          => $unitCost,
                         'performed_by'       => $actorId,
-                        'performed_at'       => date('Y-m-d H:i:s'),
                         'remarks'            => 'Issuance release',
                     ]);
 
-                    $this->issuanceItemAllocations->create([
+                    $allocationData = [
                         'issuance_id'        => $issuanceId,
                         'issuance_item_id'   => (int) ($item['id'] ?? 0),
                         'inventory_stock_id' => $stockId,
@@ -122,7 +119,13 @@ class IssuanceReleaseService
                         'qty_issued'         => $qty,
                         'unit_cost'          => $unitCost,
                         'line_total'         => round($qty * $unitCost, 2),
-                    ]);
+                    ];
+
+                    if ($productId !== null || ($stock['product_id'] ?? null) !== null) {
+                        $allocationData['product_id'] = $productId ?? $stock['product_id'];
+                    }
+
+                    $this->issuanceItemAllocations->create($allocationData);
 
                     $issuedQty += $qty;
                     $totalCost += ($qty * $unitCost);
@@ -192,15 +195,6 @@ class IssuanceReleaseService
                 'total_cost'    => round((float) $releasedSummary['total_cost'], 2),
             ],
         );
-    }
-
-    private function generateMovementNumber(): string
-    {
-        do {
-            $number = 'MOVOUT-' . date('Ymd-His') . '-' . substr((string)round(microtime(true) * 1000), -4);
-        } while ($this->stockMovements->findByNumber($number) !== null);
-
-        return $number;
     }
 
     /**

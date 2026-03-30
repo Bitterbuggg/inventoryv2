@@ -12,6 +12,7 @@ class IssuanceItemModel extends Model
     protected $useTimestamps = true;
     protected $allowedFields = [
         'issuance_id',
+        'product_id',
         'item_name',
         'unit',
         'inventory_stock_id',

@@ -16,7 +16,7 @@ class ReceivingItemRepository implements ReceivingItemRepositoryInterface
         $rows = [];
 
         foreach ($items as $item) {
-            $rows[] = [
+            $row = [
                 'receiving_id'          => $receivingId,
                 'purchase_order_item_id' => $item['purchase_order_item_id'] ?? 0,
                 'item_name'             => $item['item_name'] ?? '',
@@ -31,6 +31,12 @@ class ReceivingItemRepository implements ReceivingItemRepositoryInterface
                 'line_total'            => $item['line_total'] ?? 0,
                 'remarks'               => $item['remarks'] ?? null,
             ];
+
+            if (($item['product_id'] ?? null) !== null) {
+                $row['product_id'] = $item['product_id'];
+            }
+
+            $rows[] = $row;
         }
 
         $this->newModel()->insertBatch($rows);

@@ -13,6 +13,7 @@ class PurchaseOrderItemModel extends Model
     protected $allowedFields = [
         'purchase_order_id',
         'purchase_request_item_id',
+        'product_id',
         'item_name',
         'unit',
         'ordered_qty',

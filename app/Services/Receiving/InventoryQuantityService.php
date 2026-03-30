@@ -2,14 +2,15 @@
 
 namespace App\Services\Receiving;
 
-use App\Repositories\Contracts\Receiving\InventoryStockRepositoryInterface;
-use App\Repositories\Contracts\Receiving\StockMovementRepositoryInterface;
+use App\Repositories\Contracts\Inventory\InventoryStockRepositoryInterface;
+use App\Repositories\Contracts\Inventory\StockMovementRepositoryInterface;
 
 class InventoryQuantityService
 {
     public function __construct(
         private readonly InventoryStockRepositoryInterface $inventoryStocks,
         private readonly StockMovementRepositoryInterface $stockMovements,
+        private readonly StockMovementService $movementRecorder,
         private readonly \CodeIgniter\Database\BaseConnection $db,
     ) {
     }
@@ -54,6 +55,11 @@ class InventoryQuantityService
         }
 
         $onHandQty = (float)($stock['on_hand_qty'] ?? 0);
+
+        if ($qty <= 0) {
+            throw new \DomainException('Adjustment quantity must be greater than zero.');
+        }
+
         if ($qty > $onHandQty) {
             throw new \DomainException('Requested adjustment quantity exceeds physical on-hand stock.');
         }
@@ -70,21 +76,16 @@ class InventoryQuantityService
                 'last_movement_at' => date('Y-m-d H:i:s')
             ]);
 
-            $this->stockMovements->create([
-                'movement_number'    => $this->generateMovementNumber(),
-                'movement_type'      => 'adjustment_out',
-                'reference_type'     => 'manual_adjustment',
-                'reference_id'       => null,
+            $this->movementRecorder->recordAdjustmentOutMovement([
+                'product_id'         => (int) ($stock['product_id'] ?? 0) ?: null,
                 'item_name'          => (string)$stock['item_name'],
                 'inventory_stock_id' => $stockId,
                 'unit'               => (string)$stock['unit'],
-                'qty_in'             => 0,
                 'qty_out'            => $qty,
                 'balance_after'      => $newOnHand,
                 'unit_cost'          => (float)$stock['average_unit_cost'],
                 'performed_by'       => $actorId,
-                'performed_at'       => date('Y-m-d H:i:s'),
-                'remarks'            => "Stock Disposal: " . $reason,
+                'reason'             => $reason,
             ]);
 
             $this->db->transCommit();
@@ -92,14 +93,5 @@ class InventoryQuantityService
             $this->db->transRollback();
             throw $e;
         }
-    }
-
-    private function generateMovementNumber(): string
-    {
-        do {
-            $number = 'MOVADJ-' . date('Ymd-His') . '-' . substr((string)round(microtime(true) * 1000), -4);
-        } while ($this->stockMovements->findByNumber($number) !== null);
-
-        return $number;
     }
 }

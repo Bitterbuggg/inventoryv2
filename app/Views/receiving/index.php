@@ -8,6 +8,11 @@ $pageSubtitle = 'Track receiving drafts, posting status, and conversion-ready PO
 $crumbs = [
     ['label' => 'Receiving'],
 ];
+
+$user = function_exists('auth') ? auth()->user() : null;
+$canManagePo = $user !== null && method_exists($user, 'can') && $user->can('procurement.po.create');
+$canManagePoRequests = $user !== null && method_exists($user, 'can') && $user->can('procurement.por.manage');
+$canViewInventory = $user !== null && method_exists($user, 'can') && $user->can('inventory.view', 'inventory.quantity.update');
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -230,9 +235,15 @@ $crumbs = [
 <?= $this->section('page_actions') ?>
 <?php $receivingExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
 <a class="btn btn-outline" href="<?= site_url('receiving') . '?' . $receivingExportQuery ?>" title="Download the current list of receiving records as a CSV file" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
-<a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>" title="View approved purchase requests ready for receiving" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">PO Requests</a>
-<a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>" title="View all issued purchase orders" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Purchase Orders</a>
-<a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>" title="View current inventory stock levels" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Inventory Quantities</a>
+<?php if ($canManagePoRequests): ?>
+    <a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>" title="View approved purchase requests ready for receiving" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">PO Requests</a>
+<?php endif ?>
+<?php if ($canManagePo): ?>
+    <a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>" title="View all issued purchase orders" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Purchase Orders</a>
+<?php endif ?>
+<?php if ($canViewInventory): ?>
+    <a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>" title="View current inventory stock levels" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Inventory Quantities</a>
+<?php endif ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>

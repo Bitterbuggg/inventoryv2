@@ -11,225 +11,26 @@ $crumbs = [
 ];
 
 $user = function_exists('auth') ? auth()->user() : null;
-$isAdmin = $user !== null && method_exists($user, 'inGroup') && $user->inGroup('admin');
+$canApprovePr = $user !== null && method_exists($user, 'can') && $user->can('procurement.pr.approve');
+$canManagePo = $user !== null && method_exists($user, 'can') && $user->can('procurement.po.create');
+$canManagePoRequests = $user !== null && method_exists($user, 'can') && $user->can('procurement.por.manage');
+$poRequestStatusOptions = $statusOptions ?? [];
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
 <?= $this->section('head') ?>
-<style>
-    /* --- V2 DESIGN SYSTEM VARIABLES --- */
-    :root {
-        --v2-border: #b2e0eb; 
-        --v2-title: #00476b;  
-        --v2-label: #00668c;  
-        --v2-active-bg: #00638a; 
-        --v2-text-main: #1e3a8a; /* TRUE Dark Blue */
-        --v2-text-muted: #64748b;
-    }
-
-    /* --- NO-SCROLL VIEWPORT WRAPPER --- */
-    .viewport-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        height: calc(100vh - 120px); 
-        min-height: 640px;
-        overflow: hidden;
-    }
-
-    /* --- PASTEL KPI CARDS --- */
-    .kpi-grid { 
-        display: grid; 
-        grid-template-columns: repeat(4, 1fr); 
-        gap: 16px; 
-        flex-shrink: 0; 
-    }
-    
-    .kpi-card { 
-        background: #ffffff; 
-        border: 1px solid var(--v2-border); 
-        border-radius: 12px; 
-        padding: 16px 18px; 
-        display: flex; 
-        align-items: center; 
-        gap: 14px; 
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
-    }
-    
-    .kpi-icon-box {
-        width: 46px; height: 46px; 
-        border-radius: 10px; 
-        display: flex; align-items: center; justify-content: center; 
-        flex-shrink: 0;
-    }
-
-    /* Specific Icon Colors for PO Requests */
-    .icon-total { background: #f1f5f9; color: #475569; }        
-    .icon-pending { background: #fffbeb; color: #d97706; } 
-    .icon-approved { background: #ecfccb; color: #16a34a; }   
-    .icon-rejected { background: #fef2f2; color: #ef4444; }   
-
-    .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }
-    
-    .kpi-value { font-size: 1.15rem; font-weight: 800; color: var(--v2-title); line-height: 1.2; margin: 0; }
-    .kpi-label { font-size: 0.75rem; font-weight: 500; color: var(--v2-text-muted); margin: 0; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
-
-    /* --- V2 TABLE CARD --- */
-    .table-card {
-        background: #ffffff; 
-        border: 1px solid var(--v2-border); 
-        border-radius: 12px; 
-        display: flex;
-        flex-direction: column;
-        flex: 1; 
-        min-height: 0; 
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
-        overflow: hidden;
-    }
-
-    .table-toolbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        padding: 12px 20px; 
-        border-bottom: 1px solid var(--v2-border); 
-        background: #ffffff; 
-        flex-shrink: 0;
-        flex-wrap: wrap;
-    }
-    
-    .table-toolbar h3 { margin: 0; font-size: 1.05rem; color: var(--v2-title); font-weight: 800; }
-    
-    .toolbar-controls { display: flex; gap: 8px; align-items: center; flex: 1; justify-content: flex-end; }
-    
-    .search-wrap { position: relative; width: 340px; }
-    .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 14px; height: 14px; }
-    .search-input, .filter-select { 
-        padding: 6px 12px; 
-        font-size: 0.85rem; 
-        border: 1px solid var(--v2-border); 
-        border-radius: 6px; 
-        outline: none; 
-        color: var(--v2-text-main);
-        background: #ffffff;
-        transition: all 0.2s;
-    }
-    .search-input { width: 100%; padding-left: 30px; }
-    .search-input:focus, .filter-select:focus { border-color: var(--v2-label); box-shadow: 0 0 0 3px rgba(0, 102, 140, 0.1); }
-
-    /* Scrollable Table Area */
-    .table-scroll-container {
-        flex: 1;
-        overflow-y: auto; 
-        background: #ffffff;
-    }
-
-    .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-    .modern-table th { 
-        position: sticky; top: 0; z-index: 10;
-        background: #ffffff !important; /* Pure white header */
-        padding: 14px 16px; 
-        font-size: 0.75rem; 
-        text-transform: uppercase; 
-        font-weight: 800; 
-        color: var(--v2-title); /* BOLD DEEP BLUE */
-        border-bottom: 2px solid var(--v2-border); 
-        text-align: left; 
-        letter-spacing: 0.05em; 
-        vertical-align: middle; 
-    }
-    .modern-table td { padding: 12px 16px; font-size: 0.85rem; color: var(--v2-text-main); border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-    .modern-table tr:hover td { background: #f8fafc; }
-
-    /* --- SORTABLE HEADERS --- */
-    th.sortable { cursor: pointer; padding-right: 18px !important; user-select: none; transition: background 0.2s ease, color 0.2s ease; }
-    th.sortable:hover { background-color: #f1f5f9 !important; color: var(--v2-title) !important; }
-    th.sortable::after { content: '↕'; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; opacity: 0.3; color: var(--v2-title); }
-    th.sortable.asc::after { content: '↑'; opacity: 1; color: var(--v2-label); font-weight: bold; }
-    th.sortable.desc::after { content: '↓'; opacity: 1; color: var(--v2-label); font-weight: bold; }
-
-    .filter-active-text { color: var(--v2-label); font-weight: 800; text-transform: uppercase; font-size: 0.65rem; display: inline-block; }
-
-    /* --- PAGINATION FOOTER --- */
-    .table-footer {
-        padding: 10px 20px;
-        border-top: 1px solid var(--v2-border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #ffffff;
-        flex-shrink: 0;
-    }
-    .ci-pager { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; align-items: center; }
-    .ci-pager li a, .ci-pager li span {
-        display: inline-flex; align-items: center; justify-content: center;
-        padding: 4px 10px; font-size: 0.75rem; min-width: 28px;
-        border: 1px solid var(--v2-border); border-radius: 4px;
-        background: #ffffff; color: var(--v2-label);
-        text-decoration: none; font-weight: 700; transition: all 0.2s ease;
-    }
-    .ci-pager li a:hover { background: rgba(178, 224, 235, 0.3); border-color: var(--v2-label); }
-    .ci-pager li.active a { background: var(--v2-label); color: #ffffff; border-color: var(--v2-label); }
-    .ci-pager li.disabled a { opacity: 0.5; background: #f1f5f9; color: var(--v2-text-muted); pointer-events: none; border-color: #cbd5e1; }
-    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--v2-text-muted); }
-
-    /* --- INLINE ACTION FORMS --- */
-    .action-forms-container { display: flex; gap: 8px; align-items: center; justify-content: flex-start; flex-wrap: wrap; }
-    
-    .approval-input-group {
-        display: inline-flex;
-        align-items: stretch;
-        border: 1px solid var(--v2-border);
-        border-radius: 6px;
-        overflow: hidden;
-        background: #ffffff;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        height: 30px; 
-    }
-    .approval-input-group:focus-within { border-color: var(--v2-label); box-shadow: 0 0 0 2px rgba(0, 102, 140, 0.1); }
-    
-    .reject-input {
-        border: none;
-        padding: 4px 8px;
-        font-size: 0.75rem;
-        width: 140px;
-        outline: none;
-        background: transparent;
-        color: var(--v2-text-main);
-    }
-    
-    .btn-table { border: none; color: white; font-size: 0.7rem; font-weight: 800; padding: 4px 12px; cursor: pointer; transition: background 0.2s ease; text-transform: uppercase; border-radius: 4px; white-space: nowrap; height: 30px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
-    .btn-approve { background: var(--v2-label); }
-    .btn-approve:hover { background: var(--v2-active-bg); }
-    
-    .btn-reject { background: #fef2f2; color: #ef4444; border-left: 1px solid #fecaca; border-radius: 0 6px 6px 0; height: 100%; margin: 0;}
-    .btn-reject:hover { background: #fee2e2; color: #dc2626; }
-
-    /* --- SPECIAL STATUS BADGE --- */
-    .status-badge-special {
-        background: #e0e7ff; 
-        color: #4338ca; 
-        border: 1px solid #c7d2fe;
-        padding: 3px 10px; 
-        font-size: 0.7rem; 
-        font-weight: 800; 
-        border-radius: 9999px; 
-        white-space: nowrap; 
-        display: inline-block;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-    }
-</style>
+<link rel="stylesheet" href="<?= base_url('assets/css/procurement-queue.css') ?>">
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
 <?php $poRequestExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/po-requests') . '?' . $poRequestExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
-<?php if ($isAdmin): ?>
+<?php if ($canApprovePr): ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Pending Approvals</a>
 <?php endif ?>
+<?php if ($canManagePo): ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Purchase Orders</a>
+<?php endif ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -241,7 +42,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
 $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($row['status'] ?? '') === 'rejected'));
 ?>
 
-<div class="viewport-wrapper">
+<div class="procurement-queue procurement-queue--po-requests">
     
     <div style="flex-shrink: 0;">
         <h2 style="margin:0; font-size: 1.6rem; color: var(--v2-title); font-weight: 900; letter-spacing: -0.02em;">PO Requests</h2>
@@ -294,10 +95,9 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                 </div>
                 
                 <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('procurement/po-requests') ?>" style="margin: 0; display: flex; gap: 8px;">
-                    <?php $poRequestStatusLabels = ['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected', 'converted_to_receiving' => 'Converted to Receiving']; ?>
                     <select id="status" name="status" class="filter-select" aria-label="Filter PO requests by status">
                         <option value="">All Statuses</option>
-                        <?php foreach ($poRequestStatusLabels as $option => $label): ?>
+                        <?php foreach ($poRequestStatusOptions as $option => $label): ?>
                             <option value="<?= esc($option) ?>" <?= (($status ?? '') === $option) ? 'selected' : '' ?>><?= esc($label) ?></option>
                         <?php endforeach ?>
                     </select>
@@ -378,19 +178,22 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                 <td style="font-size: 0.85rem;"><?= esc((string) $poRequest['request_date']) ?></td>
                                 
                                 <td>
-                                    <?php if (($poRequest['status'] ?? '') === 'converted_to_receiving'): ?>
-                                        <span class="status-badge-special">Converted to Receiving</span>
+                                    <?php if ((bool) ($poRequest['uses_special_status_badge'] ?? false)): ?>
+                                        <span class="status-badge-special status-badge-special--indigo"><?= esc((string) ($poRequest['status_label'] ?? 'Converted to Receiving')) ?></span>
                                     <?php else: ?>
-                                        <?= view('components/shared/table_status_badge', ['status' => $poRequest['status'] ?? 'unknown']) ?>
+                                        <?= view('components/shared/table_status_badge', [
+                                            'status' => $poRequest['status'] ?? 'unknown',
+                                            'label' => $poRequest['status_label'] ?? null,
+                                        ]) ?>
                                     <?php endif; ?>
                                 </td>
                                 
                                 <td style="font-size: 0.85rem; color: var(--v2-text-muted); font-weight: 500;">
-                                    <?= esc((string) ($poRequest['approved_by'] ?? $poRequest['rejected_by'] ?? '-')) ?>
+                                    <?= esc((string) ($poRequest['action_by_label'] ?? '-')) ?>
                                 </td>
                                 
                                 <td>
-                                    <?php if (($poRequest['status'] ?? '') === 'pending' && $isAdmin): ?>
+                                    <?php if (($poRequest['status'] ?? '') === 'pending' && $canManagePoRequests): ?>
                                         <div class="action-forms-container">
                                             <form method="post" action="<?= site_url('procurement/po-requests/' . $poRequest['id'] . '/approve') ?>" style="margin: 0;">
                                                 <?= csrf_field() ?>
@@ -425,195 +228,70 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
         </div>
     </div>
 </div>
+<?= $this->endSection() ?>
 
+<?= $this->section('scripts') ?>
+<script src="<?= base_url('assets/js/procurement-queue.js') ?>"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const rowsPerPage = 15; 
-        const tbody = document.querySelector('#po-req-table tbody');
-        
-        if (tbody && tbody.querySelector('.po-req-row')) {
-            const allRows = Array.from(tbody.querySelectorAll('.po-req-row'));
-            let currentRows = [...allRows]; 
+    (function () {
+        const statusLabels = <?= json_encode($poRequestStatusOptions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 
-            const pagerContainer = document.getElementById('client-pager');
-            const pageIndicator = document.getElementById('page-indicator');
-            const totalIndicator = document.getElementById('total-indicator');
-            const statusHeader = document.getElementById('status-header');
-            
-            const kpiVisible = document.getElementById('kpi-visible');
-            const kpiPending = document.getElementById('kpi-pending');
-            const kpiApproved = document.getElementById('kpi-approved');
-            const kpiRejected = document.getElementById('kpi-rejected');
-
-            const searchInput = document.getElementById('instant-search-input');
-            const clearBtn = document.getElementById('btn-clear-search');
-
-            const statusCycle = ['All', 'pending', 'approved', 'rejected', 'converted_to_receiving'];
-            let cycleIndex = 0;
-            let currentStatusFilter = 'All';
-
-            function toTitleCase(str) {
-                return str.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-            }
-
-            function applyFilters() {
-                const query = searchInput.value.toLowerCase().trim();
-
-                currentRows = allRows.filter(row => {
-                    const id = row.children[0].innerText.toLowerCase();
-                    const poReqNum = row.children[1].innerText.toLowerCase();
-                    const poId = row.children[2].innerText.toLowerCase();
-                    const statusVal = row.getAttribute('data-status');
-
-                    const matchesText = query === '' || id.includes(query) || poReqNum.includes(query) || poId.includes(query);
-                    const matchesStatus = currentStatusFilter === 'All' || statusVal === currentStatusFilter;
-
-                    return matchesText && matchesStatus;
-                });
-
-                currentRows.forEach(row => tbody.appendChild(row));
-                updateKPIs();
-                showPage(1);
-            }
-
-            function updateKPIs() {
-                let countPending = 0, countApproved = 0, countRejected = 0;
-                currentRows.forEach(row => {
-                    const stat = row.getAttribute('data-status');
-                    if (stat === 'pending') countPending++;
-                    if (stat === 'approved') countApproved++;
-                    if (stat === 'rejected') countRejected++;
-                });
-                
-                kpiVisible.innerText = currentRows.length;
-                kpiPending.innerText = countPending;
-                kpiApproved.innerText = countApproved;
-                kpiRejected.innerText = countRejected;
-                totalIndicator.innerText = currentRows.length;
-            }
-
-            if(searchInput) searchInput.addEventListener('input', applyFilters);
-            if(clearBtn) {
-                clearBtn.addEventListener('click', () => {
-                    searchInput.value = '';
-                    applyFilters();
-                });
-            }
-
-            if(statusHeader) {
-                statusHeader.addEventListener('click', (e) => {
-                    e.stopPropagation(); 
-                    
-                    cycleIndex = (cycleIndex + 1) % statusCycle.length;
-                    currentStatusFilter = statusCycle[cycleIndex];
-
-                    if (currentStatusFilter === 'All') {
-                        statusHeader.innerHTML = `Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>`;
-                    } else {
-                        statusHeader.innerHTML = `Status <br><span class="filter-active-text">${toTitleCase(currentStatusFilter)}</span>`;
-                    }
-                    applyFilters();
-                });
-            }
-
-            document.querySelectorAll('#po-req-table th.sortable').forEach(th => {
-                if (parseInt(th.getAttribute('data-col')) === 4) return; 
-
-                th.addEventListener('click', () => {
-                    const colIndex = parseInt(th.getAttribute('data-col'));
-                    const isNumericCol = th.classList.contains('numeric');
-                    const isDateCol = th.classList.contains('date');
-                    const isAsc = th.classList.contains('asc');
-                    const direction = isAsc ? -1 : 1; 
-                    
-                    document.querySelectorAll('#po-req-table th.sortable').forEach(header => {
-                        if (parseInt(header.getAttribute('data-col')) !== 4) {
-                            header.classList.remove('asc', 'desc');
-                        }
-                    });
-                    
-                    th.classList.add(isAsc ? 'desc' : 'asc');
-                    
-                    currentRows.sort((a, b) => {
-                        // Strip out '#' and 'PO-' text for clean numeric sorting
-                        let aText = a.children[colIndex].innerText.trim().replace(/PO-|#/g, '');
-                        let bText = b.children[colIndex].innerText.trim().replace(/PO-|#/g, '');
-                        
-                        if (isNumericCol) return (parseFloat(aText) - parseFloat(bText)) * direction;
-                        if (isDateCol) {
-                            let dateA = aText === '' ? 0 : new Date(aText).getTime();
-                            let dateB = bText === '' ? 0 : new Date(bText).getTime();
-                            return (dateA - dateB) * direction;
-                        }
-                        return aText.localeCompare(bText) * direction;
-                    });
-                    
-                    currentRows.forEach(row => tbody.appendChild(row));
-                    showPage(1);
-                });
-            });
-
-            let currentPage = 1;
-            function showPage(page) {
-                currentPage = page;
-                const totalRows = currentRows.length;
-                const totalPages = Math.ceil(totalRows / rowsPerPage);
-
-                if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
-
-                const startPoint = (currentPage - 1) * rowsPerPage;
-                const endPoint = startPoint + rowsPerPage;
-
-                allRows.forEach(row => row.style.display = 'none');
-                currentRows.forEach((row, index) => {
-                    if (index >= startPoint && index < endPoint) row.style.display = '';
-                });
-
-                const actualEnd = Math.min(endPoint, totalRows);
-                if (pageIndicator) pageIndicator.innerText = totalRows === 0 ? '0' : `${startPoint + 1} - ${actualEnd}`;
-
-                if (pagerContainer) {
-                    pagerContainer.innerHTML = '';
-                    if (totalPages > 1) {
-                        let html = `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo; Prev</a></li>`;
-                        
-                        let startPage = Math.max(1, currentPage - 2);
-                        let endPage = Math.min(totalPages, startPage + 4);
-                        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-
-                        if (startPage > 1) {
-                            html += `<li><a href="#" data-page="1">1</a></li>`;
-                            if (startPage > 2) html += `<li><span class="ellipsis">...</span></li>`;
-                        }
-
-                        for (let i = startPage; i <= endPage; i++) {
-                            html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
-                        }
-
-                        if (endPage < totalPages) {
-                            if (endPage < totalPages - 1) html += `<li><span class="ellipsis">...</span></li>`;
-                            html += `<li><a href="#" data-page="${totalPages}">${totalPages}</a></li>`;
-                        }
-
-                        html += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;
-                        pagerContainer.innerHTML = html;
-                    }
+        window.InventoryV2ProcurementQueue.init({
+            tableSelector: '#po-req-table',
+            rowSelector: '.po-req-row',
+            searchInputSelector: '#instant-search-input',
+            clearButtonSelector: '#btn-clear-search',
+            pagerSelector: '#client-pager',
+            pageIndicatorSelector: '#page-indicator',
+            totalIndicatorSelector: '#total-indicator',
+            filter: {
+                headerSelector: '#status-header',
+                title: 'Status',
+                values: ['All', ...Object.keys(statusLabels)],
+                attribute: 'data-status',
+                labelFor: function (value) {
+                    return statusLabels[value] || value.split('_').map(function (word) {
+                        return word.charAt(0).toUpperCase() + word.slice(1);
+                    }).join(' ');
                 }
-            }
+            },
+            searchMatcher: function (row, query) {
+                const id = row.children[0].innerText.toLowerCase();
+                const poRequestNumber = row.children[1].innerText.toLowerCase();
+                const poId = row.children[2].innerText.toLowerCase();
 
-            if (pagerContainer) {
-                pagerContainer.addEventListener('click', function(e) {
-                    const link = e.target.closest('a');
-                    if (!link) return;
-                    e.preventDefault();
-                    const li = link.parentElement;
-                    if (li.classList.contains('disabled') || li.classList.contains('active')) return;
-                    showPage(parseInt(link.getAttribute('data-page')));
+                return id.includes(query) || poRequestNumber.includes(query) || poId.includes(query);
+            },
+            sortValue: function (row, colIndex) {
+                return row.children[colIndex].innerText.trim().replace(/PO-|#/g, '');
+            },
+            updateKpis: function (rows) {
+                let pendingCount = 0;
+                let approvedCount = 0;
+                let rejectedCount = 0;
+
+                rows.forEach(function (row) {
+                    const status = row.getAttribute('data-status');
+
+                    if (status === 'pending') {
+                        pendingCount++;
+                    }
+
+                    if (status === 'approved') {
+                        approvedCount++;
+                    }
+
+                    if (status === 'rejected') {
+                        rejectedCount++;
+                    }
                 });
-            }
 
-            showPage(1);
-        }
-    });
+                document.getElementById('kpi-visible').innerText = rows.length;
+                document.getElementById('kpi-pending').innerText = pendingCount;
+                document.getElementById('kpi-approved').innerText = approvedCount;
+                document.getElementById('kpi-rejected').innerText = rejectedCount;
+            }
+        });
+    })();
 </script>
 <?= $this->endSection() ?>

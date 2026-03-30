@@ -14,6 +14,7 @@ class IssuanceItemAllocationModel extends Model
         'issuance_id',
         'issuance_item_id',
         'inventory_stock_id',
+        'product_id',
         'item_name',
         'unit',
         'batch_no',

@@ -45,6 +45,24 @@ final class AdminRouteGuardTest extends CIUnitTestCase
         $response->assertStatus(403);
     }
 
+    public function testAdminCanAccessCatalogPages(): void
+    {
+        $admin = $this->findUserByEmail('admin@local.test');
+        auth('session')->login($admin);
+
+        $this->withSession(session()->get())->get('/admin/products')->assertOK();
+        $this->withSession(session()->get())->get('/admin/suppliers')->assertOK();
+    }
+
+    public function testEmployeeIsForbiddenFromCatalogPages(): void
+    {
+        $employee = $this->findUserByEmail('employee@local.test');
+        auth('session')->login($employee);
+
+        $this->withSession(session()->get())->get('/admin/products')->assertStatus(403);
+        $this->withSession(session()->get())->get('/admin/suppliers')->assertStatus(403);
+    }
+
     private function findUserByEmail(string $email): User
     {
         $user = model(UserModel::class)->findByCredentials(['email' => $email]);

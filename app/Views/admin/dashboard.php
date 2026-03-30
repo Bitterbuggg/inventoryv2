@@ -267,6 +267,20 @@ $moduleStatus = [
                         <span class="action-desc">Roles & Security</span>
                     </div>
                 </a>
+                <a href="<?= site_url('admin/products') ?>" class="action-card">
+                    <div class="action-icon-box"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73L13 2.27a2 2 0 0 0-2 0L4 6.27A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><line x1="12" y1="22" x2="12" y2="12"></line></svg></div>
+                    <div class="text-wrap">
+                        <span class="action-label">Products</span>
+                        <span class="action-desc">Master Catalog</span>
+                    </div>
+                </a>
+                <a href="<?= site_url('admin/suppliers') ?>" class="action-card">
+                    <div class="action-icon-box"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg></div>
+                    <div class="text-wrap">
+                        <span class="action-label">Suppliers</span>
+                        <span class="action-desc">Vendor Catalog</span>
+                    </div>
+                </a>
                 <a href="<?= site_url('procurement/purchase-requests') ?>" class="action-card">
                     <div class="action-icon-box"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
                     <div class="text-wrap">

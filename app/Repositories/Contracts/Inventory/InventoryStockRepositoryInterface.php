@@ -22,12 +22,17 @@ interface InventoryStockRepositoryInterface
     public function findByKey(string $itemName, string $unit, ?string $batchNo, ?string $lotNo, ?string $expiryDate): ?array;
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @param array<string, mixed> $data
      */
-    public function listForAllocation(string $itemName, string $unit): array;
+    public function create(array $data): int;
 
     /**
      * @param array<string, mixed> $data
      */
     public function update(int $id, array $data): bool;
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function listForAllocation(string $itemName, string $unit): array;
 }

@@ -11,6 +11,7 @@ $crumbs = [
 ];
 
 $usersList = $users ?? [];
+$modulePermsMap = is_array($modulePermsMap ?? null) ? $modulePermsMap : [];
 $totalUsers = count($usersList);
 $adminCount = 0;
 $employeeCount = 0;
@@ -535,13 +536,6 @@ foreach ($usersList as $userRow) {
 
                             $initial = strtoupper(substr($username, 0, 1));
                             $isAdmin = ($primaryRole === 'admin');
-
-                            $modulePermsMap = [
-                                'Procurement' => ['procurement.view', 'procurement.pr.create'],
-                                'Receiving'   => ['receiving.view', 'receiving.convert'],
-                                'Inventory'   => ['inventory.issuance.create', 'inventory.quantity.update'],
-                                'Reports'     => ['reports.view'],
-                            ];
                             ?>
                             <tr class="user-row">
                                 <td>
@@ -571,7 +565,7 @@ foreach ($usersList as $userRow) {
                                             foreach ($modulePermsMap as $modName => $perms):
                                                 $userHasModule = false;
                                                 foreach ($perms as $p) {
-                                                    if ($user->hasPermission($p)) {
+                                                    if (method_exists($user, 'can') && $user->can($p)) {
                                                         $userHasModule = true;
                                                         break;
                                                     }

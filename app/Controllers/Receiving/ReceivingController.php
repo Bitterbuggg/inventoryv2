@@ -165,6 +165,32 @@ class ReceivingController extends BaseController
         return redirect()->to('/receiving/' . $id)->with('message', 'Receiving posted and inventory updated.');
     }
 
+    public function validateDraft(int $id): RedirectResponse
+    {
+        $errors = RepositoryServices::receivingService()->validateDraft($id);
+
+        if ($errors !== []) {
+            RepositoryServices::analyticsService()->trackCurrentUser(
+                'receiving.validation_failed',
+                'receiving',
+                'receiving',
+                $id,
+                ['errors_count' => count($errors)],
+            );
+
+            return redirect()->to('/receiving/' . $id)->with('error', implode(' ', $errors));
+        }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'receiving.validated',
+            'receiving',
+            'receiving',
+            $id,
+        );
+
+        return redirect()->to('/receiving/' . $id)->with('message', 'Receiving draft validation passed.');
+    }
+
     public function void(int $id): RedirectResponse
     {
         $rules = [
@@ -208,6 +234,7 @@ class ReceivingController extends BaseController
     private function extractItemsFromPost(): array
     {
         $purchaseOrderItemIds = (array) $this->request->getPost('purchase_order_item_id');
+        $productIds           = (array) $this->request->getPost('product_id');
         $itemNames            = (array) $this->request->getPost('item_name');
         $units                = (array) $this->request->getPost('unit');
         $receivedQty          = (array) $this->request->getPost('received_qty');
@@ -224,6 +251,7 @@ class ReceivingController extends BaseController
         foreach ($purchaseOrderItemIds as $index => $purchaseOrderItemId) {
             $items[] = [
                 'purchase_order_item_id' => $purchaseOrderItemId,
+                'product_id'             => $productIds[$index] ?? null,
                 'item_name'              => $itemNames[$index] ?? '',
                 'unit'                   => $units[$index] ?? 'unit',
                 'received_qty'           => $receivedQty[$index] ?? 0,

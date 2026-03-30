@@ -13,6 +13,7 @@ class ReceivingItemModel extends Model
     protected $allowedFields = [
         'receiving_id',
         'purchase_order_item_id',
+        'product_id',
         'item_name',
         'unit',
         'received_qty',

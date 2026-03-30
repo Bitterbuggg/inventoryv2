@@ -11,7 +11,8 @@ $crumbs = [
 ];
 
 $user = function_exists('auth') ? auth()->user() : null;
-$isAdmin = $user !== null && method_exists($user, 'inGroup') && $user->inGroup('admin');
+$canCreateIssuance = $user !== null && method_exists($user, 'can') && $user->can('inventory.issuance.create');
+$canApproveIssuance = $user !== null && method_exists($user, 'can') && $user->can('inventory.issuance.approve');
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -75,13 +76,15 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
 
         <div class="toolbar">
             <?php if (($issuance['status'] ?? '') === 'draft'): ?>
-                <form class="inline-form" method="post" action="<?= site_url('inventory/issuance/' . $issuance['id'] . '/submit') ?>">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </form>
+                <?php if ($canCreateIssuance): ?>
+                    <form class="inline-form" method="post" action="<?= site_url('inventory/issuance/' . $issuance['id'] . '/submit') ?>">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                <?php endif ?>
             <?php endif ?>
 
-            <?php if (($issuance['status'] ?? '') === 'submitted' && $isAdmin): ?>
+            <?php if (($issuance['status'] ?? '') === 'submitted' && $canApproveIssuance): ?>
                 <form class="inline-form" method="post" action="<?= site_url('inventory/issuance/' . $issuance['id'] . '/approve') ?>">
                     <?= csrf_field() ?>
                     <input type="text" name="comments" placeholder="Optional comment">
@@ -94,22 +97,22 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
                 </form>
             <?php endif ?>
 
-            <?php if (($issuance['status'] ?? '') === 'submitted' && ! $isAdmin): ?>
-                <span class="muted" style="font-size: 0.85rem;">Awaiting admin approval.</span>
+            <?php if (($issuance['status'] ?? '') === 'submitted' && ! $canApproveIssuance): ?>
+                <span class="muted" style="font-size: 0.85rem;">Awaiting approval.</span>
             <?php endif ?>
 
-            <?php if (($issuance['status'] ?? '') === 'approved' && $isAdmin): ?>
+            <?php if (($issuance['status'] ?? '') === 'approved' && $canApproveIssuance): ?>
                 <form class="inline-form" method="post" action="<?= site_url('inventory/issuance/' . $issuance['id'] . '/release') ?>" data-confirm="Release this issuance now? Stock will be deducted and FEFO allocations will be finalized." data-confirm-title="Release Issuance">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-primary">Release</button>
                 </form>
             <?php endif ?>
 
-            <?php if (($issuance['status'] ?? '') === 'approved' && ! $isAdmin): ?>
-                <span class="muted" style="font-size: 0.85rem;">Awaiting admin release.</span>
+            <?php if (($issuance['status'] ?? '') === 'approved' && ! $canApproveIssuance): ?>
+                <span class="muted" style="font-size: 0.85rem;">Awaiting release approval.</span>
             <?php endif ?>
 
-            <?php if (in_array((string) ($issuance['status'] ?? ''), ['draft', 'submitted'], true)): ?>
+            <?php if (in_array((string) ($issuance['status'] ?? ''), ['draft', 'submitted'], true) && $canCreateIssuance): ?>
                 <form class="inline-form" method="post" action="<?= site_url('inventory/issuance/' . $issuance['id'] . '/cancel') ?>" data-confirm="Cancel this issuance request? This action cannot be undone." data-confirm-title="Cancel Issuance">
                     <?= csrf_field() ?>
                     <input type="text" name="reason" placeholder="Cancel reason (optional)">
@@ -118,7 +121,7 @@ $totalIssued = array_sum(array_map(static fn (array $row): float => (float) ($ro
             <?php endif ?>
         </div>
 
-        <?php if (($issuance['status'] ?? '') === 'approved' && $isAdmin): ?>
+        <?php if (($issuance['status'] ?? '') === 'approved' && $canApproveIssuance): ?>
             <div class="status-callout status-callout-warning">
                 <strong>Release reminder:</strong> Releasing this issuance immediately deducts stock using FEFO and creates stock movement history.
             </div>

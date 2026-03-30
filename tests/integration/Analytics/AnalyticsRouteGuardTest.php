@@ -89,6 +89,16 @@ final class AnalyticsRouteGuardTest extends CIUnitTestCase
         $response->assertStatus(403);
     }
 
+    public function testEmployeeWithAuditPermissionCanAccessAnalyticsDashboard(): void
+    {
+        $employee = $this->findUserByEmail('employee@local.test');
+        $employee->addPermission('audit.view');
+        auth('session')->login($employee);
+
+        $response = $this->withSession(session()->get())->get('/analytics/dashboard');
+        $response->assertOK();
+    }
+
     private function findUserByEmail(string $email): User
     {
         $user = model(UserModel::class)->findByCredentials(['email' => $email]);

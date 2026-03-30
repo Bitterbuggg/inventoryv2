@@ -3,25 +3,28 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
+use App\Services\Admin\UserManagementService;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
-use CodeIgniter\Shield\Models\UserModel;
 use Config\RepositoryServices;
 use DomainException;
 
 class UserController extends BaseController
 {
+    private ?UserManagementService $userManagement = null;
+
     public function index(): string|ResponseInterface
     {
-        $users = model(UserModel::class)->withGroups()->findAll();
+        $users = $this->userManagement()->listUsers();
 
         if ($this->shouldExportCsv()) {
             $rows = [];
+
             foreach ($users as $user) {
                 $groups = $user->getGroups() ?? [];
                 $currentRole = 'employee';
 
-                foreach (['admin', 'it_staff', 'employee'] as $role) {
+                foreach ($this->userManagement()->assignableRoles() as $role) {
                     if (in_array($role, $groups, true)) {
                         $currentRole = $role;
                         break;
@@ -44,23 +47,28 @@ class UserController extends BaseController
             );
         }
 
-        return view('admin/users', ['users' => $users]);
+        return view('admin/users', [
+            'users' => $users,
+            'modulePermsMap' => $this->userManagement()->moduleBadgePermissions(),
+        ]);
     }
 
     public function create(): string
     {
-        return view('admin/create_user');
+        return view('admin/create_user', [
+            'permissionStructure' => $this->userManagement()->permissionStructure(),
+            'rolePresets' => $this->userManagement()->rolePresets(),
+        ]);
     }
 
- public function store(): RedirectResponse
+    public function store(): RedirectResponse
     {
         $rules = [
-            'username'         => 'required|min_length[3]|max_length[30]|regex_match[/\A[a-zA-Z0-9\.]+\z/]|is_unique[users.username]',
-            'email'            => 'required|valid_email|max_length[254]',
-            'password'         => 'required|min_length[8]|max_length[255]',
+            'username' => 'required|min_length[3]|max_length[30]|regex_match[/\A[a-zA-Z0-9\.]+\z/]|is_unique[users.username]',
+            'email' => 'required|valid_email|max_length[254]',
+            'password' => 'required|min_length[8]|max_length[255]',
             'password_confirm' => 'required|matches[password]',
-            // Updated to allow 'custom' as a valid option from the frontend
-            'role'             => 'required|in_list[admin,employee,it_staff,custom]', 
+            'role' => 'required|in_list[' . implode(',', $this->userManagement()->roleSelections()) . ']',
         ];
 
         if (! $this->validate($rules)) {
@@ -70,42 +78,16 @@ class UserController extends BaseController
                 ->with('errors', $this->validator->getErrors());
         }
 
-        $email = strtolower(trim((string) $this->request->getPost('email')));
-        if (RepositoryServices::userRepository()->findByIdentifier($email) !== null) {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('errors', ['email' => 'Email already exists.']);
-        }
-
-        $service = RepositoryServices::authenticationService();
-
         try {
-            $userId = $service->register([
-                'username' => (string) $this->request->getPost('username'),
-                'email'    => (string) $this->request->getPost('email'),
-                'password' => (string) $this->request->getPost('password'),
-            ]);
-
-            // Handle the 'custom' role by defaulting them to an employee base group
-            $postedRole = (string) $this->request->getPost('role');
-            $dbRole = ($postedRole === 'custom') ? 'employee' : $postedRole;
-
-            RepositoryServices::userRepository()->assignGroup(
-                $userId,
-                $dbRole,
+            $userId = $this->userManagement()->createUser(
+                [
+                    'username' => (string) $this->request->getPost('username'),
+                    'email' => (string) $this->request->getPost('email'),
+                    'password' => (string) $this->request->getPost('password'),
+                ],
+                (string) $this->request->getPost('role'),
+                $this->requestPermissions(),
             );
-
-            // Grant granular permissions
-            $permissions = $this->request->getPost('permissions') ?? [];
-            $userModel = model(UserModel::class);
-            $newUser = $userModel->find($userId);
-            
-            if ($newUser !== null && !empty($permissions)) {
-                foreach ($permissions as $perm) {
-                    $newUser->addPermission($perm);
-                }
-            }
 
             $user = auth()->user();
             RepositoryServices::analyticsService()->trackCurrentUser(
@@ -113,56 +95,35 @@ class UserController extends BaseController
                 'admin',
                 'user',
                 $user === null ? null : (int) ($user->id ?? 0),
+                ['target_user_id' => $userId],
             );
 
             return redirect()->to('/admin/users')->with('message', 'User account created successfully.');
         } catch (DomainException $e) {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', $e->getMessage());
+            return $this->redirectForDomainError($e);
         }
     }
-    
+
     public function edit(int $userId): string|RedirectResponse
     {
-        $user = model(UserModel::class)->find($userId);
+        $user = $this->userManagement()->findUser($userId);
 
         if ($user === null) {
             return redirect()->to('/admin/users')->with('error', 'User not found.');
         }
 
-        return view('admin/edit_user', ['user' => $user]);
+        return view('admin/edit_user', [
+            'user' => $user,
+            'permissionStructure' => $this->userManagement()->permissionStructure(),
+        ]);
     }
 
     public function update(int $userId): RedirectResponse
     {
-        $user = model(UserModel::class)->find($userId);
-
-        if ($user === null) {
-            return redirect()->to('/admin/users')->with('error', 'User not found.');
-        }
-
         $rules = [
             'email' => 'required|valid_email|max_length[254]',
             'username' => 'required|min_length[3]|max_length[30]|regex_match[/\A[a-zA-Z0-9\.]+\z/]',
         ];
-
-        if ((string) $user->email !== $this->request->getPost('email')) {
-            $newEmail = strtolower(trim((string) $this->request->getPost('email')));
-            $existing = RepositoryServices::userRepository()->findByIdentifier($newEmail);
-
-            if ($existing !== null && (int) ($existing->id ?? 0) !== (int) ($user->id ?? 0)) {
-                return redirect()
-                    ->back()
-                    ->withInput()
-                    ->with('errors', ['email' => 'Email already exists.']);
-            }
-        }
-
-        if ((string) $user->username !== $this->request->getPost('username')) {
-            $rules['username'] .= '|is_unique[users.username]';
-        }
 
         if (! $this->validate($rules)) {
             return redirect()
@@ -171,117 +132,90 @@ class UserController extends BaseController
                 ->with('errors', $this->validator->getErrors());
         }
 
-        $user->email = (string) $this->request->getPost('email');
-        $user->username = (string) $this->request->getPost('username');
+        try {
+            $this->userManagement()->updateUser(
+                $userId,
+                (string) $this->request->getPost('username'),
+                (string) $this->request->getPost('email'),
+                $this->requestPermissions(),
+            );
 
-        model(UserModel::class)->save($user);
+            $currentUser = auth()->user();
+            RepositoryServices::analyticsService()->trackCurrentUser(
+                'admin.update_user',
+                'admin',
+                'user',
+                $currentUser === null ? null : (int) ($currentUser->id ?? 0),
+                ['target_user_id' => $userId],
+            );
 
-        // Sync granular permissions
-        $permissions = $this->request->getPost('permissions') ?? [];
-        $allPossiblePerms = [];
-        foreach ($this->getPermissionsMap() as $perms) {
-            $allPossiblePerms = array_merge($allPossiblePerms, $perms);
+            return redirect()->to('/admin/users')->with('message', 'User account updated successfully.');
+        } catch (DomainException $e) {
+            return $this->redirectForDomainError($e);
         }
-        $allPossiblePerms[] = 'audit.view'; // Extra from the structure
-
-        foreach ($allPossiblePerms as $perm) {
-            if (in_array($perm, $permissions, true)) {
-                if (! $user->hasPermission($perm)) {
-                    $user->addPermission($perm);
-                }
-            } else {
-                if ($user->hasPermission($perm)) {
-                    $user->removePermission($perm);
-                }
-            }
-        }
-
-        $currentUser = auth()->user();
-        RepositoryServices::analyticsService()->trackCurrentUser(
-            'admin.update_user',
-            'admin',
-            'user',
-            $currentUser === null ? null : (int) ($currentUser->id ?? 0),
-        );
-
-        return redirect()->to('/admin/users')->with('message', 'User account updated successfully.');
     }
 
     public function delete(int $userId): RedirectResponse
     {
-        $user = model(UserModel::class)->find($userId);
-
-        if ($user === null) {
-            return redirect()->to('/admin/users')->with('error', 'User not found.');
-        }
-
-        $userGroups = $user->getGroups() ?? [];
-        if (in_array('admin', $userGroups, true)) {
-            return redirect()
-                ->back()
-                ->with('error', 'Cannot delete admin users.');
-        }
-
         $currentUser = auth()->user();
-        if ($currentUser !== null && (int) $currentUser->id === $userId) {
-            return redirect()
-                ->back()
-                ->with('error', 'You cannot delete your own account.');
+
+        try {
+            $this->userManagement()->deleteUser(
+                $userId,
+                $currentUser === null ? null : (int) ($currentUser->id ?? 0),
+            );
+
+            RepositoryServices::analyticsService()->trackCurrentUser(
+                'admin.delete_user',
+                'admin',
+                'user',
+                $currentUser === null ? null : (int) ($currentUser->id ?? 0),
+                ['target_user_id' => $userId],
+            );
+
+            return redirect()->to('/admin/users')->with('message', 'User account deleted successfully.');
+        } catch (DomainException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
         }
-
-        model(UserModel::class)->delete($userId);
-
-        RepositoryServices::analyticsService()->trackCurrentUser(
-            'admin.delete_user',
-            'admin',
-            'user',
-            $currentUser === null ? null : (int) ($currentUser->id ?? 0),
-        );
-
-        return redirect()->to('/admin/users')->with('message', 'User account deleted successfully.');
     }
 
     public function role(int $userId): RedirectResponse
     {
-        $user = model(UserModel::class)->find($userId);
+        $rules = [
+            'role' => 'required|in_list[' . implode(',', $this->userManagement()->assignableRoles()) . ']',
+        ];
 
-        if ($user === null) {
-            return redirect()->to('/admin/users')->with('error', 'User not found.');
+        if (! $this->validate($rules)) {
+            return redirect()->back()->with('errors', $this->validator->getErrors());
         }
 
         $newRole = (string) $this->request->getPost('role');
-        $validRoles = ['admin', 'employee', 'it_staff'];
 
-        if (! in_array($newRole, $validRoles, true)) {
-            return redirect()
-                ->back()
-                ->with('error', 'Invalid role selected.');
+        try {
+            $this->userManagement()->assignRole($userId, $newRole);
+
+            $currentUser = auth()->user();
+            RepositoryServices::analyticsService()->trackCurrentUser(
+                'admin.assign_user_role',
+                'admin',
+                'user',
+                $currentUser === null ? null : (int) ($currentUser->id ?? 0),
+                [
+                    'target_user_id' => $userId,
+                    'role' => $newRole,
+                ],
+            );
+
+            return redirect()->to('/admin/users')->with('message', "User role updated to {$newRole}.");
+        } catch (DomainException $e) {
+            return redirect()->to('/admin/users')->with('error', $e->getMessage());
         }
-
-        // Assign new role (using syncGroups which replaces existing roles)
-        RepositoryServices::userRepository()->assignGroup($userId, $newRole);
-
-        $currentUser = auth()->user();
-        RepositoryServices::analyticsService()->trackCurrentUser(
-            'admin.assign_user_role',
-            'admin',
-            'user',
-            $currentUser === null ? null : (int) ($currentUser->id ?? 0),
-        );
-
-        return redirect()->to('/admin/users')->with('message', "User role updated to {$newRole}.");
     }
 
     public function modulePermission(int $userId): RedirectResponse
     {
-        $user = model(UserModel::class)->find($userId);
-
-        if ($user === null) {
-            return redirect()->to('/admin/users')->with('error', 'User not found.');
-        }
-
         $rules = [
-            'module' => 'required|in_list[procurement,receiving,inventory,reports]',
+            'module' => 'required|in_list[' . implode(',', array_keys($this->userManagement()->modulePermissions())) . ']',
             'action' => 'required|in_list[grant,revoke]',
         ];
 
@@ -292,62 +226,61 @@ class UserController extends BaseController
         $module = (string) $this->request->getPost('module');
         $action = (string) $this->request->getPost('action');
 
-        $map = $this->getPermissionsMap();
-        $targetPermissions = $map[$module] ?? [];
+        try {
+            $this->userManagement()->updateModulePermission($userId, $module, $action);
 
-        foreach ($targetPermissions as $permission) {
-            if ($action === 'grant') {
-                if (! $user->hasPermission($permission)) {
-                    $user->addPermission($permission);
-                }
-            } else {
-                if ($user->hasPermission($permission)) {
-                    $user->removePermission($permission);
-                }
-            }
+            $currentUser = auth()->user();
+            RepositoryServices::analyticsService()->trackCurrentUser(
+                'admin.module_permission_changed',
+                'admin',
+                'user',
+                $currentUser === null ? null : (int) ($currentUser->id ?? 0),
+                [
+                    'target_user_id' => $userId,
+                    'module' => $module,
+                    'action' => $action,
+                ],
+            );
+
+            $message = "Module '" . ucfirst($module) . "' access " . ($action === 'grant' ? 'granted' : 'revoked') . '.';
+
+            return redirect()->to('/admin/users')->with('message', $message);
+        } catch (DomainException $e) {
+            return redirect()->to('/admin/users')->with('error', $e->getMessage());
+        }
+    }
+
+    private function userManagement(): UserManagementService
+    {
+        return $this->userManagement ??= RepositoryServices::userManagementService();
+    }
+
+    /**
+     * @return string[]
+     */
+    private function requestPermissions(): array
+    {
+        $permissions = $this->request->getPost('permissions');
+
+        return is_array($permissions) ? array_values($permissions) : [];
+    }
+
+    private function redirectForDomainError(DomainException $e): RedirectResponse
+    {
+        $message = $e->getMessage();
+
+        if ($message === 'User not found.') {
+            return redirect()->to('/admin/users')->with('error', $message);
         }
 
-        $message = "Module '" . ucfirst($module) . "' access " . ($action === 'grant' ? 'granted' : 'revoked') . ".";
-        
-        $currentUser = auth()->user();
-        RepositoryServices::analyticsService()->trackCurrentUser(
-            'admin.module_permission_changed',
-            'admin',
-            'user',
-            $currentUser === null ? null : (int) ($currentUser->id ?? 0),
-            [
-                'target_user_id' => $userId,
-                'module' => $module,
-                'action' => $action,
-            ],
-        );
+        if ($message === 'Email already exists.') {
+            return redirect()->back()->withInput()->with('errors', ['email' => $message]);
+        }
 
-        return redirect()->to('/admin/users')->with('message', $message);
-    }
+        if ($message === 'Username already exists.') {
+            return redirect()->back()->withInput()->with('errors', ['username' => $message]);
+        }
 
-    private function getPermissionsMap(): array
-    {
-        return [
-            'procurement' => [
-                'procurement.pr.create',
-                'procurement.pr.approve',
-                'procurement.po.create',
-                'procurement.por.manage',
-                'procurement.view',
-            ],
-            'receiving' => [
-                'receiving.convert',
-                'receiving.view',
-            ],
-            'inventory' => [
-                'inventory.quantity.update',
-                'inventory.issuance.create',
-                'inventory.issuance.approve',
-            ],
-            'reports' => [
-                'reports.view',
-            ],
-        ];
+        return redirect()->back()->withInput()->with('error', $message);
     }
 }
-

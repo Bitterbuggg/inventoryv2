@@ -2,14 +2,14 @@
 
 namespace App\Services\Procurement;
 
-use App\Repositories\Contracts\Procurement\ApprovalRepositoryInterface;
 use App\Repositories\Contracts\Procurement\PurchaseRequestRepositoryInterface;
+use App\Services\Shared\ApprovalWorkflowService;
 use DomainException;
 
 class ApprovalService
 {
     public function __construct(
-        private readonly ApprovalRepositoryInterface $approvals,
+        private readonly ApprovalWorkflowService $approvalWorkflow,
         private readonly PurchaseRequestRepositoryInterface $purchaseRequests,
     ) {
     }
@@ -19,29 +19,20 @@ class ApprovalService
      */
     public function listPending(): array
     {
-        return array_values(array_filter(
-            $this->approvals->listPending(),
-            static fn (array $row): bool => (string) ($row['reference_type'] ?? '') === 'purchase_request',
-        ));
+        return $this->approvalWorkflow->listPendingByReferenceType('purchase_request');
     }
 
     public function approve(int $approvalId, int $approverId, ?string $comments = null): void
     {
-        $approval = $this->approvals->find($approvalId);
+        $resolvedApproval = $this->approvalWorkflow->resolvePendingApprovalById(
+            $approvalId,
+            'purchase_request',
+            $approverId,
+            'approved',
+            $comments,
+        );
 
-        if ($approval === null) {
-            throw new DomainException('Approval record not found.');
-        }
-
-        if (($approval['decision'] ?? '') !== 'pending') {
-            throw new DomainException('Approval has already been resolved.');
-        }
-
-        if (($approval['reference_type'] ?? '') !== 'purchase_request') {
-            throw new DomainException('Unsupported approval reference type.');
-        }
-
-        $purchaseRequestId = (int) ($approval['reference_id'] ?? 0);
+        $purchaseRequestId = (int) ($resolvedApproval['reference_id'] ?? 0);
         $purchaseRequest   = $this->purchaseRequests->find($purchaseRequestId);
 
         if ($purchaseRequest === null) {
@@ -52,14 +43,7 @@ class ApprovalService
             throw new DomainException('Only submitted purchase requests can be approved.');
         }
 
-        $now = date('Y-m-d H:i:s');
-
-        $this->approvals->update($approvalId, [
-            'approver_id' => $approverId,
-            'decision'    => 'approved',
-            'decision_at' => $now,
-            'comments'    => $this->nullableText($comments),
-        ]);
+        $now = (string) ($resolvedApproval['decision_at'] ?? date('Y-m-d H:i:s'));
 
         $this->purchaseRequests->update($purchaseRequestId, [
             'status'           => 'approved',
@@ -79,21 +63,15 @@ class ApprovalService
             throw new DomainException('Rejection reason is required.');
         }
 
-        $approval = $this->approvals->find($approvalId);
+        $resolvedApproval = $this->approvalWorkflow->resolvePendingApprovalById(
+            $approvalId,
+            'purchase_request',
+            $approverId,
+            'rejected',
+            $reason,
+        );
 
-        if ($approval === null) {
-            throw new DomainException('Approval record not found.');
-        }
-
-        if (($approval['decision'] ?? '') !== 'pending') {
-            throw new DomainException('Approval has already been resolved.');
-        }
-
-        if (($approval['reference_type'] ?? '') !== 'purchase_request') {
-            throw new DomainException('Unsupported approval reference type.');
-        }
-
-        $purchaseRequestId = (int) ($approval['reference_id'] ?? 0);
+        $purchaseRequestId = (int) ($resolvedApproval['reference_id'] ?? 0);
         $purchaseRequest   = $this->purchaseRequests->find($purchaseRequestId);
 
         if ($purchaseRequest === null) {
@@ -104,14 +82,7 @@ class ApprovalService
             throw new DomainException('Only submitted purchase requests can be rejected.');
         }
 
-        $now = date('Y-m-d H:i:s');
-
-        $this->approvals->update($approvalId, [
-            'approver_id' => $approverId,
-            'decision'    => 'rejected',
-            'decision_at' => $now,
-            'comments'    => $reason,
-        ]);
+        $now = (string) ($resolvedApproval['decision_at'] ?? date('Y-m-d H:i:s'));
 
         $this->purchaseRequests->update($purchaseRequestId, [
             'status'           => 'rejected',
@@ -119,12 +90,5 @@ class ApprovalService
             'rejected_at'      => $now,
             'rejection_reason' => $reason,
         ]);
-    }
-
-    private function nullableText(?string $value): ?string
-    {
-        $text = trim((string) $value);
-
-        return $text === '' ? null : $text;
     }
 }

@@ -3,8 +3,9 @@
 use App\Repositories\Contracts\Inventory\IssuanceItemRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceItemAllocationRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceRepositoryInterface;
-use App\Repositories\Contracts\Procurement\ApprovalRepositoryInterface;
+use App\Services\Catalog\ProductService;
 use App\Services\Inventory\IssuanceService;
+use App\Services\Shared\ApprovalWorkflowService;
 use App\Services\Shared\AuditService;
 use CodeIgniter\Test\CIUnitTestCase;
 
@@ -15,11 +16,11 @@ final class IssuanceServiceTest extends CIUnitTestCase
 {
     public function testCreateDraftStoresIssuanceAndItems(): void
     {
-        $issuances     = $this->createMock(IssuanceRepositoryInterface::class);
-        $issuanceItems = $this->createMock(IssuanceItemRepositoryInterface::class);
-        $allocations   = $this->createMock(IssuanceItemAllocationRepositoryInterface::class);
-        $approvals     = $this->createMock(ApprovalRepositoryInterface::class);
-        $audit         = $this->createMock(AuditService::class);
+        $issuances        = $this->createMock(IssuanceRepositoryInterface::class);
+        $issuanceItems    = $this->createMock(IssuanceItemRepositoryInterface::class);
+        $allocations      = $this->createMock(IssuanceItemAllocationRepositoryInterface::class);
+        $audit            = $this->createMock(AuditService::class);
+        $approvalWorkflow = $this->createMock(ApprovalWorkflowService::class);
 
         $issuances->method('findByNumber')->willReturn(null);
 
@@ -32,7 +33,7 @@ final class IssuanceServiceTest extends CIUnitTestCase
             ->method('addItems')
             ->with(55, $this->callback(static fn (array $rows): bool => count($rows) === 1 && $rows[0]['item_name'] === 'Paracetamol 500mg'));
 
-        $service = new IssuanceService($issuances, $issuanceItems, $allocations, $approvals, $audit);
+        $service = new IssuanceService($issuances, $issuanceItems, $allocations, $audit, $approvalWorkflow);
 
         $id = $service->createDraft([
             'requestor_id' => 10,
@@ -50,11 +51,11 @@ final class IssuanceServiceTest extends CIUnitTestCase
 
     public function testSubmitCreatesPendingApprovalWhenMissing(): void
     {
-        $issuances     = $this->createMock(IssuanceRepositoryInterface::class);
-        $issuanceItems = $this->createMock(IssuanceItemRepositoryInterface::class);
-        $allocations   = $this->createMock(IssuanceItemAllocationRepositoryInterface::class);
-        $approvals     = $this->createMock(ApprovalRepositoryInterface::class);
-        $audit         = $this->createMock(AuditService::class);
+        $issuances        = $this->createMock(IssuanceRepositoryInterface::class);
+        $issuanceItems    = $this->createMock(IssuanceItemRepositoryInterface::class);
+        $allocations      = $this->createMock(IssuanceItemAllocationRepositoryInterface::class);
+        $audit            = $this->createMock(AuditService::class);
+        $approvalWorkflow = $this->createMock(ApprovalWorkflowService::class);
 
         $issuances->method('find')->with(9)->willReturn([
             'id'     => 9,
@@ -69,16 +70,12 @@ final class IssuanceServiceTest extends CIUnitTestCase
             ->method('update')
             ->with(9, $this->arrayHasKey('status'));
 
-        $approvals->expects($this->once())
-            ->method('findPendingByReference')
+        $approvalWorkflow->expects($this->once())
+            ->method('ensurePendingApproval')
             ->with('issuance', 9)
-            ->willReturn(null);
+            ->willReturn(88);
 
-        $approvals->expects($this->once())
-            ->method('create')
-            ->with($this->arrayHasKey('reference_type'));
-
-        $service = new IssuanceService($issuances, $issuanceItems, $allocations, $approvals, $audit);
+        $service = new IssuanceService($issuances, $issuanceItems, $allocations, $audit, $approvalWorkflow);
         $service->submit(9, 1);
 
         $this->assertTrue(true);
@@ -86,18 +83,18 @@ final class IssuanceServiceTest extends CIUnitTestCase
 
     public function testSubmitRejectsNonDraftIssuance(): void
     {
-        $issuances     = $this->createMock(IssuanceRepositoryInterface::class);
-        $issuanceItems = $this->createMock(IssuanceItemRepositoryInterface::class);
-        $allocations   = $this->createMock(IssuanceItemAllocationRepositoryInterface::class);
-        $approvals     = $this->createMock(ApprovalRepositoryInterface::class);
-        $audit         = $this->createMock(AuditService::class);
+        $issuances        = $this->createMock(IssuanceRepositoryInterface::class);
+        $issuanceItems    = $this->createMock(IssuanceItemRepositoryInterface::class);
+        $allocations      = $this->createMock(IssuanceItemAllocationRepositoryInterface::class);
+        $audit            = $this->createMock(AuditService::class);
+        $approvalWorkflow = $this->createMock(ApprovalWorkflowService::class);
 
         $issuances->method('find')->with(12)->willReturn([
             'id'     => 12,
             'status' => 'submitted',
         ]);
 
-        $service = new IssuanceService($issuances, $issuanceItems, $allocations, $approvals, $audit);
+        $service = new IssuanceService($issuances, $issuanceItems, $allocations, $audit, $approvalWorkflow);
 
         $this->expectException(DomainException::class);
         $service->submit(12, 1);
@@ -105,13 +102,13 @@ final class IssuanceServiceTest extends CIUnitTestCase
 
     public function testCreateDraftRejectsDecimalRequestedQty(): void
     {
-        $issuances     = $this->createMock(IssuanceRepositoryInterface::class);
-        $issuanceItems = $this->createMock(IssuanceItemRepositoryInterface::class);
-        $allocations   = $this->createMock(IssuanceItemAllocationRepositoryInterface::class);
-        $approvals     = $this->createMock(ApprovalRepositoryInterface::class);
-        $audit         = $this->createMock(AuditService::class);
+        $issuances        = $this->createMock(IssuanceRepositoryInterface::class);
+        $issuanceItems    = $this->createMock(IssuanceItemRepositoryInterface::class);
+        $allocations      = $this->createMock(IssuanceItemAllocationRepositoryInterface::class);
+        $audit            = $this->createMock(AuditService::class);
+        $approvalWorkflow = $this->createMock(ApprovalWorkflowService::class);
 
-        $service = new IssuanceService($issuances, $issuanceItems, $allocations, $approvals, $audit);
+        $service = new IssuanceService($issuances, $issuanceItems, $allocations, $audit, $approvalWorkflow);
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('whole number');
@@ -125,5 +122,28 @@ final class IssuanceServiceTest extends CIUnitTestCase
                 'requested_qty' => '1.5',
             ]],
         ]);
+    }
+
+    public function testListFormProductsUsesCatalogService(): void
+    {
+        $issuances        = $this->createMock(IssuanceRepositoryInterface::class);
+        $issuanceItems    = $this->createMock(IssuanceItemRepositoryInterface::class);
+        $allocations      = $this->createMock(IssuanceItemAllocationRepositoryInterface::class);
+        $audit            = $this->createMock(AuditService::class);
+        $approvalWorkflow = $this->createMock(ApprovalWorkflowService::class);
+        $products         = $this->createMock(ProductService::class);
+
+        $products->expects($this->once())
+            ->method('listAvailableForIssuance')
+            ->willReturn([
+                ['id' => 9, 'product_name' => 'Paracetamol 500mg', 'available_qty' => 12],
+            ]);
+
+        $service = new IssuanceService($issuances, $issuanceItems, $allocations, $audit, $approvalWorkflow, $products);
+
+        $result = $service->listFormProducts();
+
+        $this->assertCount(1, $result);
+        $this->assertSame('Paracetamol 500mg', $result[0]['product_name']);
     }
 }

@@ -12,6 +12,7 @@ class PurchaseRequestItemModel extends Model
     protected $useTimestamps = true;
     protected $allowedFields = [
         'purchase_request_id',
+        'product_id',
         'item_name',
         'requested_qty',
         'approved_qty',

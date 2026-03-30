@@ -9,212 +9,24 @@ $crumbs = [
     ['label' => 'Purchase Requests', 'url' => site_url('procurement/purchase-requests')],
     ['label' => 'Pending Approvals'],
 ];
+
+$user = function_exists('auth') ? auth()->user() : null;
+$canManagePo = $user !== null && method_exists($user, 'can') && $user->can('procurement.po.create');
+$canManagePoRequests = $user !== null && method_exists($user, 'can') && $user->can('procurement.por.manage');
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
 <?= $this->section('head') ?>
-<style>
-    /* --- V2 DESIGN SYSTEM VARIABLES --- */
-    :root {
-        --v2-border: #b2e0eb; 
-        --v2-title: #00476b;  
-        --v2-label: #00668c;  
-        --v2-active-bg: #00638a; 
-        --v2-text-main: #1e3a8a; /* TRUE Dark Blue */
-        --v2-text-muted: #64748b;
-    }
-
-    /* --- NO-SCROLL VIEWPORT WRAPPER --- */
-    .viewport-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        height: calc(100vh - 120px); 
-        min-height: 640px;
-        overflow: hidden;
-    }
-
-    /* --- PASTEL KPI CARDS --- */
-    .kpi-grid { 
-        display: grid; 
-        grid-template-columns: repeat(3, 1fr); /* 3 columns for 3 KPIs */
-        gap: 16px; 
-        flex-shrink: 0; 
-    }
-    
-    .kpi-card { 
-        background: #ffffff; 
-        border: 1px solid var(--v2-border); 
-        border-radius: 12px; 
-        padding: 16px 18px; 
-        display: flex; 
-        align-items: center; 
-        gap: 14px; 
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
-    }
-    
-    .kpi-icon-box {
-        width: 46px; height: 46px; 
-        border-radius: 10px; 
-        display: flex; align-items: center; justify-content: center; 
-        flex-shrink: 0;
-    }
-
-    .icon-total { background: #f1f5f9; color: #475569; }        
-    .icon-level { background: #f5f3ff; color: #8b5cf6; } 
-    .icon-pr { background: #eff6ff; color: #2563eb; }   
-
-    .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }
-    
-    .kpi-value { font-size: 1.15rem; font-weight: 800; color: var(--v2-title); line-height: 1.2; margin: 0; }
-    .kpi-label { font-size: 0.75rem; font-weight: 500; color: var(--v2-text-muted); margin: 0; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
-
-    /* --- V2 TABLE CARD --- */
-    .table-card {
-        background: #ffffff; 
-        border: 1px solid var(--v2-border); 
-        border-radius: 12px; 
-        display: flex;
-        flex-direction: column;
-        flex: 1; 
-        min-height: 0; 
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
-        overflow: hidden;
-    }
-
-    .table-toolbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        padding: 12px 20px; 
-        border-bottom: 1px solid var(--v2-border); 
-        background: #ffffff; /* Matched to Purchase Requests page */
-        flex-shrink: 0;
-        flex-wrap: wrap;
-    }
-    
-    .table-toolbar h3 { margin: 0; font-size: 1.05rem; color: var(--v2-title); font-weight: 800; }
-    
-    /* Toolbar Controls */
-    .toolbar-controls { display: flex; gap: 8px; align-items: center; flex: 1; justify-content: flex-end; }
-    
-    .search-wrap { position: relative; width: 300px; }
-    .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 14px; height: 14px; }
-    .search-input { 
-        width: 100%;
-        padding: 6px 12px 6px 30px; 
-        font-size: 0.85rem; 
-        border: 1px solid var(--v2-border); 
-        border-radius: 6px; 
-        outline: none; 
-        color: var(--v2-text-main);
-        background: #ffffff;
-    }
-    .search-input:focus { border-color: var(--v2-label); box-shadow: 0 0 0 3px rgba(0, 102, 140, 0.1); }
-
-    /* Scrollable Table Area */
-    .table-scroll-container {
-        flex: 1;
-        overflow-y: auto; 
-        background: #ffffff;
-    }
-
-    .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-    .modern-table th { 
-        position: sticky; top: 0; z-index: 10;
-        background: #ffffff !important; /* Pure white header */
-        padding: 14px 16px; 
-        font-size: 0.75rem; 
-        text-transform: uppercase; 
-        font-weight: 800; 
-        color: var(--v2-title); 
-        border-bottom: 2px solid var(--v2-border); /* 2px distinct separation line */
-        text-align: left; 
-        letter-spacing: 0.05em; 
-        vertical-align: middle;
-    }
-    .modern-table td { padding: 12px 16px; font-size: 0.85rem; color: var(--v2-text-main); border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-    .modern-table tr:hover td { background: #f8fafc; }
-
-    /* --- SORTABLE HEADERS --- */
-    th.sortable { cursor: pointer; padding-right: 18px !important; user-select: none; transition: background 0.2s ease, color 0.2s ease; }
-    th.sortable:hover { background-color: #f1f5f9 !important; color: var(--v2-title) !important; }
-    th.sortable::after { content: '↕'; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; opacity: 0.3; color: var(--v2-title); }
-    th.sortable.asc::after { content: '↑'; opacity: 1; color: var(--v2-label); font-weight: bold; }
-    th.sortable.desc::after { content: '↓'; opacity: 1; color: var(--v2-label); font-weight: bold; }
-
-    .filter-active-text { color: var(--v2-label); font-weight: 800; text-transform: uppercase; font-size: 0.65rem; display: inline-block; }
-
-    /* --- PAGINATION FOOTER --- */
-    .table-footer {
-        padding: 10px 20px;
-        border-top: 1px solid var(--v2-border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #ffffff;
-        flex-shrink: 0;
-    }
-    .ci-pager { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; align-items: center; }
-    .ci-pager li a, .ci-pager li span {
-        display: inline-flex; align-items: center; justify-content: center;
-        padding: 4px 10px; font-size: 0.75rem; min-width: 28px;
-        border: 1px solid var(--v2-border); border-radius: 4px;
-        background: #ffffff; color: var(--v2-label);
-        text-decoration: none; font-weight: 700; transition: all 0.2s ease;
-    }
-    .ci-pager li a:hover { background: rgba(178, 224, 235, 0.3); border-color: var(--v2-label); }
-    .ci-pager li.active a { background: var(--v2-label); color: #ffffff; border-color: var(--v2-label); }
-    .ci-pager li.disabled a { opacity: 0.5; background: #f1f5f9; color: var(--v2-text-muted); pointer-events: none; border-color: #cbd5e1; }
-    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--v2-text-muted); }
-
-    /* --- INLINE APPROVAL INPUTS (V2 Compliant) --- */
-    .action-container { display: flex; gap: 6px; align-items: stretch; flex-direction: column; }
-    
-    .approval-input-group {
-        display: inline-flex;
-        align-items: stretch;
-        border: 1px solid var(--v2-border);
-        border-radius: 6px;
-        overflow: hidden;
-        background: #ffffff;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        height: 32px; 
-    }
-    .approval-input-group:focus-within { border-color: var(--v2-label); box-shadow: 0 0 0 2px rgba(0, 102, 140, 0.1); }
-    
-    .approval-comment {
-        border: none;
-        padding: 4px 10px;
-        font-size: 0.75rem;
-        width: 150px;
-        outline: none;
-        background: transparent;
-        color: var(--v2-text-main);
-    }
-    .btn-action {
-        border: none;
-        color: white;
-        font-size: 0.7rem;
-        font-weight: 800;
-        padding: 4px 14px;
-        cursor: pointer;
-        transition: background 0.2s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    .btn-approve { background: var(--v2-label); border-left: 1px solid var(--v2-border); }
-    .btn-approve:hover { background: var(--v2-active-bg); }
-    
-    .btn-reject { background: #fef2f2; color: #ef4444; border-left: 1px solid #fecaca; }
-    .btn-reject:hover { background: #fee2e2; color: #dc2626; }
-</style>
+<link rel="stylesheet" href="<?= base_url('assets/css/procurement-queue.css') ?>">
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
-<a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Purchase Orders</a>
-<a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">PO Requests</a>
+<?php if ($canManagePo): ?>
+    <a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Purchase Orders</a>
+<?php endif ?>
+<?php if ($canManagePoRequests): ?>
+    <a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">PO Requests</a>
+<?php endif ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -225,7 +37,7 @@ $level1Pending = count(array_filter($rows, static fn (array $row): bool => (stri
 $prApprovals = count(array_filter($rows, static fn (array $row): bool => (string) ($row['reference_type'] ?? '') === 'purchase_request'));
 ?>
 
-<div class="viewport-wrapper">
+<div class="procurement-queue procurement-queue--approvals">
     
     <div style="flex-shrink: 0;">
         <h2 style="margin:0; font-size: 1.6rem; color: var(--v2-title); font-weight: 900; letter-spacing: -0.02em;">Pending Approvals</h2>
@@ -377,156 +189,58 @@ $prApprovals = count(array_filter($rows, static fn (array $row): bool => (string
         </div>
     </div>
 </div>
+<?= $this->endSection() ?>
 
+<?= $this->section('scripts') ?>
+<script src="<?= base_url('assets/js/procurement-queue.js') ?>"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const rowsPerPage = 15; 
-        const tbody = document.querySelector('#approvals-table tbody');
-        
-        if (tbody && tbody.querySelector('.approval-row')) {
-            const allRows = Array.from(tbody.querySelectorAll('.approval-row'));
-            let currentRows = [...allRows]; 
+    (function () {
+        window.InventoryV2ProcurementQueue.init({
+            tableSelector: '#approvals-table',
+            rowSelector: '.approval-row',
+            searchInputSelector: '#instant-search-input',
+            clearButtonSelector: '#btn-clear-search',
+            pagerSelector: '#client-pager',
+            pageIndicatorSelector: '#page-indicator',
+            totalIndicatorSelector: '#total-indicator',
+            pagerMode: 'full',
+            filter: {
+                headerSelector: '#ref-header',
+                title: 'Reference',
+                values: ['All', 'purchase_request'],
+                attribute: 'data-type',
+                labelFor: function (value) {
+                    return value.replace('_', ' ');
+                }
+            },
+            searchMatcher: function (row, query) {
+                return row.children[1].innerText.toLowerCase().includes(query);
+            },
+            sortValue: function (row, colIndex) {
+                return row.children[colIndex].innerText.trim().replace('#', '');
+            },
+            updateKpis: function (rows) {
+                let levelOneCount = 0;
+                let purchaseRequestCount = 0;
 
-            const pagerContainer = document.getElementById('client-pager');
-            const pageIndicator = document.getElementById('page-indicator');
-            const totalIndicator = document.getElementById('total-indicator');
-            const refHeader = document.getElementById('ref-header');
-            
-            const kpiTotal = document.getElementById('kpi-total');
-            const kpiL1 = document.getElementById('kpi-l1');
-            const kpiPr = document.getElementById('kpi-pr');
-
-            const searchInput = document.getElementById('instant-search-input');
-            const clearBtn = document.getElementById('btn-clear-search');
-
-            const typeCycle = ['All', 'purchase_request'];
-            let cycleIndex = 0;
-            let currentTypeFilter = 'All';
-
-            function applyFilters() {
-                const query = searchInput.value.toLowerCase().trim();
-
-                currentRows = allRows.filter(row => {
-                    const refContent = row.children[1].innerText.toLowerCase();
-                    const typeVal = row.getAttribute('data-type');
-
-                    const matchesText = query === '' || refContent.includes(query);
-                    const matchesType = currentTypeFilter === 'All' || typeVal === currentTypeFilter;
-
-                    return matchesText && matchesType;
-                });
-
-                currentRows.forEach(row => tbody.appendChild(row));
-                updateKPIs();
-                showPage(1);
-            }
-
-            function updateKPIs() {
-                let countL1 = 0, countPR = 0;
-                currentRows.forEach(row => {
+                rows.forEach(function (row) {
                     const type = row.getAttribute('data-type');
                     const level = row.children[2].innerText.trim();
-                    if (level === '1') countL1++;
-                    if (type === 'purchase_request') countPR++;
-                });
-                
-                kpiTotal.innerText = currentRows.length;
-                kpiL1.innerText = countL1;
-                kpiPr.innerText = countPR;
-                totalIndicator.innerText = currentRows.length;
-            }
 
-            if(searchInput) searchInput.addEventListener('input', applyFilters);
-            if(clearBtn) {
-                clearBtn.addEventListener('click', () => {
-                    searchInput.value = '';
-                    applyFilters();
-                });
-            }
-
-            if(refHeader) {
-                refHeader.addEventListener('click', (e) => {
-                    e.stopPropagation(); 
-                    cycleIndex = (cycleIndex + 1) % typeCycle.length;
-                    currentTypeFilter = typeCycle[cycleIndex];
-
-                    if (currentTypeFilter === 'All') {
-                        refHeader.innerHTML = `Reference <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>`;
-                    } else {
-                        refHeader.innerHTML = `Reference <br><span class="filter-active-text">${currentTypeFilter.replace('_', ' ')}</span>`;
+                    if (level === '1') {
+                        levelOneCount++;
                     }
-                    applyFilters();
-                });
-            }
 
-            document.querySelectorAll('#approvals-table th.sortable').forEach(th => {
-                if (th.id === 'ref-header') return; 
-
-                th.addEventListener('click', () => {
-                    const colIndex = parseInt(th.getAttribute('data-col'));
-                    const isNumericCol = th.classList.contains('numeric');
-                    const direction = th.classList.contains('asc') ? -1 : 1; 
-                    
-                    document.querySelectorAll('#approvals-table th.sortable').forEach(header => {
-                        if (header.id !== 'ref-header') header.classList.remove('asc', 'desc');
-                    });
-                    th.classList.add(direction === 1 ? 'asc' : 'desc');
-                    
-                    currentRows.sort((a, b) => {
-                        let aText = a.children[colIndex].innerText.trim().replace('#', '');
-                        let bText = b.children[colIndex].innerText.trim().replace('#', '');
-                        if (isNumericCol) return (parseFloat(aText) - parseFloat(bText)) * direction;
-                        return aText.localeCompare(bText) * direction;
-                    });
-                    
-                    currentRows.forEach(row => tbody.appendChild(row));
-                    showPage(1);
-                });
-            });
-
-            let currentPage = 1;
-            function showPage(page) {
-                currentPage = page;
-                const totalRows = currentRows.length;
-                const totalPages = Math.ceil(totalRows / rowsPerPage);
-                if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
-
-                const startPoint = (currentPage - 1) * rowsPerPage;
-                const endPoint = startPoint + rowsPerPage;
-
-                allRows.forEach(row => row.style.display = 'none');
-                currentRows.forEach((row, index) => {
-                    if (index >= startPoint && index < endPoint) row.style.display = '';
-                });
-
-                const actualEnd = Math.min(endPoint, totalRows);
-                if (pageIndicator) pageIndicator.innerText = totalRows === 0 ? '0' : `${startPoint + 1} - ${actualEnd}`;
-
-                if (pagerContainer) {
-                    pagerContainer.innerHTML = '';
-                    if (totalPages > 1) {
-                        let html = `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo; Prev</a></li>`;
-                        for (let i = 1; i <= totalPages; i++) {
-                            html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
-                        }
-                        html += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;
-                        pagerContainer.innerHTML = html;
+                    if (type === 'purchase_request') {
+                        purchaseRequestCount++;
                     }
-                }
-            }
-
-            if (pagerContainer) {
-                pagerContainer.addEventListener('click', function(e) {
-                    const link = e.target.closest('a');
-                    if (!link) return;
-                    e.preventDefault();
-                    if (link.parentElement.classList.contains('disabled') || link.parentElement.classList.contains('active')) return;
-                    showPage(parseInt(link.getAttribute('data-page')));
                 });
-            }
 
-            showPage(1);
-        }
-    });
+                document.getElementById('kpi-total').innerText = rows.length;
+                document.getElementById('kpi-l1').innerText = levelOneCount;
+                document.getElementById('kpi-pr').innerText = purchaseRequestCount;
+            }
+        });
+    })();
 </script>
 <?= $this->endSection() ?>

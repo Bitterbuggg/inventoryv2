@@ -188,6 +188,76 @@ final class ProcurementWorkflowTest extends CIUnitTestCase
         $this->assertSame('Bandage', $items[1]['item_name']);
     }
 
+    public function testApprovedPurchaseRequestCannotBeConvertedToPurchaseOrderTwice(): void
+    {
+        $employee = $this->findUserByEmail('employee@local.test');
+        auth('session')->login($employee);
+
+        $createPrResponse = $this->withSession(session()->get())->post('/procurement/purchase-requests', $this->csrfPayload([
+            'request_date'         => '2026-02-20',
+            'needed_date'          => '2026-02-25',
+            'remarks'              => 'Duplicate PO protection',
+            'item_name'            => ['Paracetamol 500mg'],
+            'requested_qty'        => ['10'],
+            'unit'                 => ['box'],
+            'estimated_unit_cost'  => ['75.50'],
+            'notes'                => [''],
+        ]));
+        $createPrResponse->assertRedirectTo('/procurement/purchase-requests');
+
+        /** @var PurchaseRequestModel $purchaseRequestModel */
+        $purchaseRequestModel = model(PurchaseRequestModel::class);
+        $purchaseRequest = $purchaseRequestModel
+            ->where('requested_by', (int) $employee->id)
+            ->orderBy('id', 'DESC')
+            ->first();
+
+        $this->assertNotNull($purchaseRequest);
+        $purchaseRequestId = (int) $purchaseRequest['id'];
+
+        $this->withSession(session()->get())->post(
+            '/procurement/purchase-requests/' . $purchaseRequestId . '/submit',
+            $this->csrfPayload([]),
+        );
+
+        /** @var ApprovalModel $approvalModel */
+        $approvalModel = model(ApprovalModel::class);
+        $approval = $approvalModel
+            ->where('reference_type', 'purchase_request')
+            ->where('reference_id', $purchaseRequestId)
+            ->first();
+
+        $this->assertNotNull($approval);
+
+        auth('session')->logout();
+        $admin = $this->findUserByEmail('admin@local.test');
+        auth('session')->login($admin);
+
+        $this->withSession(session()->get())->post(
+            '/procurement/approvals/' . $approval['id'] . '/approve',
+            $this->csrfPayload(['comments' => 'Approved for procurement']),
+        );
+
+        $firstCreateResponse = $this->withSession(session()->get())->post(
+            '/procurement/purchase-orders/from-pr/' . $purchaseRequestId,
+            $this->csrfPayload(['supplier_name' => 'ACME Pharma Supply']),
+        );
+        $firstCreateResponse->assertRedirectTo('/procurement/purchase-orders');
+
+        $secondCreateResponse = $this->withSession(session()->get())->post(
+            '/procurement/purchase-orders/from-pr/' . $purchaseRequestId,
+            $this->csrfPayload(['supplier_name' => 'ACME Pharma Supply']),
+        );
+        $this->assertSame(302, $secondCreateResponse->response()->getStatusCode());
+
+        /** @var PurchaseOrderModel $purchaseOrderModel */
+        $purchaseOrderModel = model(PurchaseOrderModel::class);
+        $purchaseOrders = $purchaseOrderModel->where('purchase_request_id', $purchaseRequestId)->findAll();
+
+        $this->assertCount(1, $purchaseOrders);
+        $this->assertSame('A Purchase Order already exists for this request.', session()->getFlashdata('error'));
+    }
+
     public function testCreatePurchaseRequestRejectsDecimalRequestedQty(): void
     {
         $employee = $this->findUserByEmail('employee@local.test');

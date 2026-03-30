@@ -20,14 +20,14 @@ $requestPipeline = [
     [
         'step' => '02',
         'title' => 'Filters',
-        'summary' => 'Each request passes through authentication, role checks, CSRF, and multi-session validation.',
-        'points' => ['Shield session auth', 'RoleFilter for group-based access', 'MultiSessionFilter to validate or switch tracked sessions'],
+        'summary' => 'Each request passes through authentication, permission or role checks, CSRF, and multi-session validation.',
+        'points' => ['Shield session auth', 'PermissionFilter for ability-based access plus RoleFilter on admin-only areas', 'MultiSessionFilter to validate or switch tracked sessions'],
     ],
     [
         'step' => '03',
         'title' => 'Controllers',
         'summary' => 'Controllers validate input, call services, and render views or redirects.',
-        'points' => ['CSV exports handled here', 'Analytics tracking emitted from actions', 'Shared layouts wrap all screens'],
+        'points' => ['Controllers delegate list and export presentation work to dedicated presenters where available', 'Analytics tracking emitted from actions', 'Shared layouts wrap all screens'],
     ],
     [
         'step' => '04',
@@ -39,7 +39,7 @@ $requestPipeline = [
         'step' => '05',
         'title' => 'Repositories',
         'summary' => 'Repository interfaces isolate data access and are bound centrally through RepositoryServices.',
-        'points' => ['Procurement repositories', 'Receiving and inventory repositories', 'Analytics and audit repositories'],
+        'points' => ['Procurement repositories', 'Shared stock-ledger repositories used by both receiving and issuance', 'Analytics and audit repositories'],
     ],
     [
         'step' => '06',
@@ -57,7 +57,7 @@ $systemFlow = [
         'happens' => [
             'LoginController validates credentials through AuthenticationService and Shield.',
             'Successful login creates a multi-session record and stores a tracked session token.',
-            'RoleFilter allows or rejects access based on the user group required by each route.',
+            'PermissionFilter or RoleFilter allows or rejects access based on the route ability or role requirement.',
             'MultiSessionFilter keeps the tracked session aligned with the authenticated Shield user.',
         ],
         'inputs' => ['identifier', 'password', 'existing session state'],
@@ -69,7 +69,8 @@ $systemFlow = [
         'title' => 'Admin Access and Permission Control',
         'summary' => 'Admins control who can reach downstream modules by assigning groups and granular permissions.',
         'happens' => [
-            'UserController creates accounts, edits users, assigns one primary role, and grants or revokes module permissions.',
+            'UserController validates admin requests and delegates lifecycle changes to UserManagementService.',
+            'UserManagementService creates accounts, edits users, assigns one primary role, and grants or revokes module permissions through UserRepository.',
             'The shared sidebar reads current roles and permissions to show or hide module navigation.',
             'This layer decides whether procurement, receiving, inventory, reports, and analytics appear for a user.',
         ],
@@ -79,19 +80,33 @@ $systemFlow = [
     ],
     [
         'step' => '03',
+        'title' => 'Catalog Administration',
+        'summary' => 'Admin-maintained product and supplier catalogs now provide the canonical references used by new operational records.',
+        'happens' => [
+            'ProductController and SupplierController expose admin CRUD screens for active and inactive catalog entries.',
+            'ProductService normalizes unit values, prevents duplicate product and unit pairs, and exposes active products for request and issuance flows.',
+            'SupplierService prevents duplicate supplier names and keeps contact fields normalized before they are used by purchasing records.',
+            'The March 27, 2026 catalog migrations backfilled product_id and supplier_id links from existing operational snapshots while preserving item_name, unit, and supplier_name text columns.',
+        ],
+        'inputs' => ['product_name', 'unit', 'supplier_name', 'optional contact details', 'existing operational snapshot rows'],
+        'outputs' => ['products rows', 'suppliers rows', 'backfilled product_id and supplier_id references'],
+        'routes' => ['/admin/products', '/admin/suppliers'],
+    ],
+    [
+        'step' => '04',
         'title' => 'Procurement Request Capture',
-        'summary' => 'Operational purchasing starts with a draft purchase request containing free-form item names and units.',
+        'summary' => 'Operational purchasing now starts from the product catalog, which resolves the stored item name and base unit for each draft line.',
         'happens' => [
             'PurchaseRequestController creates a PR draft with request date, remarks, and line items.',
             'PurchaseRequestService enforces valid quantities and prevents duplicate item and unit pairs in the same PR.',
             'Submitting a PR changes status from draft to submitted and creates a pending approval record.',
         ],
-        'inputs' => ['request date', 'remarks', 'item_name', 'unit', 'requested_qty', 'estimated_unit_cost'],
+        'inputs' => ['request date', 'remarks', 'product_id', 'resolved item_name and unit', 'requested_qty', 'estimated_unit_cost'],
         'outputs' => ['purchase_requests row', 'purchase_request_items rows', 'pending approvals row'],
         'routes' => ['/procurement/purchase-requests', '/procurement/purchase-requests/create'],
     ],
     [
-        'step' => '04',
+        'step' => '05',
         'title' => 'Procurement Approval, Purchase Order, and PO Request',
         'summary' => 'Approved purchase requests are converted into orders, then into PO requests that are eligible for receiving.',
         'happens' => [
@@ -100,16 +115,17 @@ $systemFlow = [
             'PurchaseOrderController issues the purchase order.',
             'PoRequestService creates and approves a PO request so the record becomes eligible for receiving conversion.',
         ],
-        'inputs' => ['submitted purchase request', 'approval decision', 'supplier_name', 'issued purchase order'],
+        'inputs' => ['submitted purchase request', 'approval decision', 'supplier_id', 'resolved supplier_name', 'issued purchase order'],
         'outputs' => ['purchase_orders row', 'purchase_order_items rows', 'po_requests row'],
         'routes' => ['/procurement/approvals/pending', '/procurement/purchase-orders', '/procurement/po-requests'],
     ],
     [
-        'step' => '05',
+        'step' => '06',
         'title' => 'Receiving Conversion and Draft Validation',
         'summary' => 'An approved PO request is converted into a receiving draft that captures accepted, rejected, and traceability quantities.',
         'happens' => [
             'ReceivingService loads remaining quantities from purchase_order_items and builds a conversion form.',
+            'ReceivingWorkflowContextService now centralizes the draft and posting context checks around PO request state, purchase order linkage, and remaining receiving scope.',
             'ReceivingValidationService enforces whole numbers, accepted plus rejected equals received, non-past expiry, and no over-receipt.',
             'Creating the receiving draft moves the PO request into an intermediate converting status until posting or voiding.',
         ],
@@ -118,13 +134,13 @@ $systemFlow = [
         'routes' => ['/receiving', '/receiving/create/from-po-request/{id}', '/receiving/{id}/validate'],
     ],
     [
-        'step' => '06',
+        'step' => '07',
         'title' => 'Inventory Posting and Stock Ledger',
         'summary' => 'Posting a receiving writes accepted stock into inventory and creates inbound movement history.',
         'happens' => [
-            'InventoryPostingService increments or creates inventory stock keyed by item_name plus unit plus batch plus lot plus expiry.',
+            'InventoryPostingService increments or creates inventory stock keyed by the resolved product plus item_name/unit plus batch plus lot plus expiry.',
             'Weighted average unit cost is recalculated when stock already exists.',
-            'StockMovementService writes inbound receiving movements.',
+            'StockMovementService writes inbound, stock-disposal, and issuance movements through one shared movement-number generator path.',
             'Purchase order lines update received_qty and the purchase order moves to partially_received or fully_received.',
             'InventoryQuantityService exposes the stock ledger and supports manual disposal through adjustment_out.',
         ],
@@ -133,7 +149,7 @@ $systemFlow = [
         'routes' => ['/receiving/{id}/post', '/inventory/quantities', '/inventory/quantities/{id}'],
     ],
     [
-        'step' => '07',
+        'step' => '08',
         'title' => 'Issuance Approval and Release',
         'summary' => 'Outgoing stock is requested, approved, allocated from available inventory, and then released.',
         'happens' => [
@@ -147,7 +163,7 @@ $systemFlow = [
         'routes' => ['/inventory/issuance', '/inventory/issuance/{id}/approve', '/inventory/issuance/{id}/release'],
     ],
     [
-        'step' => '08',
+        'step' => '09',
         'title' => 'Reporting, Audit, and Analytics',
         'summary' => 'The final layer reads the operational trail to explain what happened, who did it, and how often it occurs.',
         'happens' => [
@@ -197,30 +213,50 @@ $moduleCards = [
         'title' => 'Admin and User Management',
         'purpose' => 'Creates and manages users, assigns roles, and grants per-module permissions.',
         'controllers' => ['Admin\\DashboardController', 'Admin\\UserController'],
-        'services' => ['AuthenticationService for user creation'],
-        'repositories' => ['UserRepository plus direct Shield UserModel usage'],
+        'services' => ['UserManagementService', 'AuthenticationService'],
+        'repositories' => ['UserRepository'],
         'tables' => ['users', 'Shield auth tables'],
         'depends_on' => ['Auth and RBAC'],
-        'feeds_into' => ['Route visibility and permission checks across all modules'],
+        'feeds_into' => ['Catalog Management', 'Route visibility and permission checks across all modules'],
+    ],
+    [
+        'title' => 'Catalog Management',
+        'purpose' => 'Maintains product and supplier master data and supplies canonical catalog references for procurement, receiving, inventory, and issuance workflows.',
+        'controllers' => ['Admin\\ProductController', 'Admin\\SupplierController'],
+        'services' => ['ProductService', 'SupplierService'],
+        'repositories' => ['ProductRepository', 'SupplierRepository'],
+        'tables' => ['products', 'suppliers'],
+        'depends_on' => ['Auth and RBAC', 'Admin and User Management'],
+        'feeds_into' => ['Procurement', 'Receiving', 'Inventory Stock Ledger', 'Issuance'],
     ],
     [
         'title' => 'Procurement',
         'purpose' => 'Handles purchase requests, approvals, purchase orders, and PO requests.',
         'controllers' => ['Procurement\\PurchaseRequestController', 'Procurement\\PurchaseApprovalController', 'Procurement\\PurchaseOrderController', 'Procurement\\PoRequestController'],
-        'services' => ['PurchaseRequestService', 'ApprovalService', 'PurchaseOrderService', 'PoRequestService'],
+        'services' => ['PurchaseRequestService', 'ApprovalService', 'PurchaseOrderService', 'PoRequestService', 'ProcurementListPresenter', 'ProcurementExportPresenter'],
         'repositories' => ['PurchaseRequestRepository', 'ApprovalRepository', 'PurchaseOrderRepository', 'PoRequestRepository'],
         'tables' => ['purchase_requests', 'purchase_request_items', 'approvals', 'purchase_orders', 'purchase_order_items', 'po_requests'],
-        'depends_on' => ['Auth and RBAC', 'Admin and User Management'],
+        'depends_on' => ['Auth and RBAC', 'Catalog Management'],
         'feeds_into' => ['Receiving'],
+    ],
+    [
+        'title' => 'Shared Approval Workflow',
+        'purpose' => 'Provides reusable pending-approval creation and resolution rules for procurement and issuance flows.',
+        'controllers' => ['Indirect only'],
+        'services' => ['ApprovalWorkflowService'],
+        'repositories' => ['ApprovalRepository'],
+        'tables' => ['approvals'],
+        'depends_on' => ['Foundation and Runtime'],
+        'feeds_into' => ['Procurement', 'Issuance'],
     ],
     [
         'title' => 'Receiving',
         'purpose' => 'Converts approved PO requests into receivings, validates item lines, and prepares them for posting.',
-        'controllers' => ['Receiving\\ReceivingController', 'Receiving\\ReceivingValidationController'],
-        'services' => ['ReceivingService', 'ReceivingValidationService'],
+        'controllers' => ['Receiving\\ReceivingController'],
+        'services' => ['ReceivingService', 'ReceivingWorkflowContextService', 'ReceivingValidationService'],
         'repositories' => ['ReceivingRepository', 'ReceivingItemRepository', 'PoRequestRepository', 'PurchaseOrderRepository'],
         'tables' => ['receivings', 'receiving_items', 'po_requests', 'purchase_order_items'],
-        'depends_on' => ['Procurement'],
+        'depends_on' => ['Procurement', 'Catalog Management'],
         'feeds_into' => ['Inventory Stock Ledger'],
     ],
     [
@@ -228,7 +264,7 @@ $moduleCards = [
         'purpose' => 'Stores on-hand, reserved, and available stock plus movement history and manual adjustment-out records.',
         'controllers' => ['Receiving\\InventoryQuantityController'],
         'services' => ['InventoryPostingService', 'InventoryQuantityService', 'StockMovementService'],
-        'repositories' => ['Receiving\\InventoryStockRepository', 'Receiving\\StockMovementRepository'],
+        'repositories' => ['Inventory\\InventoryStockRepository', 'Inventory\\StockMovementRepository'],
         'tables' => ['inventory_stocks', 'stock_movements'],
         'depends_on' => ['Receiving'],
         'feeds_into' => ['Issuance', 'Reports'],
@@ -247,8 +283,8 @@ $moduleCards = [
         'title' => 'Reporting',
         'purpose' => 'Reads operational tables to produce stock balance, stock movement, issuance, low-stock, and fast-moving outputs.',
         'controllers' => ['Inventory\\ReportingController'],
-        'services' => ['ReportingService'],
-        'repositories' => ['ReportingRepository'],
+        'services' => ['ReportingService', 'StockBalanceReportReadModel', 'StockMovementReportReadModel', 'IssuanceReportReadModel', 'LowStockReportReadModel', 'FastMovingReportReadModel', 'ReportingExportPresenter'],
+        'repositories' => ['Report read models query transactional tables directly'],
         'tables' => ['inventory_stocks', 'stock_movements', 'issuances', 'issuance_items'],
         'depends_on' => ['Inventory Stock Ledger', 'Issuance'],
         'feeds_into' => ['Operational monitoring and exports'],
@@ -257,7 +293,7 @@ $moduleCards = [
         'title' => 'Analytics and Internal Telemetry',
         'purpose' => 'Captures controller-level events, aggregates daily metrics, and exposes analytics screens and exports.',
         'controllers' => ['Analytics\\AnalyticsController'],
-        'services' => ['AnalyticsService'],
+        'services' => ['AnalyticsService', 'ActivityLogQueryService', 'AnalyticsExportPresenter'],
         'repositories' => ['AnalyticsRepository'],
         'tables' => ['analytics_events', 'analytics_daily_metrics'],
         'depends_on' => ['All controller-facing modules'],
@@ -278,7 +314,7 @@ $moduleCards = [
 $moduleFlowcharts = [
     'Foundation and Runtime' => [
         'A browser request enters a grouped route.',
-        'Auth, role, CSRF, and multi-session filters run.',
+        'Auth, permission or role, CSRF, and multi-session filters run.',
         'The matched controller calls services and repositories.',
         'A view or redirect response is returned to the user.',
     ],
@@ -286,7 +322,7 @@ $moduleFlowcharts = [
         'The user opens signup or login.',
         'Credentials or registration input are validated.',
         'Shield authenticates the account and resolves the base group.',
-        'Protected routes check role membership before module access is allowed.',
+        'Protected routes check role membership or ability permissions before module access is allowed.',
     ],
     'Multi-Session Tracking' => [
         'A successful login creates a tracked multi_sessions row.',
@@ -300,15 +336,27 @@ $moduleFlowcharts = [
         'The base role is assigned as admin, it_staff, or employee.',
         'Module permissions are granted or revoked to shape navigation and actions.',
     ],
+    'Catalog Management' => [
+        'Admin opens the products or suppliers screen.',
+        'Catalog entries are created or updated through ProductService or SupplierService.',
+        'Validation blocks duplicate records and normalizes units or contact fields.',
+        'Operational forms later resolve product_id or supplier_id from these catalog records.',
+    ],
     'Procurement' => [
-        'A purchase request draft is created with item, unit, quantity, and cost.',
+        'A catalog-backed purchase request draft is created with product, quantity, and cost.',
         'The draft is submitted and a pending approval record is created.',
-        'Admin or IT staff approves or rejects the request.',
+        'A user with purchase-request approval permission approves or rejects the request.',
         'An approved request is converted into a purchase order and then a PO request.',
-        'Admin approves the PO request so receiving can begin.',
+        'A user with PO-request management permission approves the PO request so receiving can begin.',
+    ],
+    'Shared Approval Workflow' => [
+        'A procurement or issuance service asks for a pending approval record.',
+        'ApprovalWorkflowService creates or reuses the pending approvals row.',
+        'An approver resolves the row as approved or rejected with comments.',
+        'The calling workflow service applies the resulting business status transition.',
     ],
     'Receiving' => [
-        'Admin or IT staff opens an approved PO request.',
+        'A user with receiving conversion permission opens an approved PO request.',
         'The system builds a receiving draft from remaining purchase order balances.',
         'Received, accepted, rejected, batch, lot, and expiry values are entered.',
         'Validation checks quantity balance, expiry rules, and over-receipt.',
@@ -324,12 +372,12 @@ $moduleFlowcharts = [
     'Issuance' => [
         'A draft issuance request is created from available item and unit pairs.',
         'The request is submitted and queued for approval.',
-        'Admin approves or rejects the issuance.',
+        'A user with issuance approval permission approves or rejects the issuance.',
         'The system allocates stock from available lots using expiry-first ordering.',
-        'Admin releases the issuance and outbound movement history is written.',
+        'A user with issuance approval permission releases the issuance and outbound movement history is written.',
     ],
     'Reporting' => [
-        'Admin or IT staff opens a report and applies filters.',
+        'A user with reports.view opens a report and applies filters.',
         'ReportingService queries live stock, movement, and issuance tables.',
         'The screen summarizes the current operational state.',
         'CSV export is generated when the user needs an extract.',
@@ -338,7 +386,7 @@ $moduleFlowcharts = [
         'A controller action emits an analytics event.',
         'The event is stored in analytics_events.',
         'Aggregation builds daily metrics from raw activity.',
-        'Admin or IT staff reviews logs, metrics, and this reference page.',
+        'A user with audit.view reviews logs, metrics, and this reference page.',
     ],
     'Audit Logging' => [
         'A critical workflow transition occurs inside a service.',
@@ -351,12 +399,13 @@ $moduleFlowcharts = [
 $roleJourneys = [
     [
         'role' => 'Admin',
-        'summary' => 'Full control over user access, procurement approvals, stock release decisions, reports, and internal analytics.',
-        'access' => ['Admin', 'Procurement', 'Receiving', 'Inventory', 'Reports', 'Analytics'],
-        'boundary' => 'Only admin can issue purchase orders, approve PO requests, approve issuances, and release stock out of inventory.',
+        'summary' => 'Full control over user access, catalog maintenance, procurement approvals, stock release decisions, reports, and internal analytics.',
+        'access' => ['Admin', 'Catalog', 'Procurement', 'Receiving', 'Inventory', 'Reports', 'Analytics'],
+        'boundary' => 'The default admin role has full operational coverage, while granular permission overrides can delegate specific actions to other users.',
         'flow' => [
             'Log in and land on the admin or operations workspace.',
             'Create users, assign base roles, and manage module permissions.',
+            'Maintain products and suppliers so downstream workflows use current catalog records.',
             'Approve purchase requests and issue purchase orders.',
             'Approve PO requests so receiving can be converted and posted.',
             'Approve and release issuance requests after stock review.',
@@ -367,11 +416,11 @@ $roleJourneys = [
         'role' => 'IT Staff',
         'summary' => 'Operational support role focused on approvals, receiving, inventory monitoring, reports, and analytics.',
         'access' => ['Procurement', 'Receiving', 'Inventory', 'Reports', 'Analytics'],
-        'boundary' => 'IT staff can review and post operational work, but admin still owns PO issuance, PO request approval, and issuance release.',
+        'boundary' => 'The default IT staff role focuses on approvals, receiving, inventory review, reports, and analytics, but explicit permission grants can widen that scope.',
         'flow' => [
             'Log in and open procurement or receiving work queues.',
             'Review submitted purchase requests and approve or reject them.',
-            'Monitor purchase orders and wait for admin-approved PO requests.',
+            'Monitor purchase orders and wait for a user with PO-request approval permission to finalize receiving eligibility.',
             'Convert approved PO requests into receivings and validate line data.',
             'Post inventory updates, inspect stock balances, and handle quantity review.',
             'Use reports and activity logs to monitor operations.',
@@ -381,9 +430,10 @@ $roleJourneys = [
         'role' => 'Employee',
         'summary' => 'Request initiator role that creates procurement and issuance drafts and monitors inventory visibility.',
         'access' => ['Procurement', 'Inventory Quantities', 'Issuance Drafts'],
-        'boundary' => 'Employees can initiate requests and view stock, but they cannot approve procurement, post receiving, or release issuance.',
+        'boundary' => 'Employees initiate requests and view stock by default. Approval, receiving, and release actions require explicit extra permissions.',
         'flow' => [
             'Log in and open the purchase request or issuance screens.',
+            'Select active catalog products instead of typing free-form item records for new requests.',
             'Create or edit draft purchase requests and submit them for approval.',
             'Track request status while admin or IT staff handles the approval chain.',
             'View inventory quantities and movement history for reference.',
@@ -395,18 +445,32 @@ $roleJourneys = [
 
 $interconnections = [
     'The same role and permission rules control both route access and sidebar navigation visibility.',
+    'Catalog management provides canonical product and supplier references, while transactional tables keep text snapshots for historical display and exports.',
     'Procurement creates the records that receiving needs. Receiving cannot start until a PO request is approved.',
     'Receiving posting is the point where ordered items become real stock in inventory_stocks and stock_movements.',
     'Issuance never creates stock. It only consumes available stock and records outbound movement plus allocation detail.',
+    'ApprovalWorkflowService is shared by procurement and issuance so both modules reuse the same pending-approval creation and resolution rules.',
     'Reports read the transactional truth directly from stock, movement, and issuance tables rather than from a separate warehouse.',
     'Analytics records controller-level user activity, while audit logs record business-state transitions inside services.',
 ];
 
 $implementationNotes = [
-    'The implemented application currently uses free-form item_name, unit, and supplier_name strings throughout procurement, receiving, inventory, and issuance. The richer product and supplier catalog described in docs is not yet the runtime source of truth.',
-    'RepositoryServices is the central dependency registry for most workflows, but Admin\\UserController still talks directly to Shield UserModel for several user-management operations.',
+    'The implemented application now includes product and supplier master catalogs that back new procurement and issuance records, while transactional tables still retain item_name, unit, and supplier_name snapshots for compatibility and reporting.',
+    'The March 27, 2026 migrations created products and suppliers, then backfilled product_id and supplier_id references across purchase_request_items, purchase_orders, purchase_order_items, receivings, receiving_items, inventory_stocks, stock_movements, issuance_items, and issuance_item_allocations.',
+    'RepositoryServices remains the central dependency registry, and admin user-management logic now runs through a dedicated UserManagementService instead of performing direct Shield model writes inside the controller.',
+    'Receiving and issuance now share the same inventory stock and stock movement repository implementations, which removes parallel data-access logic around inventory_stocks and stock_movements.',
+    'Receiving draft conversion, draft validation, and posting now reuse ReceivingWorkflowContextService, and the draft validation endpoint is handled inside ReceivingController so the receiving lifecycle is routed through one controller entry point.',
+    'ReportingService now composes focused report read models for stock balance, stock movements, issuances, low stock, and fast-moving analysis instead of delegating every report query to one monolithic reporting repository.',
+    'ReportingController now delegates CSV filename, header, row-shaping, and stock-movement label translation to ReportingExportPresenter instead of carrying report export schemas inline.',
+    'AnalyticsController now delegates activity-log dataset assembly to ActivityLogQueryService and CSV dataset shaping to AnalyticsExportPresenter instead of building overview, events, trends, and metrics payloads inline.',
+    'Purchase request and issuance submission and approval resolution now share ApprovalWorkflowService, so pending-approval creation, validation, and resolution no longer live in separate duplicated service paths.',
+    'StockMovementService now centralizes movement-number generation and write-shaping for receiving, manual stock disposal, and issuance release, so InventoryQuantityService and IssuanceReleaseService no longer build movement rows on their own.',
+    'Procurement and issuance controllers now obtain catalog-backed form options through their own workflow services instead of assembling those option lists from catalog services directly inside the controller layer.',
+    'PurchaseOrderService now owns the purchase-order index decoration for linked PO request status, so PurchaseOrderController no longer merges purchase order and po_request data itself.',
+    'PurchaseOrderController no longer pre-scans the order list to block duplicate PR conversion. Duplicate purchase-order prevention now stays inside PurchaseOrderService as the single source of truth, while the controller only remaps the domain error into a cleaner flash message.',
+    'Procurement controllers now delegate approval-list enrichment, procurement status-label presentation, and CSV payload shaping to ProcurementListPresenter and ProcurementExportPresenter instead of carrying those display maps and export schemas inline.',
     'The Activity Logs page is the current unified analytics surface for overview, event logs, and metrics. The older dashboard, events, and metrics routes still map into that area.',
-    'The create-user form exposes a custom frontend option, but the runtime base group still resolves to employee and then layers granular permissions on top.',
+    'Admin user creation now uses only real base roles. Granular permission overrides are still available, but they no longer rely on a pseudo custom role.',
 ];
 ?>
 <?= $this->extend('layouts/main_layout') ?>
@@ -868,8 +932,8 @@ $implementationNotes = [
         <div class="status-callout status-callout-info">
             <p class="architecture-callout-copy">
                 <strong>Implementation note:</strong>
-                The current operational workflow uses transactional tables built around <code>item_name</code>, <code>unit</code>, and <code>supplier_name</code>.
-                The richer product and supplier catalog described in project docs is not yet the runtime source of truth.
+                The current operational workflow now resolves new transactions through product and supplier catalogs.
+                Transactional tables still keep <code>item_name</code>, <code>unit</code>, and <code>supplier_name</code> snapshots for compatibility, display, and reporting.
             </p>
         </div>
     </section>

@@ -14,6 +14,7 @@ class ReceivingModel extends Model
         'receiving_number',
         'po_request_id',
         'purchase_order_id',
+        'supplier_id',
         'supplier_name',
         'received_date',
         'delivery_reference',

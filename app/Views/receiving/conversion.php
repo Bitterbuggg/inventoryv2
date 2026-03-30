@@ -176,6 +176,7 @@ $todayDate = date('Y-m-d');
                             <tr>
                                 <td>
                                     <input type="hidden" name="purchase_order_item_id[]" value="<?= esc((string) ($item['purchase_order_item_id'] ?? 0)) ?>">
+                                    <input type="hidden" name="product_id[]" value="<?= esc((string) ($item['product_id'] ?? '')) ?>">
                                     <input type="hidden" name="item_name[]" value="<?= esc((string) ($item['item_name'] ?? '')) ?>">
                                     <div class="item-text"><?= esc((string) ($item['item_name'] ?? '')) ?></div>
                                 </td>

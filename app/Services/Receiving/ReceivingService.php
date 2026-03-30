@@ -16,6 +16,7 @@ class ReceivingService
         private readonly ReceivingItemRepositoryInterface $receivingItems,
         private readonly PoRequestRepositoryInterface $poRequests,
         private readonly PurchaseOrderRepositoryInterface $purchaseOrders,
+        private readonly ReceivingWorkflowContextService $workflowContext,
         private readonly ReceivingValidationService $validation,
         private readonly InventoryPostingService $inventoryPosting,
         private readonly BaseConnection $db,
@@ -84,33 +85,10 @@ class ReceivingService
      */
     public function buildConversionData(int $poRequestId): array
     {
-        $poRequest = $this->poRequests->find($poRequestId);
-
-        if ($poRequest === null) {
-            throw new \DomainException('PO request not found.');
-        }
-
-        if (($poRequest['status'] ?? '') !== 'approved') {
-            throw new \DomainException('Only approved PO requests can be converted to receiving.');
-        }
-
-        $existingReceiving = $this->receivings->findByPoRequest($poRequestId);
-        if ($existingReceiving !== null && ($existingReceiving['status'] ?? '') !== 'voided') {
-            throw new \DomainException('A receiving record already exists for this PO request.');
-        }
-
-        $purchaseOrderId = (int) ($poRequest['purchase_order_id'] ?? 0);
-        $purchaseOrder   = $this->purchaseOrders->find($purchaseOrderId);
-
-        if ($purchaseOrder === null) {
-            throw new \DomainException('Purchase order for PO request was not found.');
-        }
-
-        $purchaseOrderItems = $this->purchaseOrders->listItems($purchaseOrderId);
-
-        if ($purchaseOrderItems === []) {
-            throw new \DomainException('Purchase order has no items to receive.');
-        }
+        $context = $this->workflowContext->buildConversionContext($poRequestId);
+        $poRequest = $context['po_request'];
+        $purchaseOrder = $context['purchase_order'];
+        $purchaseOrderItems = $context['remaining_items'];
 
         $items = [];
 
@@ -127,6 +105,7 @@ class ReceivingService
 
             $items[] = [
                 'purchase_order_item_id' => (int) ($purchaseOrderItem['id'] ?? 0),
+                'product_id'             => (int) ($purchaseOrderItem['product_id'] ?? 0),
                 'item_name'              => (string) ($purchaseOrderItem['item_name'] ?? ''),
                 'unit'                   => (string) ($purchaseOrderItem['unit'] ?? 'unit'),
                 'received_qty'           => $remainingQty,
@@ -139,10 +118,6 @@ class ReceivingService
                 'line_total'             => round($remainingQty * $unitCost, 2),
                 'remarks'                => null,
             ];
-        }
-
-        if ($items === []) {
-            throw new \DomainException('No remaining quantities are available for receiving.');
         }
 
         return [
@@ -163,27 +138,10 @@ class ReceivingService
             throw new \InvalidArgumentException('PO request is required.');
         }
 
-        $poRequest = $this->poRequests->find($poRequestId);
-
-        if ($poRequest === null) {
-            throw new \DomainException('PO request not found.');
-        }
-
-        if (($poRequest['status'] ?? '') !== 'approved') {
-            throw new \DomainException('Only approved PO requests can create receiving draft.');
-        }
-
-        $existingReceiving = $this->receivings->findByPoRequest($poRequestId);
-        if ($existingReceiving !== null && ($existingReceiving['status'] ?? '') !== 'voided') {
-            throw new \DomainException('A receiving record already exists for this PO request.');
-        }
-
+        $context = $this->workflowContext->buildConversionContext($poRequestId);
+        $poRequest = $context['po_request'];
+        $purchaseOrder = $context['purchase_order'];
         $purchaseOrderId = (int) ($poRequest['purchase_order_id'] ?? 0);
-        $purchaseOrder   = $this->purchaseOrders->find($purchaseOrderId);
-
-        if ($purchaseOrder === null) {
-            throw new \DomainException('Purchase order for PO request was not found.');
-        }
 
         $items = $this->normalizeItems($data['items'] ?? []);
 
@@ -191,12 +149,9 @@ class ReceivingService
             throw new \DomainException('At least one receiving item is required.');
         }
 
-        $purchaseOrderItems      = $this->purchaseOrders->listItems($purchaseOrderId);
-        $purchaseOrderItemsById  = $this->mapPurchaseOrderItems($purchaseOrderItems);
+        $this->validation->assertValid($items, $context['purchase_order_items_by_id']);
 
-        $this->validation->assertValid($items, $purchaseOrderItemsById);
-
-        $receivingId = $this->receivings->create([
+        $receivingData = [
             'receiving_number'   => $this->generateReceivingNumber(),
             'po_request_id'      => $poRequestId,
             'purchase_order_id'  => $purchaseOrderId,
@@ -211,7 +166,13 @@ class ReceivingService
             'voided_at'          => null,
             'voided_by'          => null,
             'void_reason'        => null,
-        ]);
+        ];
+
+        if (($purchaseOrder['supplier_id'] ?? null) !== null) {
+            $receivingData['supplier_id'] = $purchaseOrder['supplier_id'];
+        }
+
+        $receivingId = $this->receivings->create($receivingData);
 
         $this->receivingItems->addItems($receivingId, $items);
 
@@ -225,55 +186,26 @@ class ReceivingService
      */
     public function validateDraft(int $receivingId): array
     {
-        $receiving = $this->receivings->find($receivingId);
-
-        if ($receiving === null) {
-            return ['Receiving record not found.'];
+        try {
+            $context = $this->workflowContext->buildDraftContext($receivingId);
+        } catch (\DomainException $exception) {
+            return [$exception->getMessage()];
         }
 
-        $items = $this->receivingItems->listByReceiving($receivingId);
-
-        if ($items === []) {
+        if ($context['items'] === []) {
             return ['Receiving has no items.'];
         }
 
-        $purchaseOrderItemsById = $this->mapPurchaseOrderItems(
-            $this->purchaseOrders->listItems((int) ($receiving['purchase_order_id'] ?? 0)),
-        );
-
-        return $this->validation->validateItems($items, $purchaseOrderItemsById);
+        return $this->validation->validateItems($context['items'], $context['purchase_order_items_by_id']);
     }
 
     public function post(int $receivingId, int $actorId): void
     {
-        $receiving = $this->receivings->find($receivingId);
+        $context = $this->workflowContext->buildPostingContext($receivingId);
+        $receiving = $context['receiving'];
+        $items = $context['items'];
 
-        if ($receiving === null) {
-            throw new \DomainException('Receiving record not found.');
-        }
-
-        if (($receiving['status'] ?? '') !== 'draft') {
-            throw new \DomainException('Only draft receiving records can be posted.');
-        }
-
-        $poRequest = $this->poRequests->find((int) ($receiving['po_request_id'] ?? 0));
-        if ($poRequest === null) {
-            throw new \DomainException('PO request for receiving was not found.');
-        }
-
-        if (($poRequest['status'] ?? '') !== 'converting') {
-            throw new \DomainException('PO request must be in converting status before posting receiving.');
-        }
-
-        $items = $this->receivingItems->listByReceiving($receivingId);
-        if ($items === []) {
-            throw new \DomainException('Receiving has no items to post.');
-        }
-
-        $purchaseOrderItemsById = $this->mapPurchaseOrderItems(
-            $this->purchaseOrders->listItems((int) ($receiving['purchase_order_id'] ?? 0)),
-        );
-        $this->validation->assertValid($items, $purchaseOrderItemsById);
+        $this->validation->assertValid($items, $context['purchase_order_items_by_id']);
 
         $this->db->transBegin();
 
@@ -293,7 +225,7 @@ class ReceivingService
                 'posted_at'  => $now,
             ]);
 
-            $this->poRequests->update((int) ($receiving['po_request_id'] ?? 0), [
+            $this->poRequests->update((int) ($context['po_request']['id'] ?? 0), [
                 'status' => 'converted_to_receiving',
             ]);
 
@@ -402,6 +334,7 @@ class ReceivingService
 
             $normalized[] = [
                 'purchase_order_item_id' => $purchaseOrderItemId,
+                'product_id'             => (int) ($item['product_id'] ?? 0) ?: null,
                 'item_name'              => $itemName,
                 'unit'                   => trim((string) ($item['unit'] ?? 'unit')) ?: 'unit',
                 'received_qty'           => $receivedQty,
@@ -417,26 +350,6 @@ class ReceivingService
         }
 
         return $normalized;
-    }
-
-    /**
-     * @param array<int, array<string, mixed>> $items
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function mapPurchaseOrderItems(array $items): array
-    {
-        $map = [];
-
-        foreach ($items as $item) {
-            $itemId = (int) ($item['id'] ?? 0);
-
-            if ($itemId > 0) {
-                $map[$itemId] = $item;
-            }
-        }
-
-        return $map;
     }
 
     private function updatePurchaseOrderStatus(int $purchaseOrderId): void

@@ -54,6 +54,17 @@ class InventoryStockRepository implements InventoryStockRepositoryInterface
         return is_array($record) ? $record : null;
     }
 
+    public function create(array $data): int
+    {
+        $id = $this->newModel()->insert($data, true);
+
+        if (! is_int($id) && ! ctype_digit((string) $id)) {
+            throw new \RuntimeException('Failed to create inventory stock record.');
+        }
+
+        return (int) $id;
+    }
+
     public function listForAllocation(string $itemName, string $unit): array
     {
         return $this->newModel()

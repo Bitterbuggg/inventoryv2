@@ -11,6 +11,7 @@ class InventoryStockModel extends Model
     protected $returnType = 'array';
     protected $useTimestamps = true;
     protected $allowedFields = [
+        'product_id',
         'item_name',
         'unit',
         'batch_no',

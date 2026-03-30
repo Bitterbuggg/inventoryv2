@@ -2,8 +2,8 @@
 
 namespace App\Services\Receiving;
 
+use App\Repositories\Contracts\Inventory\InventoryStockRepositoryInterface;
 use App\Repositories\Contracts\Procurement\PurchaseOrderRepositoryInterface;
-use App\Repositories\Contracts\Receiving\InventoryStockRepositoryInterface;
 
 class InventoryPostingService
 {
@@ -47,6 +47,7 @@ class InventoryPostingService
                 'received_qty' => $updatedReceivedQty,
             ]);
 
+            $productId  = (int) ($receivingItem['product_id'] ?? $purchaseOrderItem['product_id'] ?? 0) ?: null;
             $itemName   = (string) ($receivingItem['item_name'] ?? '');
             $unit       = (string) ($receivingItem['unit'] ?? 'unit');
             $batchNo    = $this->nullableString($receivingItem['batch_no'] ?? null);
@@ -57,7 +58,7 @@ class InventoryPostingService
             $stock = $this->inventoryStocks->findByKey($itemName, $unit, $batchNo, $lotNo, $expiryDate);
 
             if ($stock === null) {
-                $inventoryStockId = $this->inventoryStocks->create([
+                $createData = [
                     'item_name'         => $itemName,
                     'unit'              => $unit,
                     'batch_no'          => $batchNo,
@@ -68,7 +69,13 @@ class InventoryPostingService
                     'available_qty'     => $acceptedQty,
                     'average_unit_cost' => $unitCost,
                     'last_movement_at'  => date('Y-m-d H:i:s'),
-                ]);
+                ];
+
+                if ($productId !== null) {
+                    $createData['product_id'] = $productId;
+                }
+
+                $inventoryStockId = $this->inventoryStocks->create($createData);
 
                 $balanceAfter = $acceptedQty;
             } else {
@@ -83,18 +90,25 @@ class InventoryPostingService
                     : 0;
                 $newAvailableQty = $newOnHandQty - $reservedQty;
 
-                $this->inventoryStocks->update($inventoryStockId, [
+                $updateData = [
                     'on_hand_qty'       => $newOnHandQty,
                     'available_qty'     => $newAvailableQty,
                     'average_unit_cost' => round($newAverageCost, 2),
                     'last_movement_at'  => date('Y-m-d H:i:s'),
-                ]);
+                ];
+
+                if ($productId !== null || ($stock['product_id'] ?? null) !== null) {
+                    $updateData['product_id'] = $productId ?? $stock['product_id'];
+                }
+
+                $this->inventoryStocks->update($inventoryStockId, $updateData);
 
                 $balanceAfter = $newOnHandQty;
             }
 
             $this->stockMovements->recordReceivingMovement([
                 'reference_id'       => $receivingId,
+                'product_id'         => $productId,
                 'item_name'          => $itemName,
                 'inventory_stock_id' => $inventoryStockId,
                 'unit'               => $unit,

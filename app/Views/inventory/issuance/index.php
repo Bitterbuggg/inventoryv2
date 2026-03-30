@@ -8,6 +8,11 @@ $pageSubtitle = 'Create, review, and track issuance workflow states.';
 $crumbs = [
     ['label' => 'Inventory Issuance'],
 ];
+
+$user = function_exists('auth') ? auth()->user() : null;
+$canCreateIssuance = $user !== null && method_exists($user, 'can') && $user->can('inventory.issuance.create');
+$canViewInventory = $user !== null && method_exists($user, 'can') && $user->can('inventory.view', 'inventory.quantity.update');
+$canViewReports = $user !== null && method_exists($user, 'can') && $user->can('reports.view');
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -190,11 +195,17 @@ $crumbs = [
 <?= $this->endSection() ?>
 
 <?= $this->section('page_actions') ?>
-<a class="btn btn-primary" href="<?= site_url('inventory/issuance/create') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Create Issuance</a>
+<?php if ($canCreateIssuance): ?>
+    <a class="btn btn-primary" href="<?= site_url('inventory/issuance/create') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Create Issuance</a>
+<?php endif ?>
 <?php $issuanceListExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
 <a class="btn btn-outline" href="<?= site_url('inventory/issuance') . '?' . $issuanceListExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
-<a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Inventory Quantities</a>
-<a class="btn btn-outline" href="<?= site_url('reports/stock-balance') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Reports</a>
+<?php if ($canViewInventory): ?>
+    <a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Inventory Quantities</a>
+<?php endif ?>
+<?php if ($canViewReports): ?>
+    <a class="btn btn-outline" href="<?= site_url('reports/stock-balance') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Reports</a>
+<?php endif ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>

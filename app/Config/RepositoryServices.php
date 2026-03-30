@@ -2,62 +2,77 @@
 
 namespace Config;
 
+use App\Repositories\Contracts\Catalog\ProductRepositoryInterface;
+use App\Repositories\Contracts\Catalog\SupplierRepositoryInterface;
 use App\Repositories\Contracts\Analytics\AnalyticsRepositoryInterface;
 use App\Repositories\Contracts\Auth\UserRepositoryInterface;
-use App\Repositories\Contracts\Inventory\InventoryStockRepositoryInterface as IssuanceInventoryStockRepositoryInterface;
+use App\Repositories\Contracts\Inventory\InventoryStockRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceItemAllocationRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceItemRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceRepositoryInterface;
-use App\Repositories\Contracts\Inventory\ReportingRepositoryInterface;
-use App\Repositories\Contracts\Inventory\StockMovementRepositoryInterface as IssuanceStockMovementRepositoryInterface;
+use App\Repositories\Contracts\Inventory\StockMovementRepositoryInterface;
 use App\Repositories\Contracts\Procurement\ApprovalRepositoryInterface;
 use App\Repositories\Contracts\Procurement\PoRequestRepositoryInterface;
 use App\Repositories\Contracts\Procurement\PurchaseOrderRepositoryInterface;
 use App\Repositories\Contracts\Procurement\PurchaseRequestRepositoryInterface;
-use App\Repositories\Contracts\Receiving\InventoryStockRepositoryInterface as ReceivingInventoryStockRepositoryInterface;
 use App\Repositories\Contracts\Receiving\ReceivingItemRepositoryInterface;
 use App\Repositories\Contracts\Receiving\ReceivingRepositoryInterface;
-use App\Repositories\Contracts\Receiving\StockMovementRepositoryInterface as ReceivingStockMovementRepositoryInterface;
 use App\Repositories\Contracts\Shared\AuditLogRepositoryInterface;
+use App\Repositories\EloquentLike\Catalog\ProductRepository;
+use App\Repositories\EloquentLike\Catalog\SupplierRepository;
 use App\Repositories\EloquentLike\Analytics\AnalyticsRepository;
 use App\Repositories\EloquentLike\Auth\UserRepository;
-use App\Repositories\EloquentLike\Inventory\InventoryStockRepository as IssuanceInventoryStockRepository;
+use App\Repositories\EloquentLike\Inventory\InventoryStockRepository;
 use App\Repositories\EloquentLike\Inventory\IssuanceItemAllocationRepository;
 use App\Repositories\EloquentLike\Inventory\IssuanceItemRepository;
 use App\Repositories\EloquentLike\Inventory\IssuanceRepository;
-use App\Repositories\EloquentLike\Inventory\ReportingRepository;
-use App\Repositories\EloquentLike\Inventory\StockMovementRepository as IssuanceStockMovementRepository;
+use App\Repositories\EloquentLike\Inventory\StockMovementRepository;
 use App\Repositories\EloquentLike\Procurement\ApprovalRepository;
 use App\Repositories\EloquentLike\Procurement\PoRequestRepository;
 use App\Repositories\EloquentLike\Procurement\PurchaseOrderRepository;
 use App\Repositories\EloquentLike\Procurement\PurchaseRequestRepository;
-use App\Repositories\EloquentLike\Receiving\InventoryStockRepository as ReceivingInventoryStockRepository;
 use App\Repositories\EloquentLike\Receiving\ReceivingItemRepository;
 use App\Repositories\EloquentLike\Receiving\ReceivingRepository;
-use App\Repositories\EloquentLike\Receiving\StockMovementRepository as ReceivingStockMovementRepository;
 use App\Repositories\EloquentLike\Shared\AuditLogRepository;
 use App\Services\Analytics\AnalyticsService;
+use App\Services\Analytics\ActivityLogQueryService;
+use App\Services\Analytics\AnalyticsExportPresenter;
+use App\Services\Admin\UserManagementService;
 use App\Services\Auth\AuthenticationService;
+use App\Services\Catalog\ProductService;
+use App\Services\Catalog\SupplierService;
 use App\Services\Inventory\InventoryAvailabilityService;
 use App\Services\Inventory\IssuanceApprovalService;
 use App\Services\Inventory\IssuanceReleaseService;
 use App\Services\Inventory\IssuanceService;
 use App\Services\Inventory\ReportingService;
+use App\Services\Inventory\Reports\FastMovingReportReadModel;
+use App\Services\Inventory\Reports\IssuanceReportReadModel;
+use App\Services\Inventory\Reports\LowStockReportReadModel;
+use App\Services\Inventory\Reports\ReportingExportPresenter;
+use App\Services\Inventory\Reports\StockBalanceReportReadModel;
+use App\Services\Inventory\Reports\StockMovementReportReadModel;
 use App\Services\Procurement\ApprovalService;
 use App\Services\Procurement\PoRequestService;
+use App\Services\Procurement\ProcurementExportPresenter;
+use App\Services\Procurement\ProcurementListPresenter;
 use App\Services\Procurement\PurchaseOrderService;
 use App\Services\Procurement\PurchaseRequestService;
 use App\Services\Receiving\InventoryPostingService;
 use App\Services\Receiving\InventoryQuantityService;
 use App\Services\Receiving\ReceivingService;
 use App\Services\Receiving\ReceivingValidationService;
+use App\Services\Receiving\ReceivingWorkflowContextService;
 use App\Services\Receiving\StockMovementService;
+use App\Services\Shared\ApprovalWorkflowService;
 use App\Services\Shared\AuditService;
 
 class RepositoryServices
 {
     private static ?UserRepositoryInterface $userRepository = null;
     private static ?AnalyticsRepositoryInterface $analyticsRepository = null;
+    private static ?ProductRepositoryInterface $productRepository = null;
+    private static ?SupplierRepositoryInterface $supplierRepository = null;
 
     private static ?PurchaseRequestRepositoryInterface $purchaseRequestRepository = null;
     private static ?ApprovalRepositoryInterface $approvalRepository = null;
@@ -66,33 +81,45 @@ class RepositoryServices
 
     private static ?ReceivingRepositoryInterface $receivingRepository = null;
     private static ?ReceivingItemRepositoryInterface $receivingItemRepository = null;
-    private static ?ReceivingInventoryStockRepositoryInterface $receivingInventoryStockRepository = null;
-    private static ?ReceivingStockMovementRepositoryInterface $receivingStockMovementRepository = null;
+    private static ?InventoryStockRepositoryInterface $inventoryStockRepository = null;
+    private static ?StockMovementRepositoryInterface $stockMovementRepository = null;
 
     private static ?IssuanceRepositoryInterface $issuanceRepository = null;
     private static ?IssuanceItemAllocationRepositoryInterface $issuanceItemAllocationRepository = null;
     private static ?IssuanceItemRepositoryInterface $issuanceItemRepository = null;
-    private static ?IssuanceInventoryStockRepositoryInterface $issuanceInventoryStockRepository = null;
-    private static ?IssuanceStockMovementRepositoryInterface $issuanceStockMovementRepository = null;
-    private static ?ReportingRepositoryInterface $reportingRepository = null;
 
     private static ?AuditLogRepositoryInterface $auditLogRepository = null;
 
     private static ?AuthenticationService $authenticationService = null;
     private static ?AnalyticsService $analyticsService = null;
+    private static ?ActivityLogQueryService $activityLogQueryService = null;
+    private static ?AnalyticsExportPresenter $analyticsExportPresenter = null;
+    private static ?UserManagementService $userManagementService = null;
+    private static ?ApprovalWorkflowService $approvalWorkflowService = null;
+    private static ?ProductService $productService = null;
+    private static ?SupplierService $supplierService = null;
 
     private static ?PurchaseRequestService $purchaseRequestService = null;
     private static ?ApprovalService $approvalService = null;
     private static ?PurchaseOrderService $purchaseOrderService = null;
     private static ?PoRequestService $poRequestService = null;
+    private static ?ProcurementListPresenter $procurementListPresenter = null;
+    private static ?ProcurementExportPresenter $procurementExportPresenter = null;
 
     private static ?StockMovementService $stockMovementService = null;
     private static ?ReceivingValidationService $receivingValidationService = null;
     private static ?InventoryPostingService $inventoryPostingService = null;
+    private static ?ReceivingWorkflowContextService $receivingWorkflowContextService = null;
     private static ?ReceivingService $receivingService = null;
     private static ?InventoryQuantityService $inventoryQuantityService = null;
 
     private static ?InventoryAvailabilityService $inventoryAvailabilityService = null;
+    private static ?StockBalanceReportReadModel $stockBalanceReportReadModel = null;
+    private static ?StockMovementReportReadModel $stockMovementReportReadModel = null;
+    private static ?IssuanceReportReadModel $issuanceReportReadModel = null;
+    private static ?LowStockReportReadModel $lowStockReportReadModel = null;
+    private static ?FastMovingReportReadModel $fastMovingReportReadModel = null;
+    private static ?ReportingExportPresenter $reportingExportPresenter = null;
     private static ?IssuanceService $issuanceService = null;
     private static ?IssuanceApprovalService $issuanceApprovalService = null;
     private static ?IssuanceReleaseService $issuanceReleaseService = null;
@@ -115,6 +142,24 @@ class RepositoryServices
         }
 
         return self::$analyticsRepository;
+    }
+
+    public static function productRepository(): ProductRepositoryInterface
+    {
+        if (self::$productRepository === null) {
+            self::$productRepository = new ProductRepository();
+        }
+
+        return self::$productRepository;
+    }
+
+    public static function supplierRepository(): SupplierRepositoryInterface
+    {
+        if (self::$supplierRepository === null) {
+            self::$supplierRepository = new SupplierRepository();
+        }
+
+        return self::$supplierRepository;
     }
 
     public static function purchaseRequestRepository(): PurchaseRequestRepositoryInterface
@@ -171,22 +216,22 @@ class RepositoryServices
         return self::$receivingItemRepository;
     }
 
-    public static function receivingInventoryStockRepository(): ReceivingInventoryStockRepositoryInterface
+    public static function inventoryStockRepository(): InventoryStockRepositoryInterface
     {
-        if (self::$receivingInventoryStockRepository === null) {
-            self::$receivingInventoryStockRepository = new ReceivingInventoryStockRepository();
+        if (self::$inventoryStockRepository === null) {
+            self::$inventoryStockRepository = new InventoryStockRepository();
         }
 
-        return self::$receivingInventoryStockRepository;
+        return self::$inventoryStockRepository;
     }
 
-    public static function receivingStockMovementRepository(): ReceivingStockMovementRepositoryInterface
+    public static function stockMovementRepository(): StockMovementRepositoryInterface
     {
-        if (self::$receivingStockMovementRepository === null) {
-            self::$receivingStockMovementRepository = new ReceivingStockMovementRepository();
+        if (self::$stockMovementRepository === null) {
+            self::$stockMovementRepository = new StockMovementRepository();
         }
 
-        return self::$receivingStockMovementRepository;
+        return self::$stockMovementRepository;
     }
 
     public static function issuanceRepository(): IssuanceRepositoryInterface
@@ -216,31 +261,58 @@ class RepositoryServices
         return self::$issuanceItemAllocationRepository;
     }
 
-    public static function issuanceInventoryStockRepository(): IssuanceInventoryStockRepositoryInterface
+    public static function stockBalanceReportReadModel(): StockBalanceReportReadModel
     {
-        if (self::$issuanceInventoryStockRepository === null) {
-            self::$issuanceInventoryStockRepository = new IssuanceInventoryStockRepository();
+        if (self::$stockBalanceReportReadModel === null) {
+            self::$stockBalanceReportReadModel = new StockBalanceReportReadModel(db_connect());
         }
 
-        return self::$issuanceInventoryStockRepository;
+        return self::$stockBalanceReportReadModel;
     }
 
-    public static function issuanceStockMovementRepository(): IssuanceStockMovementRepositoryInterface
+    public static function stockMovementReportReadModel(): StockMovementReportReadModel
     {
-        if (self::$issuanceStockMovementRepository === null) {
-            self::$issuanceStockMovementRepository = new IssuanceStockMovementRepository();
+        if (self::$stockMovementReportReadModel === null) {
+            self::$stockMovementReportReadModel = new StockMovementReportReadModel(db_connect());
         }
 
-        return self::$issuanceStockMovementRepository;
+        return self::$stockMovementReportReadModel;
     }
 
-    public static function reportingRepository(): ReportingRepositoryInterface
+    public static function issuanceReportReadModel(): IssuanceReportReadModel
     {
-        if (self::$reportingRepository === null) {
-            self::$reportingRepository = new ReportingRepository(db_connect());
+        if (self::$issuanceReportReadModel === null) {
+            self::$issuanceReportReadModel = new IssuanceReportReadModel(db_connect());
         }
 
-        return self::$reportingRepository;
+        return self::$issuanceReportReadModel;
+    }
+
+    public static function lowStockReportReadModel(): LowStockReportReadModel
+    {
+        if (self::$lowStockReportReadModel === null) {
+            self::$lowStockReportReadModel = new LowStockReportReadModel(db_connect());
+        }
+
+        return self::$lowStockReportReadModel;
+    }
+
+    public static function fastMovingReportReadModel(): FastMovingReportReadModel
+    {
+        if (self::$fastMovingReportReadModel === null) {
+            self::$fastMovingReportReadModel = new FastMovingReportReadModel(db_connect());
+        }
+
+        return self::$fastMovingReportReadModel;
+    }
+
+    public static function reportingExportPresenter(): ReportingExportPresenter
+    {
+        if (self::$reportingExportPresenter === null) {
+            self::$reportingExportPresenter = new ReportingExportPresenter();
+        }
+
+        return self::$reportingExportPresenter;
     }
 
     public static function auditLogRepository(): AuditLogRepositoryInterface
@@ -270,12 +342,70 @@ class RepositoryServices
         return self::$analyticsService;
     }
 
+    public static function activityLogQueryService(): ActivityLogQueryService
+    {
+        if (self::$activityLogQueryService === null) {
+            self::$activityLogQueryService = new ActivityLogQueryService(self::analyticsService());
+        }
+
+        return self::$activityLogQueryService;
+    }
+
+    public static function analyticsExportPresenter(): AnalyticsExportPresenter
+    {
+        if (self::$analyticsExportPresenter === null) {
+            self::$analyticsExportPresenter = new AnalyticsExportPresenter();
+        }
+
+        return self::$analyticsExportPresenter;
+    }
+
+    public static function userManagementService(): UserManagementService
+    {
+        if (self::$userManagementService === null) {
+            self::$userManagementService = new UserManagementService(
+                self::userRepository(),
+                self::authenticationService(),
+            );
+        }
+
+        return self::$userManagementService;
+    }
+
+    public static function approvalWorkflowService(): ApprovalWorkflowService
+    {
+        if (self::$approvalWorkflowService === null) {
+            self::$approvalWorkflowService = new ApprovalWorkflowService(self::approvalRepository());
+        }
+
+        return self::$approvalWorkflowService;
+    }
+
+    public static function productService(): ProductService
+    {
+        if (self::$productService === null) {
+            self::$productService = new ProductService(self::productRepository());
+        }
+
+        return self::$productService;
+    }
+
+    public static function supplierService(): SupplierService
+    {
+        if (self::$supplierService === null) {
+            self::$supplierService = new SupplierService(self::supplierRepository());
+        }
+
+        return self::$supplierService;
+    }
+
     public static function purchaseRequestService(): PurchaseRequestService
     {
         if (self::$purchaseRequestService === null) {
             self::$purchaseRequestService = new PurchaseRequestService(
                 self::purchaseRequestRepository(),
-                self::approvalRepository(),
+                self::approvalWorkflowService(),
+                self::productService(),
             );
         }
 
@@ -286,7 +416,7 @@ class RepositoryServices
     {
         if (self::$approvalService === null) {
             self::$approvalService = new ApprovalService(
-                self::approvalRepository(),
+                self::approvalWorkflowService(),
                 self::purchaseRequestRepository(),
             );
         }
@@ -300,6 +430,8 @@ class RepositoryServices
             self::$purchaseOrderService = new PurchaseOrderService(
                 self::purchaseOrderRepository(),
                 self::purchaseRequestRepository(),
+                self::poRequestRepository(),
+                self::supplierService(),
             );
         }
 
@@ -318,10 +450,33 @@ class RepositoryServices
         return self::$poRequestService;
     }
 
+    public static function procurementListPresenter(): ProcurementListPresenter
+    {
+        if (self::$procurementListPresenter === null) {
+            self::$procurementListPresenter = new ProcurementListPresenter(
+                self::purchaseRequestService(),
+                self::approvalService(),
+                self::purchaseOrderService(),
+                self::poRequestService(),
+            );
+        }
+
+        return self::$procurementListPresenter;
+    }
+
+    public static function procurementExportPresenter(): ProcurementExportPresenter
+    {
+        if (self::$procurementExportPresenter === null) {
+            self::$procurementExportPresenter = new ProcurementExportPresenter();
+        }
+
+        return self::$procurementExportPresenter;
+    }
+
     public static function stockMovementService(): StockMovementService
     {
         if (self::$stockMovementService === null) {
-            self::$stockMovementService = new StockMovementService(self::receivingStockMovementRepository());
+            self::$stockMovementService = new StockMovementService(self::stockMovementRepository());
         }
 
         return self::$stockMovementService;
@@ -340,13 +495,27 @@ class RepositoryServices
     {
         if (self::$inventoryPostingService === null) {
             self::$inventoryPostingService = new InventoryPostingService(
-                self::receivingInventoryStockRepository(),
+                self::inventoryStockRepository(),
                 self::purchaseOrderRepository(),
                 self::stockMovementService(),
             );
         }
 
         return self::$inventoryPostingService;
+    }
+
+    public static function receivingWorkflowContextService(): ReceivingWorkflowContextService
+    {
+        if (self::$receivingWorkflowContextService === null) {
+            self::$receivingWorkflowContextService = new ReceivingWorkflowContextService(
+                self::receivingRepository(),
+                self::receivingItemRepository(),
+                self::poRequestRepository(),
+                self::purchaseOrderRepository(),
+            );
+        }
+
+        return self::$receivingWorkflowContextService;
     }
 
     public static function receivingService(): ReceivingService
@@ -357,6 +526,7 @@ class RepositoryServices
                 self::receivingItemRepository(),
                 self::poRequestRepository(),
                 self::purchaseOrderRepository(),
+                self::receivingWorkflowContextService(),
                 self::receivingValidationService(),
                 self::inventoryPostingService(),
                 db_connect(),
@@ -371,8 +541,9 @@ class RepositoryServices
     {
         if (self::$inventoryQuantityService === null) {
             self::$inventoryQuantityService = new InventoryQuantityService(
-                self::receivingInventoryStockRepository(),
-                self::receivingStockMovementRepository(),
+                self::inventoryStockRepository(),
+                self::stockMovementRepository(),
+                self::stockMovementService(),
                 \Config\Database::connect()
             );
         }
@@ -384,7 +555,7 @@ class RepositoryServices
     {
         if (self::$inventoryAvailabilityService === null) {
             self::$inventoryAvailabilityService = new InventoryAvailabilityService(
-                self::issuanceInventoryStockRepository(),
+                self::inventoryStockRepository(),
             );
         }
 
@@ -398,8 +569,9 @@ class RepositoryServices
                 self::issuanceRepository(),
                 self::issuanceItemRepository(),
                 self::issuanceItemAllocationRepository(),
-                self::approvalRepository(),
                 self::auditService(),
+                self::approvalWorkflowService(),
+                self::productService(),
             );
         }
 
@@ -411,7 +583,7 @@ class RepositoryServices
         if (self::$issuanceApprovalService === null) {
             self::$issuanceApprovalService = new IssuanceApprovalService(
                 self::issuanceRepository(),
-                self::approvalRepository(),
+                self::approvalWorkflowService(),
                 self::auditService(),
             );
         }
@@ -426,8 +598,8 @@ class RepositoryServices
                 self::issuanceRepository(),
                 self::issuanceItemRepository(),
                 self::issuanceItemAllocationRepository(),
-                self::issuanceInventoryStockRepository(),
-                self::issuanceStockMovementRepository(),
+                self::inventoryStockRepository(),
+                self::stockMovementService(),
                 self::inventoryAvailabilityService(),
                 self::auditService(),
                 db_connect(),
@@ -440,7 +612,13 @@ class RepositoryServices
     public static function reportingService(): ReportingService
     {
         if (self::$reportingService === null) {
-            self::$reportingService = new ReportingService(self::reportingRepository());
+            self::$reportingService = new ReportingService(
+                self::stockBalanceReportReadModel(),
+                self::stockMovementReportReadModel(),
+                self::issuanceReportReadModel(),
+                self::lowStockReportReadModel(),
+                self::fastMovingReportReadModel(),
+            );
         }
 
         return self::$reportingService;

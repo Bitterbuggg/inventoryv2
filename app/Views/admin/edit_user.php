@@ -14,6 +14,8 @@ $crumbs = [
     ['label' => 'Users', 'url' => site_url('admin/users')],
     ['label' => 'Edit'],
 ];
+
+$permissionStructure = is_array($permissionStructure ?? null) ? $permissionStructure : [];
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -118,29 +120,10 @@ $crumbs = [
             
             <div class="perms-master-grid">
                 <?php
-                // Upgraded to match the rich array from create.php
-                $structure = [
-                    'Procurement' => [
-                        'procurement.pr.create'  => ['label' => 'Create PRs', 'desc' => 'Draft & submit requests.'],
-                        'procurement.pr.approve' => ['label' => 'Approve PRs', 'desc' => 'Approval authority.'],
-                        'procurement.po.create'  => ['label' => 'Manage POs', 'desc' => 'Generate vendor orders.'],
-                        'procurement.view'       => ['label' => 'View Data', 'desc' => 'Read-only access.'],
-                    ],
-                    'Inventory & Issuance' => [
-                        'inventory.issuance.create'  => ['label' => 'Request Issuance', 'desc' => 'Request stock pulls.'],
-                        'inventory.issuance.approve' => ['label' => 'Approve Release', 'desc' => 'Deduct inventory.'],
-                        'inventory.quantity.update'  => ['label' => 'Stock Adjustments', 'desc' => 'Manual corrections.'],
-                    ],
-                    'Receiving & Operations' => [
-                        'receiving.convert' => ['label' => 'Log Receiving', 'desc' => 'Verify vendor deliveries.'],
-                        'reports.view'      => ['label' => 'System Reports', 'desc' => 'View analytics.'],
-                        'audit.view'        => ['label' => 'Audit Logs', 'desc' => 'View system history.'],
-                    ]
-                ];
                 $oldPerms = old('permissions');
                 ?>
 
-                <?php foreach ($structure as $module => $perms): ?>
+                <?php foreach ($permissionStructure as $module => $perms): ?>
                     <div class="perm-col">
                         <div class="perm-group-title"><?= $module ?></div>
                         

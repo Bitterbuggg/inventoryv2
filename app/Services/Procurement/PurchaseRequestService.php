@@ -2,16 +2,19 @@
 
 namespace App\Services\Procurement;
 
-use App\Repositories\Contracts\Procurement\ApprovalRepositoryInterface;
+use App\Services\Catalog\ProductService;
 use App\Repositories\Contracts\Procurement\PurchaseRequestRepositoryInterface;
+use App\Services\Shared\ApprovalWorkflowService;
 use DomainException;
 use InvalidArgumentException;
+use RuntimeException;
 
 class PurchaseRequestService
 {
     public function __construct(
         private readonly PurchaseRequestRepositoryInterface $purchaseRequests,
-        private readonly ApprovalRepositoryInterface $approvals,
+        private readonly ApprovalWorkflowService $approvalWorkflow,
+        private readonly ?ProductService $products = null,
     ) {
     }
 
@@ -43,6 +46,53 @@ class PurchaseRequestService
         $purchaseRequest['items'] = $this->purchaseRequests->listItems($purchaseRequestId);
 
         return $purchaseRequest;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function listFormProducts(array $includeProductIds = []): array
+    {
+        if ($this->products === null) {
+            throw new RuntimeException('Product catalog service is unavailable.');
+        }
+
+        $products = $this->products->listActive();
+        $includeProductIds = array_values(array_unique(array_filter(
+            array_map(static fn (mixed $id): int => (int) $id, $includeProductIds),
+            static fn (int $id): bool => $id > 0,
+        )));
+
+        if ($includeProductIds === []) {
+            return $products;
+        }
+
+        $productsById = [];
+        foreach ($products as $product) {
+            $productId = (int) ($product['id'] ?? 0);
+            if ($productId > 0) {
+                $productsById[$productId] = $product;
+            }
+        }
+
+        foreach ($this->products->listAll() as $product) {
+            $productId = (int) ($product['id'] ?? 0);
+            if ($productId <= 0 || ! in_array($productId, $includeProductIds, true) || isset($productsById[$productId])) {
+                continue;
+            }
+
+            $productsById[$productId] = $product;
+        }
+
+        $products = array_values($productsById);
+        usort($products, static function (array $left, array $right): int {
+            $leftKey = strtolower(trim((string) ($left['product_name'] ?? '')) . '|' . trim((string) ($left['unit'] ?? '')));
+            $rightKey = strtolower(trim((string) ($right['product_name'] ?? '')) . '|' . trim((string) ($right['unit'] ?? '')));
+
+            return $leftKey <=> $rightKey;
+        });
+
+        return $products;
     }
 
     /**
@@ -147,19 +197,7 @@ class PurchaseRequestService
             'submitted_at' => $now,
         ]);
 
-        $pendingApproval = $this->approvals->findPendingByReference('purchase_request', $purchaseRequestId);
-
-        if ($pendingApproval === null) {
-            $this->approvals->create([
-                'reference_type' => 'purchase_request',
-                'reference_id'   => $purchaseRequestId,
-                'approval_level' => 1,
-                'approver_id'    => null,
-                'decision'       => 'pending',
-                'decision_at'    => null,
-                'comments'       => null,
-            ]);
-        }
+        $this->approvalWorkflow->ensurePendingApproval('purchase_request', $purchaseRequestId);
     }
 
     public function cancel(int $purchaseRequestId, int $actorId): void
@@ -185,16 +223,12 @@ class PurchaseRequestService
             'rejection_reason' => 'Cancelled by user.',
         ]);
 
-        $pendingApproval = $this->approvals->findPendingByReference('purchase_request', $purchaseRequestId);
-
-        if ($pendingApproval !== null) {
-            $this->approvals->update((int) $pendingApproval['id'], [
-                'approver_id' => $actorId,
-                'decision'    => 'rejected',
-                'decision_at' => $now,
-                'comments'    => 'Cancelled by user.',
-            ]);
-        }
+        $this->approvalWorkflow->rejectPendingApprovalIfExists(
+            'purchase_request',
+            $purchaseRequestId,
+            $actorId,
+            'Cancelled by user.',
+        );
     }
 
     private function generatePrNumber(): string
@@ -225,7 +259,14 @@ class PurchaseRequestService
                 continue;
             }
 
-            $itemName = trim((string) ($item['item_name'] ?? ''));
+            $product = $this->resolveProduct($item);
+            $productId = (int) ($product['id'] ?? 0) ?: null;
+            $itemName = $product !== null
+                ? trim((string) ($product['product_name'] ?? ''))
+                : trim((string) ($item['item_name'] ?? ''));
+            $unit = $product !== null
+                ? (trim((string) ($product['unit'] ?? 'unit')) ?: 'unit')
+                : (trim((string) ($item['unit'] ?? 'unit')) ?: 'unit');
 
             if ($itemName === '') {
                 continue;
@@ -247,8 +288,9 @@ class PurchaseRequestService
                 throw new DomainException('Requested quantity must be a whole number.');
             }
 
-            $unit = trim((string) ($item['unit'] ?? 'unit')) ?: 'unit';
-            $key  = strtolower($itemName) . '|' . strtolower($unit);
+            $key = $productId !== null
+                ? 'product:' . $productId
+                : strtolower($itemName) . '|' . strtolower($unit);
 
             if (isset($seenKeys[$key])) {
                 throw new DomainException('Duplicate purchase request items are not allowed.');
@@ -257,6 +299,7 @@ class PurchaseRequestService
             $seenKeys[$key] = true;
 
             $normalized[] = [
+                'product_id'          => $productId,
                 'item_name'           => $itemName,
                 'requested_qty'       => (float) round($qty),
                 'approved_qty'        => null,
@@ -292,6 +335,29 @@ class PurchaseRequestService
         }
 
         return (float) $raw;
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     *
+     * @return array<string, mixed>|null
+     */
+    private function resolveProduct(array $item): ?array
+    {
+        $productId = (int) ($item['product_id'] ?? 0);
+        if ($this->products !== null && $productId > 0) {
+            return $this->products->getOrFail($productId);
+        }
+
+        $itemName = trim((string) ($item['item_name'] ?? ''));
+        if ($this->products === null || $itemName === '') {
+            return null;
+        }
+
+        return $this->products->findByNameAndUnit(
+            $itemName,
+            trim((string) ($item['unit'] ?? 'unit')) ?: 'unit',
+        );
     }
 }
 

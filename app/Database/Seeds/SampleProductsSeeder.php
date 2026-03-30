@@ -9,8 +9,40 @@ class SampleProductsSeeder extends Seeder
     public function run(): void
     {
         $now = date('Y-m-d H:i:s');
-        $rows = [];
+        $productRows = [];
+        $inventoryRows = [];
         $productNames = $this->buildProductNames(120);
+        $productMap = [];
+
+        foreach ($productNames as $index => $itemName) {
+            $unit = $this->resolveUnitFromName($itemName);
+            $key = strtolower($itemName) . '|' . strtolower($unit);
+
+            if (! isset($productMap[$key])) {
+                $productRows[] = [
+                    'product_code' => sprintf('PRD-SEED-%04d', count($productRows) + 1),
+                    'product_name' => $itemName,
+                    'unit'         => $unit,
+                    'is_active'    => 1,
+                    'created_at'   => $now,
+                    'updated_at'   => $now,
+                ];
+                $productMap[$key] = null;
+            }
+        }
+
+        if ($productRows !== []) {
+            $this->db->table('products')->ignore(true)->insertBatch($productRows);
+        }
+
+        $productRecords = $this->db->table('products')
+            ->select('id, product_name, unit')
+            ->get()
+            ->getResultArray();
+
+        foreach ($productRecords as $product) {
+            $productMap[strtolower((string) ($product['product_name'] ?? '')) . '|' . strtolower((string) ($product['unit'] ?? 'unit'))] = (int) ($product['id'] ?? 0);
+        }
 
         foreach ($productNames as $index => $itemName) {
             $unit = $this->resolveUnitFromName($itemName);
@@ -19,7 +51,8 @@ class SampleProductsSeeder extends Seeder
             $availableQty = $onHandQty - $reservedQty;
             $averageUnitCost = round(5 + (($index * 1.37) % 145), 2);
 
-            $rows[] = [
+            $inventoryRows[] = [
+                'product_id'        => $productMap[strtolower($itemName) . '|' . strtolower($unit)] ?? null,
                 'item_name'         => $itemName,
                 'unit'              => $unit,
                 'batch_no'          => sprintf('BATCH-%04d', $index + 1),
@@ -36,7 +69,7 @@ class SampleProductsSeeder extends Seeder
         }
 
         // Use INSERT IGNORE/OR IGNORE behavior so reruns do not fail on unique keys.
-        $this->db->table('inventory_stocks')->ignore(true)->insertBatch($rows);
+        $this->db->table('inventory_stocks')->ignore(true)->insertBatch($inventoryRows);
     }
 
     /**

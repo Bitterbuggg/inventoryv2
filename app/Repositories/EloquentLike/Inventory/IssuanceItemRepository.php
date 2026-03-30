@@ -16,7 +16,7 @@ class IssuanceItemRepository implements IssuanceItemRepositoryInterface
         $rows = [];
 
         foreach ($items as $item) {
-            $rows[] = [
+            $row = [
                 'issuance_id'        => $issuanceId,
                 'item_name'          => $item['item_name'] ?? '',
                 'unit'               => $item['unit'] ?? 'unit',
@@ -27,6 +27,12 @@ class IssuanceItemRepository implements IssuanceItemRepositoryInterface
                 'line_total'         => $item['line_total'] ?? 0,
                 'remarks'            => $item['remarks'] ?? null,
             ];
+
+            if (($item['product_id'] ?? null) !== null) {
+                $row['product_id'] = $item['product_id'];
+            }
+
+            $rows[] = $row;
         }
 
         $this->newModel()->insertBatch($rows);

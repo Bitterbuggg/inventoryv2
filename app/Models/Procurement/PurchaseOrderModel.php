@@ -13,6 +13,7 @@ class PurchaseOrderModel extends Model
     protected $allowedFields = [
         'po_number',
         'purchase_request_id',
+        'supplier_id',
         'supplier_name',
         'order_date',
         'status',

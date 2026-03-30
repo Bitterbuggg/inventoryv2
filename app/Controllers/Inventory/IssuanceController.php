@@ -46,17 +46,8 @@ class IssuanceController extends BaseController
 
     public function create(): string
     {
-        $db = \Config\Database::connect();
-        
-        // Fetch unique item names currently in your inventory to populate the dropdown
-        $query = $db->table('inventory_stocks')->select('item_name')->distinct()->orderBy('item_name', 'ASC')->get();
-        $existingItems = $query->getResultArray();
-        
-        // Convert the database results into a simple array of strings
-        $itemsList = array_column($existingItems, 'item_name');
-
         return view('inventory/issuance/create', [
-            'dbItems' => $itemsList
+            'products' => RepositoryServices::issuanceService()->listFormProducts(),
         ]);
     }
 
@@ -265,6 +256,7 @@ class IssuanceController extends BaseController
      */
     private function extractItemsFromPost(): array
     {
+        $productIds    = (array) $this->request->getPost('product_id');
         $itemNames     = (array) $this->request->getPost('item_name');
         $units         = (array) $this->request->getPost('unit');
         $requestedQtys = (array) $this->request->getPost('requested_qty');
@@ -272,10 +264,13 @@ class IssuanceController extends BaseController
 
         $items = [];
 
-        foreach ($itemNames as $index => $itemName) {
+        $rowCount = max(count($productIds), count($itemNames), count($requestedQtys));
+
+        for ($index = 0; $index < $rowCount; $index++) {
             $items[] = [
-                'item_name'     => $itemName,
-                'unit'          => $units[$index] ?? 'unit',
+                'product_id'    => $productIds[$index] ?? null,
+                'item_name'     => $itemNames[$index] ?? null,
+                'unit'          => $units[$index] ?? null,
                 'requested_qty' => $requestedQtys[$index] ?? 0,
                 'remarks'       => $remarks[$index] ?? null,
             ];

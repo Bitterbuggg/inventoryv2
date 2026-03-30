@@ -43,6 +43,20 @@ class UserRepository implements UserRepositoryInterface
         return (int) $userId;
     }
 
+    public function findAllWithGroups(): array
+    {
+        $users = $this->newUserModel()->withGroups()->findAll();
+
+        return array_values(array_filter($users, static fn ($user): bool => $user instanceof User));
+    }
+
+    public function findById(int $userId): ?User
+    {
+        $user = $this->newUserModel()->withGroups()->findById($userId);
+
+        return $user instanceof User ? $user : null;
+    }
+
     public function assignGroup(int $userId, string $group): void
     {
         $user = $this->getUserOrFail($userId);
@@ -54,6 +68,62 @@ class UserRepository implements UserRepositoryInterface
 
         // Roles are single-assignment in this project, so replace existing groups.
         $user->syncGroups($group);
+    }
+
+    public function save(User $user): void
+    {
+        if ($this->newUserModel()->save($user) === false) {
+            throw new RuntimeException('Failed to save user record.');
+        }
+    }
+
+    public function delete(int $userId): void
+    {
+        if ($this->newUserModel()->delete($userId) === false) {
+            throw new RuntimeException("Failed to delete user {$userId}.");
+        }
+    }
+
+    public function syncPermissions(int $userId, array $grantedPermissions, array $allKnownPermissions): void
+    {
+        $user = $this->getUserOrFail($userId);
+        $grantedPermissions = $this->normalizePermissions($grantedPermissions);
+
+        foreach ($this->normalizePermissions($allKnownPermissions) as $permission) {
+            if (in_array($permission, $grantedPermissions, true)) {
+                if (! $user->hasPermission($permission)) {
+                    $user->addPermission($permission);
+                }
+
+                continue;
+            }
+
+            if ($user->hasPermission($permission)) {
+                $user->removePermission($permission);
+            }
+        }
+    }
+
+    public function grantPermissions(int $userId, array $permissions): void
+    {
+        $user = $this->getUserOrFail($userId);
+
+        foreach ($this->normalizePermissions($permissions) as $permission) {
+            if (! $user->hasPermission($permission)) {
+                $user->addPermission($permission);
+            }
+        }
+    }
+
+    public function revokePermissions(int $userId, array $permissions): void
+    {
+        $user = $this->getUserOrFail($userId);
+
+        foreach ($this->normalizePermissions($permissions) as $permission) {
+            if ($user->hasPermission($permission)) {
+                $user->removePermission($permission);
+            }
+        }
     }
 
     public function userInGroup(int $userId, string $group): bool
@@ -81,5 +151,27 @@ class UserRepository implements UserRepositoryInterface
     private function newUserModel(): UserModel
     {
         return new UserModel();
+    }
+
+    /**
+     * @param string[] $permissions
+     *
+     * @return string[]
+     */
+    private function normalizePermissions(array $permissions): array
+    {
+        $normalized = [];
+
+        foreach ($permissions as $permission) {
+            $permission = trim((string) $permission);
+
+            if ($permission === '') {
+                continue;
+            }
+
+            $normalized[$permission] = $permission;
+        }
+
+        return array_values($normalized);
     }
 }

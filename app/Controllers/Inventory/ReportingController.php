@@ -18,21 +18,12 @@ class ReportingController extends BaseController
         ]);
 
         if ($this->shouldExportCsv()) {
+            $csv = RepositoryServices::reportingExportPresenter()->stockBalanceCsv($rows);
+
             return $this->csvResponse(
-                'stock_balance_' . date('Ymd_His') . '.csv',
-                ['ID', 'Item', 'Unit', 'Batch', 'Lot', 'Expiry', 'On Hand', 'Reserved', 'Available', 'Avg Cost'],
-                array_map(static fn (array $row): array => [
-                    (string) ($row['id'] ?? ''),
-                    (string) ($row['item_name'] ?? ''),
-                    (string) ($row['unit'] ?? ''),
-                    (string) ($row['batch_no'] ?? ''),
-                    (string) ($row['lot_no'] ?? ''),
-                    (string) ($row['expiry_date'] ?? ''),
-                    (string) ($row['on_hand_qty'] ?? '0'),
-                    (string) ($row['reserved_qty'] ?? '0'),
-                    (string) ($row['available_qty'] ?? '0'),
-                    number_format((float) ($row['average_cost'] ?? 0), 2, '.', ''),
-                ], $rows),
+                $csv['filename'],
+                $csv['headers'],
+                $csv['rows'],
             );
         }
 
@@ -44,20 +35,6 @@ class ReportingController extends BaseController
 
     public function stockMovements(): string|ResponseInterface
     {
-        $movementTypeLabels = [
-            'receiving'      => 'Receiving',
-            'issuance'       => 'Issuance',
-            'adjustment_in'  => 'Stock Adjustment In',
-            'adjustment_out' => 'Stock Disposal',
-            'return'         => 'Return',
-        ];
-
-        $referenceTypeLabels = [
-            'receiving'         => 'Receiving',
-            'issuance'          => 'Issuance',
-            'manual_adjustment' => 'Stock Disposal',
-        ];
-
         $dateFrom     = trim((string) $this->request->getGet('date_from'));
         $dateTo       = trim((string) $this->request->getGet('date_to'));
         $movementType = trim((string) $this->request->getGet('movement_type'));
@@ -74,22 +51,12 @@ class ReportingController extends BaseController
         ]);
 
         if ($this->shouldExportCsv()) {
+            $csv = RepositoryServices::reportingExportPresenter()->stockMovementsCsv($rows);
+
             return $this->csvResponse(
-                'stock_movements_' . date('Ymd_His') . '.csv',
-                ['ID', 'Movement #', 'Type', 'Reference Type', 'Reference ID', 'Item', 'Unit', 'Qty In', 'Qty Out', 'Balance', 'Performed At'],
-                array_map(static fn (array $row): array => [
-                    (string) ($row['id'] ?? ''),
-                    (string) ($row['movement_number'] ?? ''),
-                    $movementTypeLabels[(string) ($row['movement_type'] ?? '')] ?? ucwords(str_replace('_', ' ', (string) ($row['movement_type'] ?? ''))),
-                    $referenceTypeLabels[(string) ($row['reference_type'] ?? '')] ?? ucwords(str_replace('_', ' ', (string) ($row['reference_type'] ?? ''))),
-                    (string) ($row['reference_id'] ?? ''),
-                    (string) ($row['item_name'] ?? ''),
-                    (string) ($row['unit'] ?? ''),
-                    (string) ($row['qty_in'] ?? '0'),
-                    (string) ($row['qty_out'] ?? '0'),
-                    (string) ($row['balance_after'] ?? '0'),
-                    (string) ($row['performed_at'] ?? ''),
-                ], $rows),
+                $csv['filename'],
+                $csv['headers'],
+                $csv['rows'],
             );
         }
 
@@ -119,19 +86,12 @@ class ReportingController extends BaseController
         ]);
 
         if ($this->shouldExportCsv()) {
+            $csv = RepositoryServices::reportingExportPresenter()->issuancesCsv($rows);
+
             return $this->csvResponse(
-                'issuance_report_' . date('Ymd_His') . '.csv',
-                ['ID', 'Issuance #', 'Requestor ID', 'Issue Date', 'Department', 'Status', 'Total Requested', 'Total Issued'],
-                array_map(static fn (array $row): array => [
-                    (string) ($row['id'] ?? ''),
-                    (string) ($row['issuance_number'] ?? ''),
-                    (string) ($row['requestor_id'] ?? ''),
-                    (string) ($row['issue_date'] ?? ''),
-                    (string) ($row['department'] ?? ''),
-                    (string) ($row['status'] ?? ''),
-                    (string) ($row['total_requested_qty'] ?? '0'),
-                    (string) ($row['total_issued_qty'] ?? '0'),
-                ], $rows),
+                $csv['filename'],
+                $csv['headers'],
+                $csv['rows'],
             );
         }
 
@@ -153,25 +113,12 @@ class ReportingController extends BaseController
         ]);
 
         if ($this->shouldExportCsv()) {
-            $lowStockRows = array_values(array_filter(
-                $rows,
-                static fn (array $row): bool => (float) ($row['available_qty'] ?? 0) <= $threshold,
-            ));
+            $csv = RepositoryServices::reportingExportPresenter()->lowStockCsv($rows, $threshold);
 
             return $this->csvResponse(
-                'low_stock_' . date('Ymd_His') . '.csv',
-                ['ID', 'Item', 'Unit', 'Batch', 'Lot', 'Expiry', 'Available Qty', 'On Hand', 'Reserved'],
-                array_map(static fn (array $row): array => [
-                    (string) ($row['id'] ?? ''),
-                    (string) ($row['item_name'] ?? ''),
-                    (string) ($row['unit'] ?? ''),
-                    (string) ($row['batch_no'] ?? ''),
-                    (string) ($row['lot_no'] ?? ''),
-                    (string) ($row['expiry_date'] ?? ''),
-                    (string) ($row['available_qty'] ?? '0'),
-                    (string) ($row['on_hand_qty'] ?? '0'),
-                    (string) ($row['reserved_qty'] ?? '0'),
-                ], $lowStockRows),
+                $csv['filename'],
+                $csv['headers'],
+                $csv['rows'],
             );
         }
 
@@ -199,22 +146,12 @@ class ReportingController extends BaseController
         ]);
 
         if ($this->shouldExportCsv()) {
-            $rank = 1;
-            $csvRows = [];
-            foreach ($rows as $row) {
-                $csvRows[] = [
-                    (string) $rank,
-                    (string) ($row['item_name'] ?? ''),
-                    (string) ($row['unit'] ?? ''),
-                    number_format((float) ($row['total_qty_out'] ?? 0), 2, '.', ''),
-                ];
-                $rank++;
-            }
+            $csv = RepositoryServices::reportingExportPresenter()->fastMovingCsv($rows);
 
             return $this->csvResponse(
-                'fast_moving_' . date('Ymd_His') . '.csv',
-                ['Rank', 'Item', 'Unit', 'Total Qty Out'],
-                $csvRows,
+                $csv['filename'],
+                $csv['headers'],
+                $csv['rows'],
             );
         }
 

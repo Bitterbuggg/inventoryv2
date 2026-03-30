@@ -2,11 +2,13 @@
 
 namespace App\Services\Inventory;
 
+use App\Services\Catalog\ProductService;
 use App\Repositories\Contracts\Inventory\IssuanceItemRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceItemAllocationRepositoryInterface;
 use App\Repositories\Contracts\Inventory\IssuanceRepositoryInterface;
-use App\Repositories\Contracts\Procurement\ApprovalRepositoryInterface;
 use App\Services\Shared\AuditService;
+use App\Services\Shared\ApprovalWorkflowService;
+use RuntimeException;
 
 class IssuanceService
 {
@@ -14,8 +16,9 @@ class IssuanceService
         private readonly IssuanceRepositoryInterface $issuances,
         private readonly IssuanceItemRepositoryInterface $issuanceItems,
         private readonly IssuanceItemAllocationRepositoryInterface $issuanceItemAllocations,
-        private readonly ApprovalRepositoryInterface $approvals,
         private readonly AuditService $audit,
+        private readonly ApprovalWorkflowService $approvalWorkflow,
+        private readonly ?ProductService $products = null,
     ) {
     }
 
@@ -50,6 +53,18 @@ class IssuanceService
         );
 
         return $issuance;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function listFormProducts(): array
+    {
+        if ($this->products === null) {
+            throw new RuntimeException('Product catalog service is unavailable.');
+        }
+
+        return $this->products->listAvailableForIssuance();
     }
 
     /**
@@ -135,19 +150,7 @@ class IssuanceService
             'submitted_at' => $now,
         ]);
 
-        $pendingApproval = $this->approvals->findPendingByReference('issuance', $issuanceId);
-
-        if ($pendingApproval === null) {
-            $this->approvals->create([
-                'reference_type' => 'issuance',
-                'reference_id'   => $issuanceId,
-                'approval_level' => 1,
-                'approver_id'    => null,
-                'decision'       => 'pending',
-                'decision_at'    => null,
-                'comments'       => null,
-            ]);
-        }
+        $this->approvalWorkflow->ensurePendingApproval('issuance', $issuanceId);
 
         $this->safeAudit(
             actorId: $actorId,
@@ -184,16 +187,12 @@ class IssuanceService
             'rejection_reason' => $cancelReason,
         ]);
 
-        $pendingApproval = $this->approvals->findPendingByReference('issuance', $issuanceId);
-
-        if ($pendingApproval !== null) {
-            $this->approvals->update((int) $pendingApproval['id'], [
-                'approver_id' => $actorId,
-                'decision'    => 'rejected',
-                'decision_at' => $now,
-                'comments'    => $cancelReason,
-            ]);
-        }
+        $this->approvalWorkflow->rejectPendingApprovalIfExists(
+            'issuance',
+            $issuanceId,
+            $actorId,
+            $cancelReason,
+        );
 
         $this->safeAudit(
             actorId: $actorId,
@@ -233,7 +232,14 @@ class IssuanceService
                 continue;
             }
 
-            $itemName = trim((string) ($item['item_name'] ?? ''));
+            $product = $this->resolveProduct($item);
+            $productId = (int) ($product['id'] ?? 0) ?: null;
+            $itemName = $product !== null
+                ? trim((string) ($product['product_name'] ?? ''))
+                : trim((string) ($item['item_name'] ?? ''));
+            $unit = $product !== null
+                ? (trim((string) ($product['unit'] ?? 'unit')) ?: 'unit')
+                : (trim((string) ($item['unit'] ?? 'unit')) ?: 'unit');
 
             if ($itemName === '') {
                 continue;
@@ -256,8 +262,9 @@ class IssuanceService
             }
 
             $normalized[] = [
+                'product_id'          => $productId,
                 'item_name'          => $itemName,
-                'unit'               => trim((string) ($item['unit'] ?? 'unit')) ?: 'unit',
+                'unit'               => $unit,
                 'inventory_stock_id' => null,
                 'requested_qty'      => (float) round($requestedQty),
                 'issued_qty'         => 0,
@@ -275,6 +282,29 @@ class IssuanceService
         $text = trim((string) $value);
 
         return $text === '' ? null : $text;
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     *
+     * @return array<string, mixed>|null
+     */
+    private function resolveProduct(array $item): ?array
+    {
+        $productId = (int) ($item['product_id'] ?? 0);
+        if ($this->products !== null && $productId > 0) {
+            return $this->products->getOrFail($productId);
+        }
+
+        $itemName = trim((string) ($item['item_name'] ?? ''));
+        if ($this->products === null || $itemName === '') {
+            return null;
+        }
+
+        return $this->products->findByNameAndUnit(
+            $itemName,
+            trim((string) ($item['unit'] ?? 'unit')) ?: 'unit',
+        );
     }
 
     /**

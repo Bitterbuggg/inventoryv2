@@ -2,12 +2,21 @@
 
 namespace App\Services\Inventory;
 
-use App\Repositories\Contracts\Inventory\ReportingRepositoryInterface;
+use App\Services\Inventory\Reports\FastMovingReportReadModel;
+use App\Services\Inventory\Reports\IssuanceReportReadModel;
+use App\Services\Inventory\Reports\LowStockReportReadModel;
+use App\Services\Inventory\Reports\StockBalanceReportReadModel;
+use App\Services\Inventory\Reports\StockMovementReportReadModel;
 
 class ReportingService
 {
-    public function __construct(private readonly ReportingRepositoryInterface $reports)
-    {
+    public function __construct(
+        private readonly StockBalanceReportReadModel $stockBalanceReport,
+        private readonly StockMovementReportReadModel $stockMovementReport,
+        private readonly IssuanceReportReadModel $issuanceReport,
+        private readonly LowStockReportReadModel $lowStockReport,
+        private readonly FastMovingReportReadModel $fastMovingReport,
+    ) {
     }
 
     /**
@@ -15,7 +24,9 @@ class ReportingService
      */
     public function stockBalance(?string $keyword = null): array
     {
-        return $this->reports->stockBalanceReport($keyword);
+        $keyword = trim((string) $keyword);
+
+        return $this->stockBalanceReport->list($keyword === '' ? null : $keyword);
     }
 
     /**
@@ -23,7 +34,11 @@ class ReportingService
      */
     public function stockMovements(?string $dateFrom = null, ?string $dateTo = null, ?string $movementType = null): array
     {
-        return $this->reports->stockMovementReport($dateFrom, $dateTo, $movementType);
+        return $this->stockMovementReport->list(
+            $this->nullableFilter($dateFrom),
+            $this->nullableFilter($dateTo),
+            $this->nullableFilter($movementType),
+        );
     }
 
     /**
@@ -31,7 +46,11 @@ class ReportingService
      */
     public function issuances(?string $status = null, ?string $dateFrom = null, ?string $dateTo = null): array
     {
-        return $this->reports->issuanceReport($status, $dateFrom, $dateTo);
+        return $this->issuanceReport->list(
+            $this->nullableFilter($status),
+            $this->nullableFilter($dateFrom),
+            $this->nullableFilter($dateTo),
+        );
     }
 
     /**
@@ -39,7 +58,7 @@ class ReportingService
      */
     public function lowStock(float $threshold = 10): array
     {
-        return $this->reports->lowStockReport($threshold);
+        return $this->lowStockReport->list(max(0, $threshold));
     }
 
     /**
@@ -47,6 +66,17 @@ class ReportingService
      */
     public function fastMoving(?string $dateFrom = null, ?string $dateTo = null, int $limit = 20): array
     {
-        return $this->reports->fastMovingReport($dateFrom, $dateTo, $limit);
+        return $this->fastMovingReport->list(
+            $this->nullableFilter($dateFrom),
+            $this->nullableFilter($dateTo),
+            max(1, $limit),
+        );
+    }
+
+    private function nullableFilter(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
     }
 }

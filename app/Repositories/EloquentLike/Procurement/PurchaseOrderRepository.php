@@ -65,7 +65,7 @@ class PurchaseOrderRepository implements PurchaseOrderRepositoryInterface
         $rows = [];
 
         foreach ($items as $item) {
-            $rows[] = [
+            $row = [
                 'purchase_order_id'        => $purchaseOrderId,
                 'purchase_request_item_id' => $item['purchase_request_item_id'] ?? null,
                 'item_name'                => $item['item_name'] ?? '',
@@ -75,6 +75,12 @@ class PurchaseOrderRepository implements PurchaseOrderRepositoryInterface
                 'unit_cost'                => $item['unit_cost'] ?? 0,
                 'line_total'               => $item['line_total'] ?? 0,
             ];
+
+            if (($item['product_id'] ?? null) !== null) {
+                $row['product_id'] = $item['product_id'];
+            }
+
+            $rows[] = $row;
         }
 
         $this->newItemModel()->insertBatch($rows);

@@ -21,11 +21,29 @@ $isAdmin = $hasGroup($user, 'admin');
 $isEmployee = $hasGroup($user, 'employee');
 $isItStaff = $hasGroup($user, 'it_staff');
 
-// Granular permission checks for module visibility
-$canViewProcurement = $user->hasPermission('procurement.view') || $user->hasPermission('procurement.pr.create');
-$canViewReceiving   = $user->hasPermission('receiving.view')   || $user->hasPermission('receiving.convert');
-$canViewInventory   = $user->hasPermission('inventory.issuance.create') || $user->hasPermission('inventory.quantity.update');
-$canViewReports     = $user->hasPermission('reports.view');
+// Effective permission checks include both direct grants and inherited group permissions.
+$can = static function (string ...$permissions) use ($user): bool {
+    return $user !== null
+        && method_exists($user, 'can')
+        && $user->can(...$permissions);
+};
+
+$canViewProcurement = $can(
+    'procurement.view',
+    'procurement.pr.create',
+    'procurement.pr.approve',
+    'procurement.po.create',
+    'procurement.por.manage',
+);
+$canViewReceiving = $can('receiving.view', 'receiving.convert');
+$canViewInventory = $can(
+    'inventory.view',
+    'inventory.quantity.update',
+    'inventory.issuance.create',
+    'inventory.issuance.approve',
+);
+$canViewReports = $can('reports.view');
+$canViewAudit = $can('audit.view');
 
 // Operational access check (Admin or specific staff)
 $canOps = $isAdmin || $isItStaff;
@@ -67,6 +85,8 @@ if ($isAdmin) {
         'items' => [
             ['path' => 'admin/dashboard', 'label' => 'Dashboard'],
             ['path' => 'admin/users', 'label' => 'Manage Users'],
+            ['path' => 'admin/products', 'label' => 'Product Catalog'],
+            ['path' => 'admin/suppliers', 'label' => 'Supplier Catalog'],
         ],
     ];
 }
@@ -76,12 +96,15 @@ if ($isAdmin || $canViewProcurement) {
         ['path' => 'procurement/purchase-requests', 'label' => 'Purchase Requests'],
     ];
 
-    if ($isAdmin || $user->hasPermission('procurement.pr.approve')) {
+    if ($can('procurement.pr.approve')) {
         $procurementItems[] = ['path' => 'procurement/approvals/pending', 'label' => 'Approvals'];
     }
     
-    if ($isAdmin || $user->hasPermission('procurement.po.create')) {
+    if ($can('procurement.po.create')) {
         $procurementItems[] = ['path' => 'procurement/purchase-orders', 'label' => 'Purchase Orders'];
+    }
+
+    if ($can('procurement.por.manage')) {
         $procurementItems[] = ['path' => 'procurement/po-requests', 'label' => 'PO Requests'];
     }
 
@@ -96,12 +119,15 @@ if ($isAdmin || $canViewProcurement) {
 if ($isAdmin || $canViewInventory || $canViewReceiving) {
     $inventoryItems = [];
 
-    if ($isAdmin || $canViewReceiving) {
+    if ($canViewReceiving) {
         $inventoryItems[] = ['path' => 'receiving', 'label' => 'Receiving'];
     }
 
-    if ($isAdmin || $canViewInventory) {
+    if ($can('inventory.view', 'inventory.quantity.update')) {
         $inventoryItems[] = ['path' => 'inventory/quantities', 'label' => 'Inventory'];
+    }
+
+    if ($can('inventory.view', 'inventory.issuance.create', 'inventory.issuance.approve')) {
         $inventoryItems[] = ['path' => 'inventory/issuance', 'label' => 'Issuance'];
     }
 
@@ -113,10 +139,10 @@ if ($isAdmin || $canViewInventory || $canViewReceiving) {
     ];
 }
 
-if ($isAdmin || $canViewReports || $isItStaff) {
+if ($canViewReports || $canViewAudit) {
     $reportItems = [];
 
-    if ($isAdmin || $canViewReports) {
+    if ($canViewReports) {
         $reportItems = array_merge($reportItems, [
             ['path' => 'reports/stock-balance', 'label' => 'Stock Balance'],
             ['path' => 'reports/stock-movements', 'label' => 'Stock Movements'],
@@ -126,7 +152,7 @@ if ($isAdmin || $canViewReports || $isItStaff) {
         ]);
     }
 
-    if ($isAdmin || $isItStaff) {
+    if ($canViewAudit) {
         $reportItems[] = ['path' => 'analytics/activity-logs', 'label' => 'Activity Logs'];
         $reportItems[] = ['path' => 'analytics/system-architecture', 'label' => 'System Architecture'];
     }
@@ -589,5 +615,6 @@ if ($isAdmin || $canViewReports || $isItStaff) {
                 });
             })();
         </script>
+        <?= $this->renderSection('scripts') ?>
 </body>
 </html>

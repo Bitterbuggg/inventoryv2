@@ -1,8 +1,9 @@
 <?php
 
-use App\Repositories\Contracts\Procurement\ApprovalRepositoryInterface;
 use App\Repositories\Contracts\Procurement\PurchaseRequestRepositoryInterface;
+use App\Services\Catalog\ProductService;
 use App\Services\Procurement\PurchaseRequestService;
+use App\Services\Shared\ApprovalWorkflowService;
 use CodeIgniter\Test\CIUnitTestCase;
 
 /**
@@ -12,8 +13,8 @@ final class PurchaseRequestServiceTest extends CIUnitTestCase
 {
     public function testCreateDraftStoresItemsAndReturnsId(): void
     {
-        $requests  = $this->createMock(PurchaseRequestRepositoryInterface::class);
-        $approvals = $this->createMock(ApprovalRepositoryInterface::class);
+        $requests         = $this->createMock(PurchaseRequestRepositoryInterface::class);
+        $approvalWorkflow = $this->createMock(ApprovalWorkflowService::class);
 
         $requests->method('findByNumber')->willReturn(null);
 
@@ -28,7 +29,7 @@ final class PurchaseRequestServiceTest extends CIUnitTestCase
                 $this->callback(static fn (array $items): bool => count($items) === 1 && $items[0]['item_name'] === 'Paracetamol'),
             );
 
-        $service = new PurchaseRequestService($requests, $approvals);
+        $service = new PurchaseRequestService($requests, $approvalWorkflow);
 
         $purchaseRequestId = $service->create([
             'requested_by' => 10,
@@ -48,12 +49,12 @@ final class PurchaseRequestServiceTest extends CIUnitTestCase
 
     public function testCreateRejectsDuplicateItems(): void
     {
-        $requests  = $this->createMock(PurchaseRequestRepositoryInterface::class);
-        $approvals = $this->createMock(ApprovalRepositoryInterface::class);
+        $requests         = $this->createMock(PurchaseRequestRepositoryInterface::class);
+        $approvalWorkflow = $this->createMock(ApprovalWorkflowService::class);
 
         $requests->expects($this->never())->method('create');
 
-        $service = new PurchaseRequestService($requests, $approvals);
+        $service = new PurchaseRequestService($requests, $approvalWorkflow);
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('Duplicate purchase request items are not allowed.');
@@ -78,8 +79,8 @@ final class PurchaseRequestServiceTest extends CIUnitTestCase
 
     public function testUpdateDraftReplacesItems(): void
     {
-        $requests  = $this->createMock(PurchaseRequestRepositoryInterface::class);
-        $approvals = $this->createMock(ApprovalRepositoryInterface::class);
+        $requests         = $this->createMock(PurchaseRequestRepositoryInterface::class);
+        $approvalWorkflow = $this->createMock(ApprovalWorkflowService::class);
 
         $requests->method('find')->with(15)->willReturn([
             'id'     => 15,
@@ -97,7 +98,7 @@ final class PurchaseRequestServiceTest extends CIUnitTestCase
                 $this->callback(static fn (array $items): bool => count($items) === 1 && (float) $items[0]['requested_qty'] === 9.0),
             );
 
-        $service = new PurchaseRequestService($requests, $approvals);
+        $service = new PurchaseRequestService($requests, $approvalWorkflow);
 
         $service->update(15, [
             'request_date' => '2026-02-22',
@@ -117,8 +118,8 @@ final class PurchaseRequestServiceTest extends CIUnitTestCase
 
     public function testSubmitCreatesPendingApprovalWhenMissing(): void
     {
-        $requests  = $this->createMock(PurchaseRequestRepositoryInterface::class);
-        $approvals = $this->createMock(ApprovalRepositoryInterface::class);
+        $requests         = $this->createMock(PurchaseRequestRepositoryInterface::class);
+        $approvalWorkflow = $this->createMock(ApprovalWorkflowService::class);
 
         $requests->method('find')->with(5)->willReturn([
             'id'     => 5,
@@ -131,15 +132,12 @@ final class PurchaseRequestServiceTest extends CIUnitTestCase
             ->method('update')
             ->with(5, $this->arrayHasKey('status'));
 
-        $approvals->expects($this->once())
-            ->method('findPendingByReference')
+        $approvalWorkflow->expects($this->once())
+            ->method('ensurePendingApproval')
             ->with('purchase_request', 5)
-            ->willReturn(null);
-        $approvals->expects($this->once())
-            ->method('create')
-            ->with($this->arrayHasKey('reference_type'));
+            ->willReturn(77);
 
-        $service = new PurchaseRequestService($requests, $approvals);
+        $service = new PurchaseRequestService($requests, $approvalWorkflow);
         $service->submit(5);
 
         $this->assertTrue(true);
@@ -147,15 +145,15 @@ final class PurchaseRequestServiceTest extends CIUnitTestCase
 
     public function testSubmitRejectsNonDraftPurchaseRequest(): void
     {
-        $requests  = $this->createMock(PurchaseRequestRepositoryInterface::class);
-        $approvals = $this->createMock(ApprovalRepositoryInterface::class);
+        $requests         = $this->createMock(PurchaseRequestRepositoryInterface::class);
+        $approvalWorkflow = $this->createMock(ApprovalWorkflowService::class);
 
         $requests->method('find')->with(7)->willReturn([
             'id'     => 7,
             'status' => 'submitted',
         ]);
 
-        $service = new PurchaseRequestService($requests, $approvals);
+        $service = new PurchaseRequestService($requests, $approvalWorkflow);
 
         $this->expectException(DomainException::class);
         $service->submit(7);
@@ -163,10 +161,10 @@ final class PurchaseRequestServiceTest extends CIUnitTestCase
 
     public function testCreateRejectsDecimalRequestedQuantity(): void
     {
-        $requests  = $this->createMock(PurchaseRequestRepositoryInterface::class);
-        $approvals = $this->createMock(ApprovalRepositoryInterface::class);
+        $requests         = $this->createMock(PurchaseRequestRepositoryInterface::class);
+        $approvalWorkflow = $this->createMock(ApprovalWorkflowService::class);
 
-        $service = new PurchaseRequestService($requests, $approvals);
+        $service = new PurchaseRequestService($requests, $approvalWorkflow);
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('whole number');
@@ -182,5 +180,52 @@ final class PurchaseRequestServiceTest extends CIUnitTestCase
                 ],
             ],
         ]);
+    }
+
+    public function testListFormProductsUsesCatalogService(): void
+    {
+        $requests         = $this->createMock(PurchaseRequestRepositoryInterface::class);
+        $approvalWorkflow = $this->createMock(ApprovalWorkflowService::class);
+        $products         = $this->createMock(ProductService::class);
+
+        $products->expects($this->once())
+            ->method('listActive')
+            ->willReturn([
+                ['id' => 1, 'product_name' => 'Bandage', 'unit' => 'pack'],
+            ]);
+
+        $service = new PurchaseRequestService($requests, $approvalWorkflow, $products);
+
+        $result = $service->listFormProducts();
+
+        $this->assertCount(1, $result);
+        $this->assertSame('Bandage', $result[0]['product_name']);
+    }
+
+    public function testListFormProductsIncludesInactiveSelectedProductsForEditing(): void
+    {
+        $requests         = $this->createMock(PurchaseRequestRepositoryInterface::class);
+        $approvalWorkflow = $this->createMock(ApprovalWorkflowService::class);
+        $products         = $this->createMock(ProductService::class);
+
+        $products->expects($this->once())
+            ->method('listActive')
+            ->willReturn([
+                ['id' => 1, 'product_name' => 'Bandage', 'unit' => 'pack', 'is_active' => 1],
+            ]);
+
+        $products->expects($this->once())
+            ->method('listAll')
+            ->willReturn([
+                ['id' => 1, 'product_name' => 'Bandage', 'unit' => 'pack', 'is_active' => 1],
+                ['id' => 9, 'product_name' => 'Retired Item', 'unit' => 'box', 'is_active' => 0],
+            ]);
+
+        $service = new PurchaseRequestService($requests, $approvalWorkflow, $products);
+
+        $result = $service->listFormProducts([9]);
+
+        $this->assertCount(2, $result);
+        $this->assertSame([1, 9], array_column($result, 'id'));
     }
 }

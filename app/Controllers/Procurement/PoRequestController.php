@@ -14,27 +14,8 @@ class PoRequestController extends BaseController
     public function index(): string|ResponseInterface
     {
         $status = trim((string) $this->request->getGet('status'));
-        $poRequests = RepositoryServices::poRequestService()->list($status === '' ? null : $status);
-
-        $poRequests = array_map(static function (array $poRequest): array {
-            $purchaseOrderId = (int) ($poRequest['purchase_order_id'] ?? 0);
-            if ($purchaseOrderId <= 0) {
-                return $poRequest;
-            }
-
-            $purchaseOrder = RepositoryServices::purchaseOrderService()->findWithItems($purchaseOrderId);
-            if ($purchaseOrder !== null) {
-                $poRequest['purchase_order'] = [
-                    'po_number'     => $purchaseOrder['po_number'] ?? null,
-                    'supplier_name' => $purchaseOrder['supplier_name'] ?? null,
-                    'order_date'    => $purchaseOrder['order_date'] ?? null,
-                    'total_amount'  => $purchaseOrder['total_amount'] ?? 0,
-                    'items'         => $purchaseOrder['items'] ?? [],
-                ];
-            }
-
-            return $poRequest;
-        }, $poRequests);
+        $resolvedStatus = $status === '' ? null : $status;
+        $poRequests = RepositoryServices::procurementListPresenter()->listPoRequests($resolvedStatus);
 
         RepositoryServices::analyticsService()->trackCurrentUser(
             'procurement.po_request_list_viewed',
@@ -45,24 +26,19 @@ class PoRequestController extends BaseController
         );
 
         if ($this->shouldExportCsv()) {
+            $csv = RepositoryServices::procurementExportPresenter()->poRequestsCsv($poRequests);
+
             return $this->csvResponse(
-                'po_requests_' . date('Ymd_His') . '.csv',
-                ['ID', 'PO Request #', 'PO ID', 'Request Date', 'Status', 'Approved By', 'Rejected By'],
-                array_map(static fn (array $row): array => [
-                    (string) ($row['id'] ?? ''),
-                    (string) ($row['po_request_number'] ?? ''),
-                    (string) ($row['purchase_order_id'] ?? ''),
-                    (string) ($row['request_date'] ?? ''),
-                    (string) ($row['status'] ?? ''),
-                    (string) ($row['approved_by'] ?? ''),
-                    (string) ($row['rejected_by'] ?? ''),
-                ], $poRequests),
+                $csv['filename'],
+                $csv['headers'],
+                $csv['rows'],
             );
         }
 
         return view('procurement/po_requests/index', [
-            'poRequests' => $poRequests,
-            'status'     => $status,
+            'poRequests'    => $poRequests,
+            'status'        => $status,
+            'statusOptions' => RepositoryServices::procurementListPresenter()->poRequestStatusOptions(),
         ]);
     }
 

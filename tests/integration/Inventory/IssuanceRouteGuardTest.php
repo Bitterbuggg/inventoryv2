@@ -57,6 +57,16 @@ final class IssuanceRouteGuardTest extends CIUnitTestCase
         $response->assertOK();
     }
 
+    public function testEmployeeWithReportsPermissionCanAccessReportsPage(): void
+    {
+        $employee = $this->findUserByEmail('employee@local.test');
+        $employee->addPermission('reports.view');
+        auth('session')->login($employee);
+
+        $response = $this->withSession(session()->get())->get('/reports/stock-balance');
+        $response->assertOK();
+    }
+
     private function findUserByEmail(string $email): User
     {
         $user = model(UserModel::class)->findByCredentials(['email' => $email]);

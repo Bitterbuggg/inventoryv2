@@ -70,10 +70,12 @@ php spark db:create inventoryv2
 php spark migrate --all
 ```
 
-### 7. Create default user accounts
+### 7. Create default user accounts and sample demo data
 
 ```powershell
 php spark db:seed AuthRbacSeeder
+php spark db:seed SampleCatalogSeeder
+php spark db:seed SampleWorkflowSeeder
 ```
 
 ### 8. Open the system
@@ -87,6 +89,8 @@ Sample accounts:
 - IT Staff: itstaff@local.test / Itstaff@1234
 
 Important: Change these passwords before real use.
+The catalog seeder adds sample products and suppliers so the admin catalog pages are not empty on a fresh setup.
+The workflow seeder adds sample procurement, receiving, inventory, issuance, report, and analytics records so the main modules are not blank after first-time setup.
 
 ---
 

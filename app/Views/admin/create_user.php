@@ -10,6 +10,9 @@ $crumbs = [
     ['label' => 'Users', 'url' => site_url('admin/users')],
     ['label' => 'Create'],
 ];
+
+$permissionStructure = is_array($permissionStructure ?? null) ? $permissionStructure : [];
+$rolePresets = is_array($rolePresets ?? null) ? $rolePresets : [];
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -50,7 +53,7 @@ $crumbs = [
     
     .error-text { font-size: 0.75rem; font-weight: 700; color: #ef4444; display: none; margin-top: 2px; }
 
-    /* --- RADIO CARDS (2x2 GRID FOR 4 ROLES) --- */
+    /* --- ROLE PRESETS --- */
     .role-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .role-card { border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s ease; background: #ffffff; position: relative; display: flex; align-items: flex-start; gap: 12px; }
     .role-card:hover { border-color: #94a3b8; background: #f8fafc; }
@@ -129,7 +132,7 @@ $crumbs = [
     <section class="panel">
         <div class="panel-header">
             <h3>Role & Access Control</h3>
-            <p>Assigning a role automatically applies standard system permissions.</p>
+            <p>Select a base role, then adjust permissions below if this account needs overrides.</p>
         </div>
         <div class="panel-body" style="padding-bottom: 12px; overflow-y: auto;">
             
@@ -166,43 +169,14 @@ $crumbs = [
                         <span class="role-desc">Create requests, read-only data.</span>
                     </div>
                 </label>
-
-                <label class="role-card" id="card-custom">
-                    <input type="radio" name="role" value="custom" class="role-radio" <?= old('role') === 'custom' ? 'checked' : '' ?>>
-                    <div class="role-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    </div>
-                    <div class="role-text">
-                        <span class="role-title">Custom Override</span>
-                        <span class="role-desc">Manually configure access below.</span>
-                    </div>
-                </label>
             </div>
 
             <div class="perms-master-grid">
                 <?php
-                $structure = [
-                    'Procurement' => [
-                        'procurement.pr.create'  => ['label' => 'Create PRs', 'desc' => 'Draft & submit requests.'],
-                        'procurement.pr.approve' => ['label' => 'Approve PRs', 'desc' => 'Approval authority.'],
-                        'procurement.po.create'  => ['label' => 'Manage POs', 'desc' => 'Generate vendor orders.'],
-                        'procurement.view'       => ['label' => 'View Data', 'desc' => 'Read-only access.'],
-                    ],
-                    'Inventory & Issuance' => [
-                        'inventory.issuance.create'  => ['label' => 'Request Issuance', 'desc' => 'Request stock pulls.'],
-                        'inventory.issuance.approve' => ['label' => 'Approve Release', 'desc' => 'Deduct inventory.'],
-                        'inventory.quantity.update'  => ['label' => 'Stock Adjustments', 'desc' => 'Manual corrections.'],
-                    ],
-                    'Receiving & Operations' => [
-                        'receiving.convert' => ['label' => 'Log Receiving', 'desc' => 'Verify vendor deliveries.'],
-                        'reports.view'      => ['label' => 'System Reports', 'desc' => 'View analytics.'],
-                        'audit.view'        => ['label' => 'Audit Logs', 'desc' => 'View system history.'],
-                    ]
-                ];
-                $oldPerms = old('permissions') ?? [];
+                $oldPerms = is_array(old('permissions')) ? old('permissions') : [];
                 ?>
 
-                <?php foreach ($structure as $module => $perms): ?>
+                <?php foreach ($permissionStructure as $module => $perms): ?>
                     <div class="perm-col">
                         <div class="perm-group-title"><?= $module ?></div>
                         
@@ -261,13 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const radioCards = document.querySelectorAll('.role-card');
     const roleRadios = document.querySelectorAll('.role-radio');
     const permCheckboxes = document.querySelectorAll('.perm-checkbox');
-    const customRadio = document.querySelector('input[value="custom"]');
-    
-    const rolePresets = {
-        'admin': ['procurement.pr.create', 'procurement.pr.approve', 'procurement.po.create', 'procurement.view', 'inventory.issuance.create', 'inventory.issuance.approve', 'inventory.quantity.update', 'receiving.convert', 'reports.view', 'audit.view'],
-        'it_staff': ['procurement.view', 'reports.view', 'audit.view'],
-        'employee': ['procurement.pr.create', 'procurement.view', 'inventory.issuance.create']
-    };
+    const rolePresets = <?= json_encode($rolePresets, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
 
     function updateActiveCard() {
         radioCards.forEach(card => card.classList.remove('active'));
@@ -286,20 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
     roleRadios.forEach(radio => {
         radio.addEventListener('change', function() {
             updateActiveCard();
-            if (this.value !== 'custom') {
-                applyPreset(this.value);
-            } else {
-                permCheckboxes.forEach(cb => cb.checked = false);
-            }
-        });
-    });
-
-    permCheckboxes.forEach(cb => {
-        cb.addEventListener('change', function() {
-            if (!customRadio.checked) {
-                customRadio.checked = true;
-                updateActiveCard();
-            }
+            applyPreset(this.value);
         });
     });
 

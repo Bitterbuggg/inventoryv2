@@ -48,12 +48,49 @@ final class ProcurementRouteGuardTest extends CIUnitTestCase
         $response->assertStatus(403);
     }
 
+    public function testEmployeeCanAccessPurchaseRequestsPage(): void
+    {
+        $employee = $this->findUserByEmail('employee@local.test');
+        auth('session')->login($employee);
+
+        $response = $this->withSession(session()->get())->get('/procurement/purchase-requests');
+        $response->assertOK();
+    }
+
     public function testItStaffCanAccessPendingApprovalsPage(): void
     {
         $itStaff = $this->findUserByEmail('itstaff@local.test');
         auth('session')->login($itStaff);
 
         $response = $this->withSession(session()->get())->get('/procurement/approvals/pending');
+        $response->assertOK();
+    }
+
+    public function testEmployeeCannotAccessPurchaseOrdersPageWithoutPermission(): void
+    {
+        $employee = $this->findUserByEmail('employee@local.test');
+        auth('session')->login($employee);
+
+        $response = $this->withSession(session()->get())->get('/procurement/purchase-orders');
+        $response->assertStatus(403);
+    }
+
+    public function testAdminCanAccessPoRequestsPage(): void
+    {
+        $admin = $this->findUserByEmail('admin@local.test');
+        auth('session')->login($admin);
+
+        $response = $this->withSession(session()->get())->get('/procurement/po-requests');
+        $response->assertOK();
+    }
+
+    public function testEmployeeWithPurchaseOrderPermissionCanAccessPurchaseOrdersPage(): void
+    {
+        $employee = $this->findUserByEmail('employee@local.test');
+        $employee->addPermission('procurement.po.create');
+        auth('session')->login($employee);
+
+        $response = $this->withSession(session()->get())->get('/procurement/purchase-orders');
         $response->assertOK();
     }
 

@@ -1,7 +1,9 @@
 <?php
 
+use App\Repositories\Contracts\Procurement\PoRequestRepositoryInterface;
 use App\Repositories\Contracts\Procurement\PurchaseOrderRepositoryInterface;
 use App\Repositories\Contracts\Procurement\PurchaseRequestRepositoryInterface;
+use App\Services\Catalog\SupplierService;
 use App\Services\Procurement\PurchaseOrderService;
 use CodeIgniter\Test\CIUnitTestCase;
 
@@ -68,6 +70,27 @@ final class PurchaseOrderServiceTest extends CIUnitTestCase
         $service->createFromPurchaseRequest(12);
     }
 
+    public function testCreateFromPurchaseRequestRejectsDuplicatePurchaseOrder(): void
+    {
+        $orders   = $this->createMock(PurchaseOrderRepositoryInterface::class);
+        $requests = $this->createMock(PurchaseRequestRepositoryInterface::class);
+
+        $requests->method('find')->with(12)->willReturn([
+            'id'     => 12,
+            'status' => 'approved',
+        ]);
+        $orders->method('findByPurchaseRequest')->with(12)->willReturn([
+            'id' => 99,
+            'purchase_request_id' => 12,
+        ]);
+
+        $service = new PurchaseOrderService($orders, $requests);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Purchase order already exists for this purchase request.');
+        $service->createFromPurchaseRequest(12);
+    }
+
     public function testIssueRequiresDraftStatus(): void
     {
         $orders   = $this->createMock(PurchaseOrderRepositoryInterface::class);
@@ -82,5 +105,58 @@ final class PurchaseOrderServiceTest extends CIUnitTestCase
 
         $this->expectException(DomainException::class);
         $service->issue(15, 1);
+    }
+
+    public function testListActiveSuppliersUsesCatalogService(): void
+    {
+        $orders = $this->createMock(PurchaseOrderRepositoryInterface::class);
+        $requests = $this->createMock(PurchaseRequestRepositoryInterface::class);
+        $poRequests = $this->createMock(PoRequestRepositoryInterface::class);
+        $suppliers = $this->createMock(SupplierService::class);
+
+        $suppliers->expects($this->once())
+            ->method('listActive')
+            ->willReturn([
+                ['id' => 3, 'supplier_name' => 'Supplier A'],
+            ]);
+
+        $service = new PurchaseOrderService($orders, $requests, $poRequests, $suppliers);
+
+        $result = $service->listActiveSuppliers();
+
+        $this->assertCount(1, $result);
+        $this->assertSame('Supplier A', $result[0]['supplier_name']);
+    }
+
+    public function testListForIndexDecoratesPoRequestStatus(): void
+    {
+        $orders = $this->createMock(PurchaseOrderRepositoryInterface::class);
+        $requests = $this->createMock(PurchaseRequestRepositoryInterface::class);
+        $poRequests = $this->createMock(PoRequestRepositoryInterface::class);
+
+        $orders->expects($this->once())
+            ->method('list')
+            ->with(['status' => 'issued'])
+            ->willReturn([
+                ['id' => 10, 'po_number' => 'PO-1', 'status' => 'issued'],
+                ['id' => 11, 'po_number' => 'PO-2', 'status' => 'issued'],
+            ]);
+
+        $poRequests->expects($this->once())
+            ->method('list')
+            ->willReturn([
+                ['id' => 50, 'purchase_order_id' => 10, 'status' => 'pending'],
+                ['id' => 51, 'purchase_order_id' => 10, 'status' => 'approved'],
+                ['id' => 52, 'purchase_order_id' => 11, 'status' => 'rejected'],
+            ]);
+
+        $service = new PurchaseOrderService($orders, $requests, $poRequests);
+
+        $result = $service->listForIndex('issued');
+
+        $this->assertSame('approved', $result[0]['po_request_status']);
+        $this->assertTrue($result[0]['has_open_po_request']);
+        $this->assertSame('rejected', $result[1]['po_request_status']);
+        $this->assertFalse($result[1]['has_open_po_request']);
     }
 }

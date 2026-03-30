@@ -7,6 +7,7 @@ use App\Repositories\Contracts\Receiving\ReceivingRepositoryInterface;
 use App\Services\Receiving\InventoryPostingService;
 use App\Services\Receiving\ReceivingService;
 use App\Services\Receiving\ReceivingValidationService;
+use App\Services\Receiving\ReceivingWorkflowContextService;
 use App\Services\Shared\AuditService;
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Test\CIUnitTestCase;
@@ -25,6 +26,7 @@ final class ReceivingServiceTest extends CIUnitTestCase
         $posting    = $this->createMock(InventoryPostingService::class);
         $db         = $this->createMock(BaseConnection::class);
         $audit      = $this->createMock(AuditService::class);
+        $workflow   = new ReceivingWorkflowContextService($receivings, $items, $poRequests, $orders);
 
         $poRequests->method('find')->with(21)->willReturn([
             'id'                => 21,
@@ -59,6 +61,7 @@ final class ReceivingServiceTest extends CIUnitTestCase
             $items,
             $poRequests,
             $orders,
+            $workflow,
             new ReceivingValidationService(),
             $posting,
             $db,
@@ -92,6 +95,7 @@ final class ReceivingServiceTest extends CIUnitTestCase
         $posting    = $this->createMock(InventoryPostingService::class);
         $db         = $this->createMock(BaseConnection::class);
         $audit      = $this->createMock(AuditService::class);
+        $workflow   = new ReceivingWorkflowContextService($receivings, $items, $poRequests, $orders);
 
         $poRequests->method('find')->with(22)->willReturn([
             'id'                => 22,
@@ -104,6 +108,7 @@ final class ReceivingServiceTest extends CIUnitTestCase
             $items,
             $poRequests,
             $orders,
+            $workflow,
             new ReceivingValidationService(),
             $posting,
             $db,
@@ -129,6 +134,7 @@ final class ReceivingServiceTest extends CIUnitTestCase
         $posting    = $this->createMock(InventoryPostingService::class);
         $db         = $this->createMock(BaseConnection::class);
         $audit      = $this->createMock(AuditService::class);
+        $workflow   = new ReceivingWorkflowContextService($receivings, $items, $poRequests, $orders);
 
         $receivings->method('find')->with(55)->willReturn([
             'id'                => 55,
@@ -140,6 +146,9 @@ final class ReceivingServiceTest extends CIUnitTestCase
         $poRequests->method('find')->with(77)->willReturn([
             'id'     => 77,
             'status' => 'converting',
+        ]);
+        $orders->method('find')->with(88)->willReturn([
+            'id' => 88,
         ]);
 
         $items->method('listByReceiving')->with(55)->willReturn([
@@ -179,6 +188,7 @@ final class ReceivingServiceTest extends CIUnitTestCase
             $items,
             $poRequests,
             $orders,
+            $workflow,
             new ReceivingValidationService(),
             $posting,
             $db,
@@ -200,6 +210,7 @@ final class ReceivingServiceTest extends CIUnitTestCase
         $posting    = $this->createMock(InventoryPostingService::class);
         $db         = $this->createMock(BaseConnection::class);
         $audit      = $this->createMock(AuditService::class);
+        $workflow   = new ReceivingWorkflowContextService($receivings, $items, $poRequests, $orders);
 
         $poRequests->method('list')
             ->with(['status' => 'approved'])
@@ -221,6 +232,7 @@ final class ReceivingServiceTest extends CIUnitTestCase
             $items,
             $poRequests,
             $orders,
+            $workflow,
             new ReceivingValidationService(),
             $posting,
             $db,

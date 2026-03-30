@@ -58,7 +58,7 @@ class PurchaseRequestRepository implements PurchaseRequestRepositoryInterface
         $rows = [];
 
         foreach ($items as $item) {
-            $rows[] = [
+            $row = [
                 'purchase_request_id' => $purchaseRequestId,
                 'item_name'           => $item['item_name'] ?? '',
                 'requested_qty'       => $item['requested_qty'] ?? 0,
@@ -67,6 +67,12 @@ class PurchaseRequestRepository implements PurchaseRequestRepositoryInterface
                 'estimated_unit_cost' => $item['estimated_unit_cost'] ?? null,
                 'notes'               => $item['notes'] ?? null,
             ];
+
+            if (($item['product_id'] ?? null) !== null) {
+                $row['product_id'] = $item['product_id'];
+            }
+
+            $rows[] = $row;
         }
 
         $this->newItemModel()->insertBatch($rows);
