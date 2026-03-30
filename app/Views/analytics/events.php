@@ -112,7 +112,7 @@ $crumbs = [
     .input-v2:focus { border-color: var(--v2-label); box-shadow: 0 0 0 3px rgba(0, 102, 140, 0.1); }
 
     /* Modern Table */
-    .table-scroll-container { flex: 1; overflow-y: auto; background: #ffffff; }
+    .table-scroll-container { flex: 1; overflow: auto; background: #ffffff; }
     .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
     .modern-table th { 
         position: sticky; top: 0; z-index: 10;
@@ -135,7 +135,20 @@ $crumbs = [
     th.sortable.desc::after { content: '↓'; opacity: 1; color: var(--v2-label); }
 
     /* Metadata JSON Chip */
-    .meta-chip { font-family: var(--font-mono); font-size: 0.7rem; color: var(--v2-text-muted); background: #f1f5f9; padding: 4px 8px; border-radius: 4px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
+    .meta-chip {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--v2-text-muted);
+        background: #f1f5f9;
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: block;
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        line-height: 1.35;
+    }
 
     /* Pagination */
     .table-footer { padding: 10px 20px; border-top: 1px solid var(--v2-border); display: flex; justify-content: space-between; align-items: center; background: #ffffff; flex-shrink: 0; }

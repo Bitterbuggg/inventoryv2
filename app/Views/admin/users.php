@@ -542,8 +542,8 @@ foreach ($usersList as $userRow) {
                                     <div class="user-profile">
                                         <div class="user-avatar"><?= esc($initial) ?></div>
                                         <div class="user-meta">
-                                            <span class="user-name"><?= esc($username) ?></span>
-                                            <span class="user-email"><?= esc($email) ?></span>
+                                            <span class="user-name" title="<?= esc($username) ?>"><?= esc($username) ?></span>
+                                            <span class="user-email" title="<?= esc($email) ?>"><?= esc($email) ?></span>
                                         </div>
                                     </div>
                                 </td>

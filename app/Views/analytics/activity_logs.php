@@ -100,7 +100,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
     .table-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--v2-border); background: #ffffff; flex-shrink: 0; }
     .table-toolbar h3 { margin: 0; font-size: 1rem; color: var(--v2-title); font-weight: 800; }
 
-    .table-scroll-container { overflow-y: auto; background: #ffffff; }
+    .table-scroll-container { overflow: auto; background: #ffffff; }
 
     /* Fixed Table Layout to prevent overlapping columns */
     .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
@@ -114,11 +114,21 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
         color: var(--v2-title); 
         border-bottom: 2px solid var(--v2-border); 
         text-align: left; 
-        white-space: nowrap; 
-        overflow: hidden; 
-        text-overflow: ellipsis; 
+        line-height: 1.3;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
-    .modern-table td { padding: 12px 10px; font-size: 0.8rem; color: var(--v2-text-main); border-bottom: 1px solid #f1f5f9; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; }
+    .modern-table td {
+        padding: 12px 10px;
+        font-size: 0.8rem;
+        color: var(--v2-text-main);
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
     .modern-table tr:hover td { background: #f8fafc; }
 
     /* --- SORTABLE HEADERS (FIXED STICKY BUG) --- */
@@ -153,7 +163,22 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
     .export-menu-items a:hover { background: #f1f5f9; color: var(--v2-label); }
 
     /* JSON Chip */
-    .meta-chip { font-family: var(--font-mono); font-size: 0.7rem; color: var(--v2-text-muted); background: #f1f5f9; padding: 4px 8px; border-radius: 4px; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: help; border: 1px solid #e2e8f0; }
+    .meta-chip {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--v2-text-muted);
+        background: #f1f5f9;
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: inline-block;
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        line-height: 1.35;
+        cursor: help;
+        border: 1px solid #e2e8f0;
+    }
     
     /* Widget Cards */
     .widget-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
