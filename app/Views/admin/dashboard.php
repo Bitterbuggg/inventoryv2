@@ -40,7 +40,7 @@ $moduleStatus = [
     /* --- PASTEL KPI CARDS --- */
     .kpi-grid { 
         display: grid; 
-        grid-template-columns: repeat(4, 1fr); 
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
         gap: 16px; 
         flex-shrink: 0; 
     }
@@ -69,6 +69,14 @@ $moduleStatus = [
     .icon-inventory { background: #ecfccb; color: #d97706; }   
 
     .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }
+
+    .kpi-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
     
     .kpi-value { 
         font-size: 1.05rem; 
@@ -76,9 +84,9 @@ $moduleStatus = [
         color: var(--v2-title); 
         line-height: 1.2; 
         margin: 0; 
-        white-space: nowrap; 
-        overflow: hidden; 
-        text-overflow: ellipsis; 
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
     }
     
     .kpi-label { 
@@ -87,9 +95,10 @@ $moduleStatus = [
         color: var(--v2-text-muted); 
         margin: 0; 
         margin-top: 4px; 
-        white-space: nowrap; 
-        overflow: hidden; 
-        text-overflow: ellipsis; 
+        line-height: 1.35;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
     }
 
     .status-pill {
@@ -105,6 +114,18 @@ $moduleStatus = [
         text-transform: uppercase;
         letter-spacing: 0.05em;
         flex-shrink: 0;
+    }
+
+    @media (max-width: 900px) {
+        .kpi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 640px) {
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
     }
     .status-dot {
         width: 6px; height: 6px;
@@ -238,7 +259,7 @@ $moduleStatus = [
                         <?php endif; ?>
                     </div>
                     <div class="kpi-details">
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                        <div class="kpi-header">
                             <span class="kpi-value"><?= esc((string) $card['name']) ?></span>
                             <div class="status-pill">
                                 <div class="status-dot"></div>
