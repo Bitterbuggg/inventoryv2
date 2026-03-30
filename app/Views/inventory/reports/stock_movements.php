@@ -188,8 +188,6 @@ $referenceTypeLabels = [
     .ci-pager li a:hover { background: rgba(178, 224, 235, 0.3); border-color: var(--v2-label); }
     .ci-pager li.active a { background: var(--v2-label); color: #ffffff; border-color: var(--v2-label); }
     .ci-pager li.disabled a { opacity: 0.5; background: #f1f5f9; color: var(--v2-text-muted); pointer-events: none; border-color: #cbd5e1; }
-    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--v2-text-muted); }
-
     /* Movement Type Badge */
     .m-badge { background: #f1f5f9; color: var(--v2-text-muted); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; border: 1px solid #e2e8f0; }
 </style>
@@ -330,7 +328,7 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
                                     <?= esc($referenceTypeLabels[(string) ($row['reference_type'] ?? '')] ?? ucwords(str_replace('_', ' ', (string) ($row['reference_type'] ?? '')))) ?>
                                     <?= ($row['reference_id'] ?? null) !== null ? ' #' . esc((string) $row['reference_id']) : '' ?>
                                 </td>
-                                <td style="font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= esc((string) $row['item_name']) ?>"><?= esc((string) $row['item_name']) ?></td>
+                                <td style="font-weight: 700; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere;" title="<?= esc((string) $row['item_name']) ?>"><?= esc((string) $row['item_name']) ?></td>
                                 <td style="font-size: 0.85rem; color: var(--v2-text-muted);"><?= esc((string) $row['unit']) ?></td>
                                 <td style="text-align: right; color: #16a34a; font-weight: 800;"><?= esc(app_format_quantity($row['qty_in'] ?? 0)) ?></td>
                                 <td style="text-align: right; color: #ef4444; font-weight: 800;"><?= esc(app_format_quantity($row['qty_out'] ?? 0)) ?></td>
@@ -430,11 +428,7 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
 
             let html = `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo; Prev</a></li>`;
             for (let i = 1; i <= totalPages; i++) {
-                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                    html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
-                } else if (i === currentPage - 3 || i === currentPage + 3) {
-                    html += `<li><span class="ellipsis">...</span></li>`;
-                }
+                html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
             }
             html += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;
             pagerContainer.innerHTML = html;

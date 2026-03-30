@@ -79,7 +79,7 @@ $prApprovals = count(array_filter($rows, static fn (array $row): bool => (string
             <div class="toolbar-controls">
                 <div class="search-wrap">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" id="instant-search-input" class="search-input" placeholder="Search by reference type, ID, or PR number..." autocomplete="off">
+                    <input type="text" id="instant-search-input" class="search-input" placeholder="Search by reference type, ID, or PR number" autocomplete="off">
                 </div>
                 <button type="button" class="btn btn-outline" id="btn-clear-search" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 6px;">Clear</button>
             </div>
@@ -158,7 +158,7 @@ $prApprovals = count(array_filter($rows, static fn (array $row): bool => (string
                                         <form method="post" action="<?= site_url('procurement/approvals/' . $approval['id'] . '/approve') ?>" style="margin: 0;">
                                             <?= csrf_field() ?>
                                             <div class="approval-input-group">
-                                                <input type="text" name="comments" class="approval-comment" placeholder="Approval note...">
+                                                <input type="text" name="comments" class="approval-comment" placeholder="Approval note">
                                                 <button type="submit" class="btn-action btn-approve">Approve</button>
                                             </div>
                                         </form>
@@ -166,7 +166,7 @@ $prApprovals = count(array_filter($rows, static fn (array $row): bool => (string
                                         <form method="post" action="<?= site_url('procurement/approvals/' . $approval['id'] . '/reject') ?>" style="margin: 0;">
                                             <?= csrf_field() ?>
                                             <div class="approval-input-group">
-                                                <input type="text" name="comments" class="approval-comment" placeholder="Rejection reason..." required>
+                                                <input type="text" name="comments" class="approval-comment" placeholder="Rejection reason" required>
                                                 <button type="submit" class="btn-action btn-reject" title="Reject Request">Reject</button>
                                             </div>
                                         </form>

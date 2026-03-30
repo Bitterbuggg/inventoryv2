@@ -726,8 +726,9 @@ textarea {
 }
 
 .status-badge {
-    display: inline-block;
-    max-width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 999px;
     padding: 4px 10px;
     font-size: 0.78rem;
@@ -735,9 +736,11 @@ textarea {
     letter-spacing: 0.01em;
     text-transform: capitalize;
     border: 1px solid transparent;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+    text-align: center;
     vertical-align: middle;
 }
 

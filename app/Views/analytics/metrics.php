@@ -196,7 +196,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
             <form method="get" action="<?= site_url('analytics/metrics') ?>" class="toolbar-controls">
                 <input type="date" name="date_from" value="<?= esc((string) $date_from) ?>" class="input-v2" title="From Date">
                 <input type="date" name="date_to" value="<?= esc((string) $date_to) ?>" class="input-v2" title="To Date">
-                <input type="text" name="module" value="<?= esc((string) $module) ?>" placeholder="Filter by module..." class="input-v2" style="width: 180px;">
+                <input type="text" name="module" value="<?= esc((string) $module) ?>" placeholder="Filter by module" class="input-v2" style="width: 180px;">
                 <button type="submit" class="btn btn-primary" style="padding: 6px 16px; font-weight: 800; font-size: 0.8rem; background: var(--v2-label); border: none; border-radius: 6px; color: white;">Apply Filter</button>
                 <a href="<?= site_url('analytics/metrics') ?>" class="btn btn-outline" style="padding: 6px 16px; font-weight: 800; font-size: 0.8rem; border-radius: 6px; text-decoration: none;">Reset</a>
             </form>

@@ -33,30 +33,8 @@
             return html;
         }
 
-        var startPage = Math.max(1, currentPage - 2);
-        var endPage = Math.min(totalPages, startPage + 4);
-
-        if (endPage - startPage < 4) {
-            startPage = Math.max(1, endPage - 4);
-        }
-
-        if (startPage > 1) {
-            html += '<li><a href="#" data-page="1">1</a></li>';
-            if (startPage > 2) {
-                html += '<li><span class="ellipsis">...</span></li>';
-            }
-        }
-
-        for (var page = startPage; page <= endPage; page++) {
+        for (var page = 1; page <= totalPages; page++) {
             html += '<li class="' + (page === currentPage ? 'active' : '') + '"><a href="#" data-page="' + page + '">' + page + '</a></li>';
-        }
-
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                html += '<li><span class="ellipsis">...</span></li>';
-            }
-
-            html += '<li><a href="#" data-page="' + totalPages + '">' + totalPages + '</a></li>';
         }
 
         html += '<li class="' + (currentPage === totalPages ? 'disabled' : '') + '"><a href="#" data-page="' + (currentPage + 1) + '">Next &raquo;</a></li>';

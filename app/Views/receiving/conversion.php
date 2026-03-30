@@ -130,7 +130,7 @@ $todayDate = date('Y-m-d');
                     </div>
                     <div class="header-field-remarks">
                         <label for="remarks" class="field-label">Remarks / Notes</label>
-                        <input id="remarks" type="text" name="remarks" class="form-control-header" placeholder="Optional notes regarding this delivery..." value="<?= esc((string) old('remarks')) ?>">
+                        <input id="remarks" type="text" name="remarks" class="form-control-header" placeholder="Optional notes regarding this delivery" value="<?= esc((string) old('remarks')) ?>">
                     </div>
                 </div>
             </div>

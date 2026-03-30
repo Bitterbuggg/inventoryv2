@@ -386,14 +386,6 @@
     border-color: #cbd5e1;
 }
 
-.procurement-queue .ci-pager li span.ellipsis {
-    border: none !important;
-    background: transparent !important;
-    padding: 0 4px !important;
-    min-width: auto;
-    color: var(--v2-text-muted);
-}
-
 .procurement-queue .action-row,
 .procurement-queue .action-forms-container {
     display: flex;
@@ -524,15 +516,16 @@
 .procurement-queue .action-badge-waiting,
 .procurement-queue .action-badge-done {
     display: inline-block;
-    max-width: 100%;
     padding: 3px 10px;
     font-size: 0.7rem;
     font-weight: 800;
     border-radius: 4px;
     text-transform: uppercase;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+    text-align: center;
     vertical-align: middle;
 }
 
@@ -628,17 +621,18 @@
 }
 
 .procurement-queue .status-badge-special {
-    max-width: 100%;
     padding: 3px 10px;
     font-size: 0.7rem;
     font-weight: 800;
     border-radius: 9999px;
-    white-space: nowrap;
+    white-space: normal;
     display: inline-block;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+    text-align: center;
     vertical-align: middle;
 }
 

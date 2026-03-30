@@ -175,7 +175,6 @@ $crumbs = [
     .ci-pager li a:hover { background: rgba(178, 224, 235, 0.3); border-color: var(--v2-label); }
     .ci-pager li.active a { background: var(--v2-label); color: #ffffff; border-color: var(--v2-label); }
     .ci-pager li.disabled a { opacity: 0.5; background: #f1f5f9; color: var(--v2-text-muted); pointer-events: none; border-color: #cbd5e1; }
-    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--v2-text-muted); }
 </style>
 <?= $this->endSection() ?>
 
@@ -396,11 +395,7 @@ $releasedCount = count(array_filter($issuanceRows, static fn (array $row): bool 
 
             let html = `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo; Prev</a></li>`;
             for (let i = 1; i <= totalPages; i++) {
-                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                    html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
-                } else if (i === currentPage - 3 || i === currentPage + 3) {
-                    html += `<li><span class="ellipsis">...</span></li>`;
-                }
+                html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
             }
             html += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;
             pagerContainer.innerHTML = html;

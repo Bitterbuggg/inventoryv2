@@ -109,7 +109,7 @@ $productOptions = array_map(static fn (array $product): array => [
                             <tr>
                                 <td>
                                     <select name="product_id[]" class="table-control product-select" <?= $products === [] ? 'disabled' : '' ?>>
-                                        <option value="">Select product...</option>
+                                        <option value="">Select product</option>
                                         <?php foreach ($products as $product): ?>
                                             <option value="<?= esc((string) ($product['id'] ?? '')) ?>" data-unit="<?= esc((string) ($product['unit'] ?? 'unit')) ?>" data-available="<?= esc((string) ($product['available_qty'] ?? '0')) ?>" <?= old('product_id.' . $i) == ($product['id'] ?? '') ? 'selected' : '' ?>>
                                                 <?= esc((string) ($product['product_name'] ?? '')) ?> (<?= esc((string) ($product['unit'] ?? 'unit')) ?>) - Available: <?= esc(app_format_quantity($product['available_qty'] ?? 0)) ?>
@@ -143,7 +143,7 @@ $productOptions = array_map(static fn (array $product): array => [
     <tr>
         <td>
             <select name="product_id[]" class="table-control product-select" <?= $products === [] ? 'disabled' : '' ?>>
-                <option value="">Select product...</option>
+                <option value="">Select product</option>
                 <?php foreach ($products as $product): ?>
                     <option value="<?= esc((string) ($product['id'] ?? '')) ?>" data-unit="<?= esc((string) ($product['unit'] ?? 'unit')) ?>" data-available="<?= esc((string) ($product['available_qty'] ?? '0')) ?>">
                         <?= esc((string) ($product['product_name'] ?? '')) ?> (<?= esc((string) ($product['unit'] ?? 'unit')) ?>) - Available: <?= esc(app_format_quantity($product['available_qty'] ?? 0)) ?>

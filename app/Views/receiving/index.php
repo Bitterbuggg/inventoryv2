@@ -217,8 +217,6 @@ $canViewInventory = $user !== null && method_exists($user, 'can') && $user->can(
     .ci-pager li a:hover { background: rgba(178, 224, 235, 0.3); border-color: var(--v2-label); }
     .ci-pager li.active a { background: var(--v2-label); color: #ffffff; border-color: var(--v2-label); }
     .ci-pager li.disabled a { opacity: 0.5; background: #f1f5f9; color: var(--v2-text-muted); pointer-events: none; border-color: #cbd5e1; }
-    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--v2-text-muted); }
-
     /* --- V2 ACTION BUTTONS --- */
     .btn-table { padding: 6px 14px; font-size: 0.75rem; font-weight: 800; border-radius: 6px; text-transform: uppercase; transition: all 0.2s ease; border: none; cursor: pointer; display: inline-flex; text-decoration: none; align-items: center; justify-content: center; white-space: nowrap; }
     .btn-action-primary { background: var(--v2-label); color: white; }
@@ -340,7 +338,7 @@ $convertibleCount = count($convertiblePoRequests ?? []);
             <div class="toolbar-controls">
                 <div class="search-wrap">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" id="instant-search-input" class="search-input" placeholder="Search by receiving #, PO request..." autocomplete="off">
+                    <input type="text" id="instant-search-input" class="search-input" placeholder="Search by receiving number or PO request" autocomplete="off">
                 </div>
                 
                 <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('receiving') ?>" style="margin: 0; display: flex; gap: 8px;">
@@ -629,22 +627,8 @@ $convertibleCount = count($convertiblePoRequests ?? []);
                     if (totalPages > 1) {
                         let html = `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo; Prev</a></li>`;
                         
-                        let startPage = Math.max(1, currentPage - 2);
-                        let endPage = Math.min(totalPages, startPage + 4);
-                        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-
-                        if (startPage > 1) {
-                            html += `<li><a href="#" data-page="1">1</a></li>`;
-                            if (startPage > 2) html += `<li><span class="ellipsis">...</span></li>`;
-                        }
-
-                        for (let i = startPage; i <= endPage; i++) {
+                        for (let i = 1; i <= totalPages; i++) {
                             html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
-                        }
-
-                        if (endPage < totalPages) {
-                            if (endPage < totalPages - 1) html += `<li><span class="ellipsis">...</span></li>`;
-                            html += `<li><a href="#" data-page="${totalPages}">${totalPages}</a></li>`;
                         }
 
                         html += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;

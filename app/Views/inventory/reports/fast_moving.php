@@ -248,7 +248,7 @@ $maxQty = $topItemQty > 0 ? $topItemQty : 1;
 
                 <div class="search-wrap">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" id="instant-search-input" class="search-input" placeholder="Quick find item..." autocomplete="off">
+                    <input type="text" id="instant-search-input" class="search-input" placeholder="Quick find item" autocomplete="off">
                 </div>
                 
                 <button type="button" class="btn btn-outline" id="btn-clear-search" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 6px; height: 32px;">Clear</button>
@@ -385,11 +385,7 @@ $maxQty = $topItemQty > 0 ? $topItemQty : 1;
             if (totalPages <= 1) return;
             let html = `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo; Prev</a></li>`;
             for (let i = 1; i <= totalPages; i++) {
-                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                    html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
-                } else if (i === currentPage - 3 || i === currentPage + 3) {
-                    html += `<li><span class="ellipsis">...</span></li>`;
-                }
+                html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
             }
             html += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;
             pagerContainer.innerHTML = html;

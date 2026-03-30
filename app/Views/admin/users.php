@@ -274,17 +274,19 @@ foreach ($usersList as $userRow) {
         font-weight: 700;
         font-size: 0.95rem;
         color: var(--v2-title);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        overflow-wrap: anywhere;
     }
 
     .user-email {
         font-size: 0.8rem;
         color: var(--v2-text-muted);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        overflow-wrap: anywhere;
     }
 
     .role-badge {
@@ -476,7 +478,7 @@ foreach ($usersList as $userRow) {
             <div class="toolbar-controls">
                 <div class="search-wrap">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" id="user-search" class="search-input" placeholder="Search by name, email, or role..." autocomplete="off">
+                    <input type="text" id="user-search" class="search-input" placeholder="Search by name, email, or role" autocomplete="off">
                 </div>
                 <a class="btn btn-primary btn-create-user" href="<?= site_url('admin/users/create') ?>">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>

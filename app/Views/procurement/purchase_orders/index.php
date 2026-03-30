@@ -91,7 +91,7 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
             <div class="toolbar-controls">
                 <div class="search-wrap">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" id="instant-search-input" class="search-input" placeholder="Search PO number or supplier..." autocomplete="off">
+                    <input type="text" id="instant-search-input" class="search-input" placeholder="Search PO number or supplier" autocomplete="off">
                 </div>
                 
                 <form class="inline-form" id="server-filter-form" method="get" action="<?= site_url('procurement/purchase-orders') ?>" style="margin: 0; display: flex; gap: 8px;">

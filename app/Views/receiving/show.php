@@ -99,7 +99,7 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
                     const postBtn = document.getElementById('btn-post-receiving');
                     const callout = document.getElementById('validation-callout');
                     
-                    btn.innerText = 'Validating...';
+                    btn.innerText = 'Validating';
                     btn.disabled = true;
 
                     // Small delay to simulate thorough checking
@@ -168,7 +168,7 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
 
                             <div class="field" style="margin-top:16px;">
                                 <label for="return_reason">Reason for Return: <span style="color:var(--color-danger);">*</span></label>
-                                <input type="text" id="return_reason" name="reason" placeholder="e.g., Defective, Wrong item, Near expiry..." required>
+                                <input type="text" id="return_reason" name="reason" placeholder="e.g., Defective, Wrong item, Near expiry" required>
                             </div>
                         </div>
                         <div class="modal-actions">

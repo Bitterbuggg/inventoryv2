@@ -153,8 +153,6 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
     .ci-pager li a:hover { background: rgba(178, 224, 235, 0.3); border-color: var(--v2-label); }
     .ci-pager li.active a { background: var(--v2-label); color: #ffffff; border-color: var(--v2-label); }
     .ci-pager li.disabled a { opacity: 0.5; background: #f1f5f9; color: var(--v2-text-muted); pointer-events: none; border-color: #cbd5e1; }
-    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--v2-text-muted); }
-
     /* --- EXPORT DROPDOWN --- */
     .export-menu { position: relative; display: inline-block; }
     .export-menu-items { display: none; position: absolute; right: 0; top: 100%; min-width: 220px; background: #ffffff; border: 1px solid var(--v2-border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 50; padding: 8px 0; margin-top: 4px; }
@@ -574,22 +572,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             let html = `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo; Prev</a></li>`;
 
-            let startPage = Math.max(1, currentPage - 2);
-            let endPage = Math.min(totalPages, startPage + 4);
-            if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-
-            if (startPage > 1) {
-                html += `<li><a href="#" data-page="1">1</a></li>`;
-                if (startPage > 2) html += `<li><span class="ellipsis">...</span></li>`;
-            }
-
-            for (let i = startPage; i <= endPage; i++) {
+            for (let i = 1; i <= totalPages; i++) {
                 html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
-            }
-
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) html += `<li><span class="ellipsis">...</span></li>`;
-                html += `<li><a href="#" data-page="${totalPages}">${totalPages}</a></li>`;
             }
 
             html += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;

@@ -27,7 +27,7 @@ foreach ($products as $product) {
             data-pr-product-select
             <?= $productsDisabled ? 'disabled' : '' ?>
         >
-            <option value="">Select product...</option>
+            <option value="">Select product</option>
             <?php foreach ($products as $product): ?>
                 <?php $productId = (string) ($product['id'] ?? ''); ?>
                 <option

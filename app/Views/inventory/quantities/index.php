@@ -177,8 +177,6 @@ $crumbs = [
     .ci-pager li a:hover { background: rgba(178, 224, 235, 0.3); border-color: var(--v2-label); }
     .ci-pager li.active a { background: var(--v2-label); color: #ffffff; border-color: var(--v2-label); }
     .ci-pager li.disabled a { opacity: 0.5; background: #f1f5f9; color: var(--v2-text-muted); pointer-events: none; border-color: #cbd5e1; }
-    .ci-pager li span.ellipsis { border: none !important; background: transparent !important; padding: 0 4px !important; min-width: auto; color: var(--v2-text-muted); }
-
     /* --- V2 ACTION BUTTONS --- */
     .action-row { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: nowrap; }
 
@@ -297,7 +295,7 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
             <div class="toolbar-controls">
                 <div class="search-wrap">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" id="instant-search-input" class="search-input" placeholder="Search item, batch, or lot..." autocomplete="off">
+                    <input type="text" id="instant-search-input" class="search-input" placeholder="Search item, batch, or lot" autocomplete="off">
                 </div>
                 
                 <select id="filter-stock-status" class="filter-select">
@@ -609,23 +607,8 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
 
             let html = `<li class="${currentPage === 1 ? 'disabled' : ''}"><a href="#" data-page="${currentPage - 1}">&laquo; Prev</a></li>`;
 
-            let startPage = Math.max(1, currentPage - 2);
-            let endPage = Math.min(totalPages, startPage + 4);
-            
-            if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-
-            if (startPage > 1) {
-                html += `<li><a href="#" data-page="1">1</a></li>`;
-                if (startPage > 2) html += `<li><span class="ellipsis">...</span></li>`;
-            }
-
-            for (let i = startPage; i <= endPage; i++) {
+            for (let i = 1; i <= totalPages; i++) {
                 html += `<li class="${i === currentPage ? 'active' : ''}"><a href="#" data-page="${i}">${i}</a></li>`;
-            }
-
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) html += `<li><span class="ellipsis">...</span></li>`;
-                html += `<li><a href="#" data-page="${totalPages}">${totalPages}</a></li>`;
             }
 
             html += `<li class="${currentPage === totalPages ? 'disabled' : ''}"><a href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;
