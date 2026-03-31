@@ -8,12 +8,21 @@ use RuntimeException;
 
 class ProductRepository implements ProductRepositoryInterface
 {
-    public function listAll(bool $activeOnly = false): array
+    public function listAll(bool $activeOnly = false, ?string $keyword = null): array
     {
         $model = $this->newModel();
 
         if ($activeOnly) {
             $model->where('is_active', 1);
+        }
+
+        $keyword = trim((string) $keyword);
+        if ($keyword !== '') {
+            $model->groupStart()
+                ->like('product_code', $keyword)
+                ->orLike('product_name', $keyword)
+                ->orLike('unit', $keyword)
+                ->groupEnd();
         }
 
         return $model->orderBy('product_name', 'ASC')->orderBy('unit', 'ASC')->findAll();

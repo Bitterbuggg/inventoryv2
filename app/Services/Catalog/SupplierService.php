@@ -13,9 +13,11 @@ class SupplierService
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function listAll(bool $activeOnly = false): array
+    public function listAll(bool $activeOnly = false, ?string $keyword = null): array
     {
-        return $this->suppliers->listAll($activeOnly);
+        $keyword = trim((string) $keyword);
+
+        return $this->suppliers->listAll($activeOnly, $keyword === '' ? null : $keyword);
     }
 
     /**

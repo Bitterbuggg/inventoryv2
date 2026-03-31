@@ -9,6 +9,21 @@ use CodeIgniter\Test\CIUnitTestCase;
  */
 final class ProductServiceTest extends CIUnitTestCase
 {
+    public function testListAllTrimsSearchKeywordBeforeQueryingRepository(): void
+    {
+        $products = $this->createMock(ProductRepositoryInterface::class);
+        $expected = [['id' => 11, 'product_name' => 'Syringe']];
+
+        $products->expects($this->once())
+            ->method('listAll')
+            ->with(false, 'Syringe')
+            ->willReturn($expected);
+
+        $service = new ProductService($products);
+
+        $this->assertSame($expected, $service->listAll(false, '  Syringe  '));
+    }
+
     public function testCreateRejectsDuplicateProductNameAndUnit(): void
     {
         $products = $this->createMock(ProductRepositoryInterface::class);

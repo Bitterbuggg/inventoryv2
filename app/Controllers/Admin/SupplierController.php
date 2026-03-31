@@ -10,8 +10,11 @@ class SupplierController extends BaseController
 {
     public function index(): string
     {
+        $keyword = trim((string) $this->request->getGet('q'));
+
         return view('admin/suppliers/index', [
-            'suppliers' => RepositoryServices::supplierService()->listAll(),
+            'suppliers'  => RepositoryServices::supplierService()->listAll(false, $keyword),
+            'searchTerm' => $keyword,
         ]);
     }
 
@@ -40,7 +43,7 @@ class SupplierController extends BaseController
             return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
 
-        return redirect()->to('/admin/suppliers')->with('message', 'Supplier created.');
+        return $this->redirectToIndex()->with('message', 'Supplier created.');
     }
 
     public function update(int $id): RedirectResponse
@@ -68,6 +71,18 @@ class SupplierController extends BaseController
             return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
 
-        return redirect()->to('/admin/suppliers')->with('message', 'Supplier updated.');
+        return $this->redirectToIndex()->with('message', 'Supplier updated.');
+    }
+
+    private function redirectToIndex(): RedirectResponse
+    {
+        $keyword = trim((string) $this->request->getPost('catalog_search'));
+        $path = '/admin/suppliers';
+
+        if ($keyword !== '') {
+            $path .= '?' . http_build_query(['q' => $keyword]);
+        }
+
+        return redirect()->to($path);
     }
 }

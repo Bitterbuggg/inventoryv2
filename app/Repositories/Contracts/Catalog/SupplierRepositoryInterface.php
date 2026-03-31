@@ -7,7 +7,7 @@ interface SupplierRepositoryInterface
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function listAll(bool $activeOnly = false): array;
+    public function listAll(bool $activeOnly = false, ?string $keyword = null): array;
 
     /**
      * @return array<string, mixed>|null

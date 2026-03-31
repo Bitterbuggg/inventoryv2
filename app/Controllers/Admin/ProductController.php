@@ -10,8 +10,11 @@ class ProductController extends BaseController
 {
     public function index(): string
     {
+        $keyword = trim((string) $this->request->getGet('q'));
+
         return view('admin/products/index', [
-            'products' => RepositoryServices::productService()->listAll(),
+            'products'   => RepositoryServices::productService()->listAll(false, $keyword),
+            'searchTerm' => $keyword,
         ]);
     }
 
@@ -36,7 +39,7 @@ class ProductController extends BaseController
             return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
 
-        return redirect()->to('/admin/products')->with('message', 'Product created.');
+        return $this->redirectToIndex()->with('message', 'Product created.');
     }
 
     public function update(int $id): RedirectResponse
@@ -60,6 +63,18 @@ class ProductController extends BaseController
             return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
 
-        return redirect()->to('/admin/products')->with('message', 'Product updated.');
+        return $this->redirectToIndex()->with('message', 'Product updated.');
+    }
+
+    private function redirectToIndex(): RedirectResponse
+    {
+        $keyword = trim((string) $this->request->getPost('catalog_search'));
+        $path = '/admin/products';
+
+        if ($keyword !== '') {
+            $path .= '?' . http_build_query(['q' => $keyword]);
+        }
+
+        return redirect()->to($path);
     }
 }

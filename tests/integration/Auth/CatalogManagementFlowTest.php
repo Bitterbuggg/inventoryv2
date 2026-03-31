@@ -107,6 +107,64 @@ final class CatalogManagementFlowTest extends CIUnitTestCase
         $this->assertSame(0, (int) $updated['is_active']);
     }
 
+    public function testAdminCanSearchProductCatalogRecords(): void
+    {
+        $admin = $this->findUserByEmail('admin@local.test');
+        auth('session')->login($admin);
+
+        /** @var ProductModel $products */
+        $products = model(ProductModel::class);
+        $products->insert([
+            'product_code' => 'PRD-SEARCHA',
+            'product_name' => 'Catalog Search Alpha Product',
+            'unit' => 'box',
+            'is_active' => 1,
+        ]);
+        $products->insert([
+            'product_code' => 'PRD-SEARCHB',
+            'product_name' => 'Catalog Search Beta Product',
+            'unit' => 'pack',
+            'is_active' => 1,
+        ]);
+
+        $response = $this->withSession(session()->get())->get('/admin/products?q=Alpha');
+
+        $response->assertOK();
+        $response->assertSee('Catalog Search Alpha Product');
+        $response->assertDontSee('Catalog Search Beta Product');
+    }
+
+    public function testAdminCanSearchSupplierCatalogRecords(): void
+    {
+        $admin = $this->findUserByEmail('admin@local.test');
+        auth('session')->login($admin);
+
+        /** @var SupplierModel $suppliers */
+        $suppliers = model(SupplierModel::class);
+        $suppliers->insert([
+            'supplier_code' => 'SUP-SEARCHA',
+            'supplier_name' => 'Catalog Search Alpha Supplier',
+            'contact_person' => 'Alice Contact',
+            'phone' => '1000',
+            'email' => 'alpha.supplier@example.test',
+            'is_active' => 1,
+        ]);
+        $suppliers->insert([
+            'supplier_code' => 'SUP-SEARCHB',
+            'supplier_name' => 'Catalog Search Beta Supplier',
+            'contact_person' => 'Bob Contact',
+            'phone' => '2000',
+            'email' => 'beta.supplier@example.test',
+            'is_active' => 1,
+        ]);
+
+        $response = $this->withSession(session()->get())->get('/admin/suppliers?q=Alice');
+
+        $response->assertOK();
+        $response->assertSee('Catalog Search Alpha Supplier');
+        $response->assertDontSee('Catalog Search Beta Supplier');
+    }
+
     private function findUserByEmail(string $email): User
     {
         $user = model(UserModel::class)->findByCredentials(['email' => $email]);

@@ -8,12 +8,23 @@ use RuntimeException;
 
 class SupplierRepository implements SupplierRepositoryInterface
 {
-    public function listAll(bool $activeOnly = false): array
+    public function listAll(bool $activeOnly = false, ?string $keyword = null): array
     {
         $model = $this->newModel();
 
         if ($activeOnly) {
             $model->where('is_active', 1);
+        }
+
+        $keyword = trim((string) $keyword);
+        if ($keyword !== '') {
+            $model->groupStart()
+                ->like('supplier_code', $keyword)
+                ->orLike('supplier_name', $keyword)
+                ->orLike('contact_person', $keyword)
+                ->orLike('phone', $keyword)
+                ->orLike('email', $keyword)
+                ->groupEnd();
         }
 
         return $model->orderBy('supplier_name', 'ASC')->findAll();

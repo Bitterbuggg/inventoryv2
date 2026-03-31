@@ -9,6 +9,21 @@ use CodeIgniter\Test\CIUnitTestCase;
  */
 final class SupplierServiceTest extends CIUnitTestCase
 {
+    public function testListAllTrimsSearchKeywordBeforeQueryingRepository(): void
+    {
+        $suppliers = $this->createMock(SupplierRepositoryInterface::class);
+        $expected = [['id' => 4, 'supplier_name' => 'Northwind']];
+
+        $suppliers->expects($this->once())
+            ->method('listAll')
+            ->with(false, 'Northwind')
+            ->willReturn($expected);
+
+        $service = new SupplierService($suppliers);
+
+        $this->assertSame($expected, $service->listAll(false, '  Northwind  '));
+    }
+
     public function testCreateRejectsDuplicateSupplierName(): void
     {
         $suppliers = $this->createMock(SupplierRepositoryInterface::class);
