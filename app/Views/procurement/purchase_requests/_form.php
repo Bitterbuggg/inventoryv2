@@ -42,7 +42,7 @@ $productOptions = array_map(static fn (array $product): array => [
         </div>
     <?php endif ?>
 
-    <form method="post" action="<?= esc($formAction) ?>" class="stack-lg" data-pr-form>
+    <form method="post" action="<?= esc($formAction) ?>" class="stack-lg" data-pr-form data-dirty-form>
         <?= csrf_field() ?>
 
         <section class="card stack-md">
@@ -51,9 +51,10 @@ $productOptions = array_map(static fn (array $product): array => [
                 <?php if ($headerSubtitle !== ''): ?>
                     <p class="muted" style="margin:0;"><?= esc($headerSubtitle) ?></p>
                 <?php endif ?>
+                <p class="required-note">Fields marked with * are required. Use dates to plan the request, then review each line item before saving.</p>
             </div>
             <div class="purchase-request-grid">
-                <div>
+                <div class="field field-required">
                     <label class="purchase-request-field-label" for="request_date">Request Date</label>
                     <input
                         id="request_date"
@@ -63,9 +64,11 @@ $productOptions = array_map(static fn (array $product): array => [
                         value="<?= esc($requestDateValue) ?>"
                         <?= $requestDateMax !== null && $requestDateMax !== '' ? 'max="' . esc((string) $requestDateMax) . '"' : '' ?>
                         required
+                        aria-describedby="request_date_hint"
                     >
+                    <p id="request_date_hint" class="field-hint">Use the date this request is being prepared.</p>
                 </div>
-                <div>
+                <div class="field">
                     <label class="purchase-request-field-label" for="needed_date">Needed Date</label>
                     <input
                         id="needed_date"
@@ -73,9 +76,11 @@ $productOptions = array_map(static fn (array $product): array => [
                         type="date"
                         name="needed_date"
                         value="<?= esc($neededDateValue) ?>"
+                        aria-describedby="needed_date_hint"
                     >
+                    <p id="needed_date_hint" class="field-hint">Optional target date for fulfillment.</p>
                 </div>
-                <div>
+                <div class="field">
                     <label class="purchase-request-field-label" for="remarks">Remarks</label>
                     <input
                         id="remarks"
@@ -84,7 +89,9 @@ $productOptions = array_map(static fn (array $product): array => [
                         name="remarks"
                         value="<?= esc($remarksValue) ?>"
                         placeholder="Optional notes for the request"
+                        aria-describedby="remarks_hint"
                     >
+                    <p id="remarks_hint" class="field-hint">Add context that approvers or buyers should see.</p>
                 </div>
             </div>
         </section>
@@ -94,7 +101,7 @@ $productOptions = array_map(static fn (array $product): array => [
                 <div class="stack-sm">
                     <h2 style="margin:0;"><?= esc($itemsTitle) ?></h2>
                     <?php if ($itemsSubtitle !== ''): ?>
-                        <p class="muted" style="margin:0;"><?= $itemsSubtitle ?></p>
+                        <p class="muted" style="margin:0;" id="pr-items-help"><?= $itemsSubtitle ?></p>
                     <?php endif ?>
                 </div>
                 <div class="toolbar" style="margin:0;">
@@ -106,8 +113,15 @@ $productOptions = array_map(static fn (array $product): array => [
                 </div>
             </div>
 
+            <div class="split-note" aria-live="polite">
+                <span data-pr-row-count><?= esc((string) count($itemRows)) ?> line items ready</span>
+                <span>Use import for bulk entry, then verify quantities and estimated costs before saving.</span>
+            </div>
+            <p class="table-feedback" data-pr-feedback role="status" aria-live="polite"></p>
+
             <div class="purchase-request-table-wrap">
-                <table class="purchase-request-items-table" data-pr-items-table>
+                <table class="purchase-request-items-table" data-pr-items-table aria-describedby="pr-items-help">
+                    <caption class="visually-hidden">Purchase request line items.</caption>
                     <thead>
                         <tr>
                             <th style="width: 34%;">Product</th>
@@ -133,7 +147,7 @@ $productOptions = array_map(static fn (array $product): array => [
             </div>
 
             <div class="toolbar purchase-request-actions">
-                <button type="submit" class="btn btn-primary" <?= $productsDisabled ? 'disabled' : '' ?>><?= esc($submitLabel) ?></button>
+                <button type="submit" class="btn btn-primary" data-loading-label="Saving draft..." <?= $productsDisabled ? 'disabled' : '' ?>><?= esc($submitLabel) ?></button>
                 <a class="btn btn-outline" href="<?= esc($cancelUrl) ?>">Cancel</a>
             </div>
         </section>

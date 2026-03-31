@@ -181,8 +181,9 @@ if ($canViewReports || $canViewAudit) {
     <link rel="stylesheet" href="<?= base_url('assets/css/table-density.css') ?>">
 </head>
 <body>
+    <a class="skip-link" href="#mainContent">Skip to main content</a>
     <div class="app-shell" id="appShell">
-        <aside class="side-panel" id="sidePanel">
+        <aside class="side-panel" id="sidePanel" aria-label="Sidebar navigation">
             <div class="side-brand-wrap">
                 <a class="brand side-brand" href="<?= site_url('/') ?>">InventoryV2</a>
                 <p class="side-brand-sub">Pharmacy Inventory System</p>
@@ -198,6 +199,7 @@ if ($canViewReports || $canViewAudit) {
                     <?php 
                         // Check if any link in this group is currently active
                         $isGroupActive = false;
+                        $sectionId = 'nav-group-' . preg_replace('/[^a-z0-9]+/i', '-', strtolower((string) $group['title']));
                         foreach ($group['items'] as $item) {
                             if ($isActivePath((string) $item['path'])) {
                                 $isGroupActive = true;
@@ -206,7 +208,7 @@ if ($canViewReports || $canViewAudit) {
                         }
                     ?>
                     <section class="side-section <?= $isGroupActive ? 'is-expanded' : '' ?>">
-                        <button type="button" class="side-section-title toggle-section" aria-expanded="<?= $isGroupActive ? 'true' : 'false' ?>">
+                        <button type="button" class="side-section-title toggle-section" aria-expanded="<?= $isGroupActive ? 'true' : 'false' ?>" aria-controls="<?= esc($sectionId) ?>">
                             <span style="display: flex; align-items: center; gap: 12px;">
                                 <?= $group['icon'] ?>
                                 <?= esc((string) $group['title']) ?>
@@ -214,11 +216,11 @@ if ($canViewReports || $canViewAudit) {
                             <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </button>
 
-                        <div class="side-links-wrapper">
+                        <div class="side-links-wrapper" id="<?= esc($sectionId) ?>">
                             <div class="side-links">
                                 <?php foreach ($group['items'] as $item): ?>
                                     <?php $activeClass = $isActivePath((string) $item['path']) ? ' is-active' : ''; ?>
-                                    <a class="side-link child-link<?= $activeClass ?>" href="<?= site_url((string) $item['path']) ?>">
+                                    <a class="side-link child-link<?= $activeClass ?>" href="<?= site_url((string) $item['path']) ?>"<?= $activeClass !== '' ? ' aria-current="page"' : '' ?>>
                                         <span class="side-link-label"><?= esc((string) $item['label']) ?></span>
                                     </a>
                                 <?php endforeach ?>
@@ -266,7 +268,7 @@ if ($canViewReports || $canViewAudit) {
                         </div>
 
                         <?php if ($pageActions !== ''): ?>
-                            <div class="page-actions" style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+                            <div class="page-actions" aria-label="Page actions" style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
                                 <?= $pageActions ?>
                             </div>
                         <?php endif ?>
@@ -274,7 +276,7 @@ if ($canViewReports || $canViewAudit) {
                 </div>
             </header>
 
-            <main class="content-wrap">
+            <main class="content-wrap" id="mainContent" tabindex="-1">
                 <div class="container stack-lg"> 
                     <?php if ($crumbs !== []): ?>
                         <?= view('components/shared/breadcrumbs', ['crumbs' => $crumbs]) ?>
@@ -299,6 +301,7 @@ if ($canViewReports || $canViewAudit) {
         'variant' => 'warning',
     ]) ?>
 
+    <script src="<?= base_url('assets/js/hci.js') ?>"></script>
     <script>
         // ==========================================
         // 1. MOBILE MENU TOGGLE 
@@ -334,6 +337,13 @@ if ($canViewReports || $canViewAudit) {
             });
 
             overlay.addEventListener('click', closeNav);
+
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && shell.classList.contains('is-side-open')) {
+                    closeNav();
+                    toggle.focus();
+                }
+            });
 
             window.addEventListener('resize', () => {
                 if (window.innerWidth > 900) {
@@ -402,221 +412,149 @@ if ($canViewReports || $canViewAudit) {
         })();
 
         // ==========================================
-        // 4. PREVENT DOUBLE SUBMIT ON ALL FORMS
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', function () {
-            const forms = document.querySelectorAll('form');
-
-            forms.forEach((form) => {
-                form.addEventListener('submit', function (event) {
-                    if (event.defaultPrevented) {
-                        return;
-                    }
-
-                    if (form.dataset.submitting === 'true') {
-                        event.preventDefault();
-                        return;
-                    }
-
-                    form.dataset.submitting = 'true';
-
-                    const submitControls = form.querySelectorAll('button[type="submit"], input[type="submit"]');
-                    submitControls.forEach((control) => {
-                        control.disabled = true;
-                    });
-
-                });
-            });
-
-            // Re-enable controls when returning with browser back/forward cache.
-            window.addEventListener('pageshow', function () {
-                const lockedForms = document.querySelectorAll('form[data-submitting="true"]');
-                lockedForms.forEach((form) => {
-                    delete form.dataset.submitting;
-                    const submitControls = form.querySelectorAll('button[type="submit"], input[type="submit"]');
-                    submitControls.forEach((control) => {
-                        control.disabled = false;
-                    });
-                });
-            });
-        });
-
-        // ==========================================
-        // 5. PREVENT RAPID BUTTON SPAM CLICKS
+        // 4. GLOBAL MODAL CONTROLLER
         // ==========================================
         (function () {
-            const defaultClickLockMs = 800;
+            let _pendingForm  = null;
+            let _pendingModal = null;
+            let _returnFocus = null;
+            const focusableSelector = 'a[href], area[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-            document.addEventListener('click', function (event) {
-                const button = event.target.closest('button, input[type="button"], input[type="submit"], input[type="reset"]');
-                if (!button || button.dataset.allowMultiClick === 'true') {
+            const trapFocus = function (event) {
+                if (event.key !== 'Tab' || ! _pendingModal) {
                     return;
                 }
 
-                const lockMs = Number(button.dataset.clickLockMs ?? defaultClickLockMs);
-                const now = Date.now();
-                const lastClickAt = Number(button.dataset.lastClickAt ?? 0);
+                const focusable = Array.from(_pendingModal.querySelectorAll(focusableSelector))
+                    .filter((element) => element.offsetParent !== null);
 
-                if (now - lastClickAt < lockMs) {
+                if (focusable.length === 0) {
                     event.preventDefault();
-                    event.stopPropagation();
                     return;
                 }
 
-                button.dataset.lastClickAt = String(now);
-            }, true);
-        })();
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
 
-            // ==========================================
-            // 6. AUTO-DISMISS ALERTS
-            // ==========================================
-            (function () {
-                document.querySelectorAll('.alert[data-auto-dismiss]').forEach(function (alert) {
-                    const ms = parseInt(alert.dataset.autoDismiss, 10) || 5000;
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last.focus();
+                    return;
+                }
 
-                    const dismiss = function () {
-                        alert.classList.add('alert-dismissing');
-                        setTimeout(function () { alert.remove(); }, 350);
-                    };
+                if (! event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            };
 
-                    setTimeout(dismiss, ms);
-                });
+            // Open a modal by element reference or selector
+            window.openModal = function (modal, trigger) {
+                if (typeof modal === 'string') modal = document.getElementById(modal);
+                if (!modal) return;
+                _returnFocus = trigger instanceof HTMLElement ? trigger : document.activeElement;
+                modal.hidden = false;
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('has-modal-open');
+                _pendingModal = modal;
+                const focusable = modal.querySelector('[data-modal-cancel], ' + focusableSelector);
+                if (focusable instanceof HTMLElement) {
+                    focusable.focus();
+                }
+            };
 
-                // Manual close button for all alerts
-                document.addEventListener('click', function (e) {
-                    const btn = e.target.closest('.alert-close');
-                    if (btn) {
-                        const alert = btn.closest('.alert');
-                        if (alert) {
-                            alert.classList.add('alert-dismissing');
-                            setTimeout(function () { alert.remove(); }, 350);
-                        }
+            window.closeModal = function (modal) {
+                if (typeof modal === 'string') modal = document.getElementById(modal);
+                if (!modal) return;
+                modal.hidden = true;
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('has-modal-open');
+                _pendingModal = null;
+                _pendingForm  = null;
+                if (_returnFocus instanceof HTMLElement) {
+                    _returnFocus.focus();
+                }
+                _returnFocus = null;
+            };
+
+            // Handle confirm button → submit pending form
+            document.addEventListener('click', function (e) {
+                const confirmBtn = e.target.closest('[data-modal-confirm]');
+                if (confirmBtn) {
+                    const modal = confirmBtn.closest('[data-component="confirm-modal"]');
+                    if (modal) {
+                        modal.hidden = true;
+                        modal.setAttribute('aria-hidden', 'true');
                     }
-                });
-            })();
-
-            // ==========================================
-            // 7. GLOBAL MODAL CONTROLLER
-            // ==========================================
-            (function () {
-                let _pendingForm  = null;
-                let _pendingModal = null;
-
-                // Open a modal by element reference or selector
-                window.openModal = function (modal) {
-                    if (typeof modal === 'string') modal = document.getElementById(modal);
-                    if (!modal) return;
-                    modal.hidden = false;
-                    modal.setAttribute('aria-hidden', 'false');
-                    _pendingModal = modal;
-                    // Focus the cancel button first (safe default focus)
-                    const cancelBtn = modal.querySelector('[data-modal-cancel]');
-                    if (cancelBtn) cancelBtn.focus();
-                };
-
-                window.closeModal = function (modal) {
-                    if (typeof modal === 'string') modal = document.getElementById(modal);
-                    if (!modal) return;
-                    modal.hidden = true;
-                    modal.setAttribute('aria-hidden', 'true');
-                    _pendingModal = null;
-                    _pendingForm  = null;
-                };
-
-                // Handle confirm button → submit pending form
-                document.addEventListener('click', function (e) {
-                    const confirmBtn = e.target.closest('[data-modal-confirm]');
-                    if (confirmBtn) {
-                        const modal = confirmBtn.closest('[data-component="confirm-modal"]');
-                        if (modal) {
-                            modal.hidden = true;
-                            modal.setAttribute('aria-hidden', 'true');
-                        }
-                        if (_pendingForm) {
-                            _pendingForm.dataset.confirmed = 'true';
-                            _pendingForm.requestSubmit ? _pendingForm.requestSubmit() : _pendingForm.submit();
-                            _pendingForm  = null;
-                            _pendingModal = null;
-                        }
-                    }
-                });
-
-                // Handle cancel button → close modal
-                document.addEventListener('click', function (e) {
-                    const cancelBtn = e.target.closest('[data-modal-cancel]');
-                    if (cancelBtn) {
-                        const modal = cancelBtn.closest('[data-component="confirm-modal"]');
-                        if (modal) closeModal(modal);
+                    if (_pendingForm) {
+                        _pendingForm.dataset.confirmed = 'true';
+                        _pendingForm.requestSubmit ? _pendingForm.requestSubmit() : _pendingForm.submit();
                         _pendingForm  = null;
                         _pendingModal = null;
+                        _returnFocus = null;
                     }
-                });
+                }
+            });
 
-                // Click on backdrop (outside dialog) → close
-                document.addEventListener('click', function (e) {
-                    if (_pendingModal && e.target === _pendingModal) {
-                        closeModal(_pendingModal);
-                        _pendingForm = null;
+            // Handle cancel button → close modal
+            document.addEventListener('click', function (e) {
+                const cancelBtn = e.target.closest('[data-modal-cancel]');
+                if (cancelBtn) {
+                    const modal = cancelBtn.closest('[data-component="confirm-modal"]');
+                    if (modal) closeModal(modal);
+                    _pendingForm  = null;
+                    _pendingModal = null;
+                }
+            });
+
+            // Click on backdrop (outside dialog) → close
+            document.addEventListener('click', function (e) {
+                if (_pendingModal && e.target === _pendingModal) {
+                    closeModal(_pendingModal);
+                    _pendingForm = null;
+                }
+            });
+
+            // ESC key → close modal
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && _pendingModal) {
+                    closeModal(_pendingModal);
+                    _pendingForm = null;
+                    return;
+                }
+
+                trapFocus(e);
+            });
+
+            // Intercept forms with data-confirm attribute
+            document.addEventListener('submit', function (e) {
+                const form = e.target;
+                if (!form.dataset.confirm || form.dataset.confirmed === 'true') return;
+
+                e.preventDefault();
+
+                // Find the linked modal or the page's default confirm modal
+                const modalId = form.dataset.confirmModal || 'confirm-modal';
+                const modal   = document.getElementById(modalId);
+                if (!modal) {
+                    // Fallback to native confirm if no modal found
+                    if (window.confirm(form.dataset.confirm)) {
+                        form.dataset.confirmed = 'true';
+                        form.requestSubmit ? form.requestSubmit() : form.submit();
                     }
-                });
+                    return;
+                }
 
-                // ESC key → close modal
-                document.addEventListener('keydown', function (e) {
-                    if (e.key === 'Escape' && _pendingModal) {
-                        closeModal(_pendingModal);
-                        _pendingForm = null;
-                    }
-                });
+                // Update modal text dynamically if specified
+                const titleEl = modal.querySelector('[id$="-title"]');
+                const descEl  = modal.querySelector('.modal-desc');
+                if (titleEl && form.dataset.confirmTitle) titleEl.textContent = form.dataset.confirmTitle;
+                if (descEl  && form.dataset.confirm)      descEl.textContent  = form.dataset.confirm;
 
-                // Intercept forms with data-confirm attribute
-                document.addEventListener('submit', function (e) {
-                    const form = e.target;
-                    if (!form.dataset.confirm || form.dataset.confirmed === 'true') return;
-
-                    e.preventDefault();
-
-                    // Find the linked modal or the page's default confirm modal
-                    const modalId = form.dataset.confirmModal || 'confirm-modal';
-                    const modal   = document.getElementById(modalId);
-                    if (!modal) {
-                        // Fallback to native confirm if no modal found
-                        if (window.confirm(form.dataset.confirm)) {
-                            form.dataset.confirmed = 'true';
-                            form.requestSubmit ? form.requestSubmit() : form.submit();
-                        }
-                        return;
-                    }
-
-                    // Update modal text dynamically if specified
-                    const titleEl = modal.querySelector('[id$="-title"]');
-                    const descEl  = modal.querySelector('.modal-desc');
-                    if (titleEl && form.dataset.confirmTitle) titleEl.textContent = form.dataset.confirmTitle;
-                    if (descEl  && form.dataset.confirm)      descEl.textContent  = form.dataset.confirm;
-
-                    _pendingForm = form;
-                    openModal(modal);
-                }, true);
-            })();
-
-            // ==========================================
-            // 8. PASSWORD VISIBILITY TOGGLE
-            // ==========================================
-            (function () {
-                document.addEventListener('click', function (e) {
-                    const btn = e.target.closest('[data-pw-toggle]');
-                    if (!btn) return;
-                    const inputId = btn.dataset.pwToggle;
-                    const input   = document.getElementById(inputId);
-                    if (!input) return;
-                    const isHidden = input.type === 'password';
-                    input.type = isHidden ? 'text' : 'password';
-                    btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
-                    const eyeIcon   = btn.querySelector('.icon-eye');
-                    const eyeOff    = btn.querySelector('.icon-eye-off');
-                    if (eyeIcon) eyeIcon.style.display = isHidden ? 'none' : '';
-                    if (eyeOff)  eyeOff.style.display  = isHidden ? '' : 'none';
-                });
-            })();
+                _pendingForm = form;
+                openModal(modal, form.querySelector('button[type="submit"], input[type="submit"]'));
+            }, true);
+        })();
         </script>
         <script src="<?= base_url('assets/js/table-alignment.js') ?>"></script>
         <?= $this->renderSection('scripts') ?>

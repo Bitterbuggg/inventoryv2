@@ -7,6 +7,9 @@ $flashInfo = session('info');
 $flashWarning = session('warning');
 $flashError = session('error');
 $flashErrors = (array) session('errors');
+$validationSummary = $flashErrors !== []
+    ? esc((string) json_encode($flashErrors, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT), 'attr')
+    : '';
 
 $_iconSuccess = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
 $_iconInfo    = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
@@ -34,7 +37,7 @@ $_iconClose   = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" str
 <?php endif ?>
 
 <?php if (! empty($flashWarning)): ?>
-    <div class="alert alert-warning" role="alert" aria-live="assertive">
+    <div class="alert alert-warning" role="alert" aria-live="assertive" tabindex="-1">
         <span class="alert-icon"><?= $_iconWarning ?></span>
         <span class="alert-body"><?= esc((string) $flashWarning) ?></span>
         <button type="button" class="alert-close" aria-label="Dismiss"><?= $_iconClose ?></button>
@@ -42,7 +45,7 @@ $_iconClose   = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" str
 <?php endif ?>
 
 <?php if (! empty($flashError)): ?>
-    <div class="alert alert-error" role="alert" aria-live="assertive">
+    <div class="alert alert-error" role="alert" aria-live="assertive" tabindex="-1">
         <span class="alert-icon"><?= $_iconError ?></span>
         <span class="alert-body"><?= esc((string) $flashError) ?></span>
         <button type="button" class="alert-close" aria-label="Dismiss"><?= $_iconClose ?></button>
@@ -50,7 +53,7 @@ $_iconClose   = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" str
 <?php endif ?>
 
 <?php if ($flashErrors !== []): ?>
-    <div class="alert alert-error" role="alert" aria-live="assertive">
+    <div class="alert alert-error" role="alert" aria-live="assertive" tabindex="-1" data-validation-summary="<?= $validationSummary ?>">
         <span class="alert-icon"><?= $_iconError ?></span>
         <span class="alert-body">
             <ul class="alert-list">

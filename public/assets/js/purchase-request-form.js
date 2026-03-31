@@ -10,6 +10,10 @@
     const csvTrigger = root.querySelector('[data-pr-csv-trigger]');
     const csvFileInput = root.querySelector('[data-pr-csv-file]');
     const configNode = root.querySelector('[data-pr-form-config]');
+    const feedbackNode = root.querySelector('[data-pr-feedback]');
+    const rowCountNode = root.querySelector('[data-pr-row-count]');
+    const requestDateInput = root.querySelector('#request_date');
+    const neededDateInput = root.querySelector('#needed_date');
 
     if (!itemsBody || !rowTemplate) {
         return;
@@ -27,6 +31,66 @@
         }
     })();
 
+    const setFeedback = (message) => {
+        if (feedbackNode instanceof HTMLElement) {
+            feedbackNode.textContent = message || '';
+        }
+
+        if (message && window.InventoryV2Hci && typeof window.InventoryV2Hci.announce === 'function') {
+            window.InventoryV2Hci.announce(message);
+        }
+    };
+
+    const syncDateBounds = () => {
+        if (!(requestDateInput instanceof HTMLInputElement) || !(neededDateInput instanceof HTMLInputElement)) {
+            return;
+        }
+
+        neededDateInput.min = requestDateInput.value || '';
+
+        if (neededDateInput.value && requestDateInput.value && neededDateInput.value < requestDateInput.value) {
+            neededDateInput.value = requestDateInput.value;
+            setFeedback('Needed date was adjusted to match the request date.');
+        }
+    };
+
+    const refreshRowMetadata = () => {
+        const rows = Array.from(itemsBody.querySelectorAll('tr'));
+
+        rows.forEach((row, index) => {
+            const rowNumber = index + 1;
+            const productSelect = row.querySelector('[data-pr-product-select]');
+            const qtyInput = row.querySelector('input[name="requested_qty[]"]');
+            const costInput = row.querySelector('input[name="estimated_unit_cost[]"]');
+            const notesInput = row.querySelector('input[name="notes[]"]');
+            const removeButton = row.querySelector('[data-pr-remove-row]');
+
+            if (productSelect instanceof HTMLElement) {
+                productSelect.setAttribute('aria-label', 'Product for line ' + rowNumber);
+            }
+
+            if (qtyInput instanceof HTMLElement) {
+                qtyInput.setAttribute('aria-label', 'Requested quantity for line ' + rowNumber);
+            }
+
+            if (costInput instanceof HTMLElement) {
+                costInput.setAttribute('aria-label', 'Estimated unit cost for line ' + rowNumber);
+            }
+
+            if (notesInput instanceof HTMLElement) {
+                notesInput.setAttribute('aria-label', 'Notes for line ' + rowNumber);
+            }
+
+            if (removeButton instanceof HTMLElement) {
+                removeButton.setAttribute('aria-label', 'Remove line ' + rowNumber);
+            }
+        });
+
+        if (rowCountNode instanceof HTMLElement) {
+            rowCountNode.textContent = rows.length + ' line item' + (rows.length === 1 ? '' : 's') + ' ready';
+        }
+    };
+
     const syncRow = (row) => {
         const select = row.querySelector('[data-pr-product-select]');
         const unitInput = row.querySelector('[data-pr-unit-display]');
@@ -43,6 +107,12 @@
         const newRow = itemsBody.lastElementChild;
         if (newRow instanceof HTMLElement) {
             syncRow(newRow);
+            refreshRowMetadata();
+
+            const firstField = newRow.querySelector('[data-pr-product-select]');
+            if (firstField instanceof HTMLElement) {
+                firstField.focus();
+            }
         }
     };
 
@@ -51,6 +121,15 @@
         if (row) {
             row.remove();
         }
+
+        if (!itemsBody.querySelector('tr')) {
+            addRow();
+            setFeedback('At least one empty line item row is kept for faster entry.');
+            return;
+        }
+
+        refreshRowMetadata();
+        setFeedback('Line item removed.');
     };
 
     const findProductByName = (name) => {
@@ -74,6 +153,7 @@
         });
 
         let imported = 0;
+        let unmatched = 0;
 
         rows.slice(1).forEach((line) => {
             const cols = line.split(',');
@@ -117,10 +197,27 @@
                     : 'Unmatched product: ' + cols[0].trim();
             }
 
+            if (!product) {
+                unmatched += 1;
+            }
+
             imported += 1;
         });
 
-        window.alert(`Imported ${imported} row(s). Review any unmatched products before saving.`);
+        if (!itemsBody.querySelector('tr')) {
+            addRow();
+        }
+
+        refreshRowMetadata();
+
+        if (imported === 0) {
+            setFeedback('No rows were imported from the selected CSV file.');
+            return;
+        }
+
+        setFeedback(
+            'Imported ' + imported + ' row(s).' + (unmatched > 0 ? ' ' + unmatched + ' product name(s) need review.' : ' Review quantities and costs before saving.')
+        );
     };
 
     root.addEventListener('change', (event) => {
@@ -180,4 +277,11 @@
             syncRow(row);
         }
     });
+
+    if (requestDateInput instanceof HTMLInputElement) {
+        requestDateInput.addEventListener('change', syncDateBounds);
+    }
+
+    syncDateBounds();
+    refreshRowMetadata();
 })();

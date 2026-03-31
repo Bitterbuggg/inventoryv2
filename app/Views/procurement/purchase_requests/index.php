@@ -97,6 +97,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
             
             <div class="toolbar-controls">
                 <div class="search-wrap">
+                    <label for="instant-search-input" class="visually-hidden">Search purchase requests</label>
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     <input type="text" id="instant-search-input" class="search-input" placeholder="Search PR number or requestor" autocomplete="off">
                 </div>
@@ -116,6 +117,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
 
         <div class="table-scroll-container">
             <table class="modern-table" id="pr-table" style="table-layout: fixed; width: 100%; min-width: 1320px;">
+                <caption class="visually-hidden">Purchase request queue with workflow status, remarks, and available actions.</caption>
                 <colgroup>
                     <col style="width: 6%;">  
                     <col style="width: 16%;">   
@@ -173,7 +175,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                             <?php if ($canCreatePr): ?>
                                                 <form method="post" action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/submit') ?>" style="margin:0">
                                                     <?= csrf_field() ?>
-                                                    <button type="submit" class="btn-table btn-submit-blue">Submit</button>
+                                                    <button type="submit" class="btn-table btn-submit-blue" data-loading-label="Submitting...">Submit</button>
                                                 </form>
                                                 <a class="btn-table btn-edit-outline" href="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/edit') ?>">Edit</a>
                                                 <form method="post"
@@ -181,7 +183,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                                       data-confirm-title="Cancel Draft"
                                                       action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
                                                     <?= csrf_field() ?>
-                                                    <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
+                                                    <button type="submit" class="btn-table btn-cancel-red" data-loading-label="Cancelling...">Cancel</button>
                                                 </form>
                                             <?php else: ?>
                                                 <span class="action-badge-neutral">Read-only</span>
@@ -194,13 +196,13 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                                       data-confirm-title="Cancel Submitted Request"
                                                       action="<?= site_url('procurement/purchase-requests/' . $request['id'] . '/cancel') ?>" style="margin:0">
                                                     <?= csrf_field() ?>
-                                                    <button type="submit" class="btn-table btn-cancel-red">Cancel</button>
+                                                    <button type="submit" class="btn-table btn-cancel-red" data-loading-label="Cancelling...">Cancel</button>
                                                 </form>
                                             <?php endif ?>
 
                                         <?php elseif (($request['status'] ?? '') === 'approved' && $canCreatePo): ?>
                                             <button type="button" class="btn-create-po btn-table" 
-                                                    onclick="openPoModal(<?= $request['id'] ?>, '<?= esc((string)$request['pr_number']) ?>')">
+                                                    onclick="openPoModal(<?= $request['id'] ?>, '<?= esc((string)$request['pr_number']) ?>', this)">
                                                 Create PO
                                             </button>
 
@@ -235,11 +237,11 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                 <ul class="ci-pager" id="client-pager"></ul>
             </nav>
         </div>
-        <div class="modal-overlay" id="poModal">
+        <div class="modal-overlay" id="poModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="po-modal-title">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Convert to Purchase Order</h3>
-                    <button type="button" class="btn-close-modal" onclick="closePoModal()">&times;</button>
+                    <h3 id="po-modal-title">Convert to Purchase Order</h3>
+                    <button type="button" class="btn-close-modal" aria-label="Close supplier selection dialog" onclick="closePoModal()">&times;</button>
                 </div>
                 <form id="poForm" method="post">
                     <?= csrf_field() ?>
@@ -260,7 +262,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-outline" style="padding: 8px 16px; border-radius: 6px; font-weight: 800; font-size: 0.85rem;" onclick="closePoModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary" style="padding: 8px 16px; border-radius: 6px; font-weight: 800; font-size: 0.85rem; background: #1E40AF; color: #ffffff; border: none;">Confirm & Create</button>
+                        <button type="submit" class="btn btn-primary" data-loading-label="Creating PO..." style="padding: 8px 16px; border-radius: 6px; font-weight: 800; font-size: 0.85rem; background: #1E40AF; color: #ffffff; border: none;">Confirm & Create</button>
                     </div>
                 </form>
             </div>
@@ -273,26 +275,84 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
 <script>
     (function () {
         const statusLabels = <?= json_encode($requestStatusOptions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
+        let poModalTrigger = null;
+        const poModal = document.getElementById('poModal');
+        const poFocusableSelector = 'button:not([disabled]), select:not([disabled]), input:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 
-        window.openPoModal = function (prId, prNumber) {
-            const modal = document.getElementById('poModal');
+        window.openPoModal = function (prId, prNumber, trigger) {
             const form = document.getElementById('poForm');
             const text = document.getElementById('modal-pr-text');
             const supplierSelect = document.getElementById('supplier_id');
 
             form.action = "<?= site_url('procurement/purchase-orders/from-pr/') ?>" + prId;
             text.innerText = 'Convert request ' + prNumber + ' to a finalized Purchase Order.';
+            poModalTrigger = trigger instanceof HTMLElement ? trigger : document.activeElement;
 
             if (supplierSelect) {
                 supplierSelect.value = '';
             }
 
-            modal.classList.add('active');
+            poModal.classList.add('active');
+            poModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('has-modal-open');
+
+            if (supplierSelect) {
+                supplierSelect.focus();
+            }
         };
 
         window.closePoModal = function () {
-            document.getElementById('poModal').classList.remove('active');
+            poModal.classList.remove('active');
+            poModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('has-modal-open');
+
+            if (poModalTrigger instanceof HTMLElement) {
+                poModalTrigger.focus();
+            }
         };
+
+        document.addEventListener('click', function (event) {
+            if (event.target === poModal) {
+                closePoModal();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (!poModal.classList.contains('active')) {
+                return;
+            }
+
+            if (event.key === 'Escape') {
+                closePoModal();
+                return;
+            }
+
+            if (event.key !== 'Tab') {
+                return;
+            }
+
+            const focusable = Array.from(poModal.querySelectorAll(poFocusableSelector))
+                .filter((element) => element.offsetParent !== null);
+
+            if (focusable.length === 0) {
+                event.preventDefault();
+                return;
+            }
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+                return;
+            }
+
+            if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        });
 
         window.InventoryV2ProcurementQueue.init({
             tableSelector: '#pr-table',

@@ -17,7 +17,8 @@ $pageSubtitle = $pageSubtitle ?? null;
     <?= $this->renderSection('head') ?>
 </head>
 <body>
-    <main class="auth-screen">
+    <a class="skip-link" href="#authContent">Skip to account form</a>
+    <main class="auth-screen" id="authContent" tabindex="-1">
         <section class="auth-panel auth-panel-brand">
             <div class="auth-brand-wrap stack-md">
                 <p class="auth-kicker">InventoryV2</p>
@@ -45,122 +46,7 @@ $pageSubtitle = $pageSubtitle ?? null;
         </section>
     </main>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const forms = document.querySelectorAll('form');
-
-            forms.forEach((form) => {
-                form.addEventListener('submit', function (event) {
-                    if (event.defaultPrevented) {
-                        return;
-                    }
-
-                    if (form.dataset.submitting === 'true') {
-                        event.preventDefault();
-                        return;
-                    }
-
-                    form.dataset.submitting = 'true';
-
-                    const submitControls = form.querySelectorAll('button[type="submit"], input[type="submit"]');
-                    submitControls.forEach((control) => {
-                        control.disabled = true;
-                    });
-
-                });
-            });
-
-            window.addEventListener('pageshow', function () {
-                const lockedForms = document.querySelectorAll('form[data-submitting="true"]');
-                lockedForms.forEach((form) => {
-                    delete form.dataset.submitting;
-                    const submitControls = form.querySelectorAll('button[type="submit"], input[type="submit"]');
-                    submitControls.forEach((control) => {
-                        control.disabled = false;
-                    });
-                });
-            });
-        });
-
-        (function () {
-            const defaultClickLockMs = 800;
-
-            document.addEventListener('click', function (event) {
-                const button = event.target.closest('button, input[type="button"], input[type="submit"], input[type="reset"]');
-                if (!button || button.dataset.allowMultiClick === 'true') {
-                    return;
-                }
-
-                const lockMs = Number(button.dataset.clickLockMs ?? defaultClickLockMs);
-                const now = Date.now();
-                const lastClickAt = Number(button.dataset.lastClickAt ?? 0);
-
-                if (now - lastClickAt < lockMs) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    return;
-                }
-
-                button.dataset.lastClickAt = String(now);
-            }, true);
-        })();
-
-        (function () {
-            document.querySelectorAll('.alert[data-auto-dismiss]').forEach(function (alert) {
-                const ms = parseInt(alert.dataset.autoDismiss, 10) || 5000;
-
-                const dismiss = function () {
-                    alert.classList.add('alert-dismissing');
-                    setTimeout(function () { alert.remove(); }, 350);
-                };
-
-                setTimeout(dismiss, ms);
-            });
-
-            document.addEventListener('click', function (event) {
-                const button = event.target.closest('.alert-close');
-                if (!button) {
-                    return;
-                }
-
-                const alert = button.closest('.alert');
-                if (!alert) {
-                    return;
-                }
-
-                alert.classList.add('alert-dismissing');
-                setTimeout(function () { alert.remove(); }, 350);
-            });
-        })();
-
-        (function () {
-            document.addEventListener('click', function (event) {
-                const button = event.target.closest('[data-pw-toggle]');
-                if (!button) {
-                    return;
-                }
-
-                const input = document.getElementById(button.dataset.pwToggle);
-                if (!input) {
-                    return;
-                }
-
-                const isHidden = input.type === 'password';
-                input.type = isHidden ? 'text' : 'password';
-                button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
-
-                const eyeIcon = button.querySelector('.icon-eye');
-                const eyeOff = button.querySelector('.icon-eye-off');
-                if (eyeIcon) {
-                    eyeIcon.style.display = isHidden ? 'none' : '';
-                }
-
-                if (eyeOff) {
-                    eyeOff.style.display = isHidden ? '' : 'none';
-                }
-            });
-        })();
-    </script>
+    <script src="<?= base_url('assets/js/hci.js') ?>"></script>
     <?= $this->renderSection('scripts') ?>
 </body>
 </html>
