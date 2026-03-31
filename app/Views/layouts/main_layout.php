@@ -67,7 +67,7 @@ $isActivePath = static function (string $target) use ($currentPath): bool {
     $cleanPath = str_replace('index.php/', '', $currentPath);
     if (
         $target === 'analytics/activity-logs'
-        && in_array($cleanPath, ['analytics/activity-logs', 'analytics/dashboard', 'analytics/events', 'analytics/metrics'], true)
+        && in_array($cleanPath, ['analytics/activity-logs', 'analytics/dashboard'], true)
     ) {
         return true;
     }
@@ -153,7 +153,9 @@ if ($canViewReports || $canViewAudit) {
     }
 
     if ($canViewAudit) {
-        $reportItems[] = ['path' => 'analytics/activity-logs', 'label' => 'Activity Logs'];
+        $reportItems[] = ['path' => 'analytics/activity-logs', 'label' => 'Analytics Dashboard'];
+        $reportItems[] = ['path' => 'analytics/events', 'label' => 'Event Logs'];
+        $reportItems[] = ['path' => 'analytics/metrics', 'label' => 'Metric Trends'];
         $reportItems[] = ['path' => 'analytics/system-architecture', 'label' => 'System Architecture'];
     }
 

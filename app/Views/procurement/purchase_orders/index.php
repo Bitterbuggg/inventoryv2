@@ -108,29 +108,29 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
         </div>
 
         <div class="table-scroll-container">
-            <table class="modern-table" id="po-table" style="table-layout: fixed; width: 100%; min-width: 1050px;">
+            <table class="modern-table modern-table--compact modern-table--purchase-orders" id="po-table">
                 <colgroup>
-                    <col style="width: 60px;">  
-                    <col style="width: 150px;"> 
-                    <col style="width: 80px;">  
-                    <col style="width: 25%;">   
-                    <col style="width: 120px;"> 
-                    <col style="width: 150px;"> 
-                    <col style="width: 120px;"> 
-                    <col style="width: 220px;"> 
+                    <col class="col-id" style="width: 58px;">
+                    <col class="col-po-number" style="width: 170px;">
+                    <col class="col-pr-id" style="width: 88px;">
+                    <col class="col-supplier" style="width: 27%;">
+                    <col class="col-order-date" style="width: 110px;">
+                    <col class="col-status" style="width: 138px;">
+                    <col class="col-total" style="width: 110px;">
+                    <col class="col-actions" style="width: 156px;">
                 </colgroup>
                 <thead>
                     <tr>
-                        <th class="sortable numeric" data-col="0">ID</th>
-                        <th class="sortable" data-col="1">PO Number</th>
-                        <th class="sortable numeric" data-col="2">PR ID</th>
-                        <th class="sortable" data-col="3">Supplier</th>
-                        <th class="sortable date" data-col="4">Order Date</th>
-                        <th class="sortable" data-col="5" id="status-header">
+                        <th class="sortable numeric col-id" data-col="0">ID</th>
+                        <th class="sortable col-po-number" data-col="1">PO Number</th>
+                        <th class="sortable numeric col-pr-id" data-col="2">PR ID</th>
+                        <th class="sortable col-supplier" data-col="3">Supplier</th>
+                        <th class="sortable date col-order-date" data-col="4">Order Date</th>
+                        <th class="sortable col-status" data-col="5" id="status-header">
                             Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>
                         </th>
-                        <th class="sortable numeric" data-col="6">Total</th>
-                        <th class="actions">Actions</th>
+                        <th class="sortable numeric col-total" data-col="6">Total</th>
+                        <th class="actions col-actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -144,33 +144,39 @@ $receivedOrders = count(array_filter($rows, static fn (array $row): bool => in_a
                     <?php else: ?>
                         <?php foreach ($purchaseOrders as $order): ?>
                             <tr class="po-row" style="display: none;" data-status="<?= esc(strtolower((string) ($order['status'] ?? ''))) ?>">
-                                <td style="font-weight: 700; color: #94a3b8;"><?= esc((string) $order['id']) ?></td>
-                                <td style="font-family: var(--font-mono); font-weight: 700; color: var(--v2-label);"><?= esc((string) $order['po_number']) ?></td>
-                                <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--v2-text-muted);">PR-<?= esc((string) $order['purchase_request_id']) ?></td>
-                                <td style="font-weight: 700; color: var(--v2-text-main); word-break: break-word;"><?= esc((string) ($order['supplier_name'] ?? '-')) ?></td>
-                                <td style="font-size: 0.8rem;"><?= esc((string) $order['order_date']) ?></td>
+                                <td class="mono-cell" data-label="ID" style="font-weight: 700; color: #94a3b8;"><?= esc((string) $order['id']) ?></td>
+                                <td class="primary-cell" data-label="PO Number">
+                                    <span class="primary-value"><?= esc((string) $order['po_number']) ?></span>
+                                    <span class="secondary-value">PR-<?= esc((string) $order['purchase_request_id']) ?></span>
+                                </td>
+                                <td class="mono-cell col-pr-id" data-label="PR ID" style="font-size: 0.8rem; color: var(--v2-text-muted);">PR-<?= esc((string) $order['purchase_request_id']) ?></td>
+                                <td class="supplier-cell" data-label="Supplier" style="font-weight: 700; color: var(--v2-text-main);">
+                                    <span class="primary-value"><?= esc((string) ($order['supplier_name'] ?? '-')) ?></span>
+                                    <span class="secondary-value">Order Date: <?= esc((string) $order['order_date']) ?></span>
+                                </td>
+                                <td class="date-cell col-order-date" data-label="Order Date" style="font-size: 0.8rem;"><?= esc((string) $order['order_date']) ?></td>
                                 
-                                <td>
+                                <td class="status-cell" data-label="Status">
                                     <span class="status-badge <?= esc((string) ($order['status_badge_class'] ?? 'status-draft')) ?>">
                                         <?= esc((string) ($order['status_label'] ?? 'Draft')) ?>
                                     </span>
                                 </td>
                                 
-                                <td style="font-family: var(--font-mono); font-weight: 700; color: var(--v2-title);">
+                                <td class="currency-cell" data-label="Total" style="font-family: var(--font-mono); font-weight: 700; color: var(--v2-title);">
                                     <?= esc(number_format((float) ($order['total_amount'] ?? 0), 2)) ?>
                                 </td>
                                 
-                                <td>
-                                    <div class="action-forms-container">
+                                <td class="actions-cell" data-label="Actions">
+                                    <div class="action-forms-container action-forms-container--stacked">
                                         <?php if (($order['status'] ?? '') === 'draft' && $canManagePo): ?>
-                                            <form method="post" action="<?= site_url('procurement/purchase-orders/' . $order['id'] . '/issue') ?>" style="margin: 0;">
+                                            <form method="post" action="<?= site_url('procurement/purchase-orders/' . $order['id'] . '/issue') ?>" class="action-form">
                                                 <?= csrf_field() ?>
                                                 <button type="submit" class="btn-table btn-action-primary">Issue</button>
                                             </form>
                                         <?php endif ?>
 
                                         <?php if (($order['status'] ?? '') === 'issued' && $canManagePoRequests && ! (bool) ($order['has_open_po_request'] ?? false)): ?>
-                                            <form method="post" action="<?= site_url('procurement/po-requests/from-po/' . $order['id']) ?>" style="margin: 0;">
+                                            <form method="post" action="<?= site_url('procurement/po-requests/from-po/' . $order['id']) ?>" class="action-form">
                                                 <?= csrf_field() ?>
                                                 <button type="submit" class="btn-table btn-action-indigo">PO Req &rarr;</button>
                                             </form>

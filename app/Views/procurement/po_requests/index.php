@@ -15,6 +15,14 @@ $canApprovePr = $user !== null && method_exists($user, 'can') && $user->can('pro
 $canManagePo = $user !== null && method_exists($user, 'can') && $user->can('procurement.po.create');
 $canManagePoRequests = $user !== null && method_exists($user, 'can') && $user->can('procurement.por.manage');
 $poRequestStatusOptions = $statusOptions ?? [];
+$rejectModalSourceId = (int) old('source_po_request_id');
+$rejectModalFormAction = $rejectModalSourceId > 0
+    ? site_url('procurement/po-requests/' . $rejectModalSourceId . '/reject')
+    : site_url('procurement/po-requests/0/reject');
+$rejectModalReference = $rejectModalSourceId > 0 ? '#' . (string) $rejectModalSourceId : '';
+$rejectModalErrors = session('errors');
+$rejectModalReasonError = is_array($rejectModalErrors) ? ($rejectModalErrors['reason'] ?? null) : null;
+$shouldReopenRejectModal = $rejectModalSourceId > 0 && $rejectModalReasonError !== null;
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -108,27 +116,27 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
         </div>
 
         <div class="table-scroll-container">
-            <table class="modern-table" id="po-req-table" style="table-layout: fixed; width: 100%; min-width: 1150px;">
+            <table class="modern-table modern-table--compact modern-table--po-requests" id="po-req-table">
                 <colgroup>
-                    <col style="width: 60px;">  
-                    <col style="width: 250px;"> 
-                    <col style="width: 100px;"> 
-                    <col style="width: 120px;"> 
-                    <col style="width: 150px;"> 
-                    <col style="width: 130px;"> 
-                    <col style="width: auto;">  
+                    <col class="col-id" style="width: 58px;">
+                    <col class="col-po-request-number" style="width: 35%;">
+                    <col class="col-po-id" style="width: 96px;">
+                    <col class="col-request-date" style="width: 112px;">
+                    <col class="col-status" style="width: 144px;">
+                    <col class="col-action-by" style="width: 120px;">
+                    <col class="col-actions" style="width: 144px;">
                 </colgroup>
                 <thead>
                     <tr>
-                        <th class="sortable numeric" data-col="0">ID</th>
-                        <th class="sortable" data-col="1">PO Request #</th>
-                        <th class="sortable numeric" data-col="2">PO ID</th>
-                        <th class="sortable date" data-col="3">Request Date</th>
-                        <th class="sortable" data-col="4" id="status-header" title="Click to cycle status filters!">
+                        <th class="sortable numeric col-id" data-col="0">ID</th>
+                        <th class="sortable col-po-request-number" data-col="1">PO Request #</th>
+                        <th class="sortable numeric col-po-id" data-col="2">PO ID</th>
+                        <th class="sortable date col-request-date" data-col="3">Request Date</th>
+                        <th class="sortable col-status" data-col="4" id="status-header" title="Click to cycle status filters!">
                             Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>
                         </th>
-                        <th class="sortable" data-col="5">Action By</th>
-                        <th class="actions">Actions</th>
+                        <th class="sortable col-action-by" data-col="5">Action By</th>
+                        <th class="actions col-actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -142,22 +150,23 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                     <?php else: ?>
                         <?php foreach ($poRequests as $poRequest): ?>
                             <tr class="po-req-row" style="display: none;" data-status="<?= esc(strtolower((string) ($poRequest['status'] ?? ''))) ?>">
-                                <td style="font-weight: 700; color: #94a3b8;"><?= esc((string) $poRequest['id']) ?></td>
-                                <td style="font-family: var(--font-mono); font-weight: 700; color: var(--v2-label);">
-                                    <?= esc((string) $poRequest['po_request_number']) ?>
+                                <td class="mono-cell" data-label="ID" style="font-weight: 700; color: #94a3b8;"><?= esc((string) $poRequest['id']) ?></td>
+                                <td class="primary-cell" data-label="PO Request #">
+                                    <span class="primary-value"><?= esc((string) $poRequest['po_request_number']) ?></span>
+                                    <span class="secondary-value">PO-<?= esc((string) $poRequest['purchase_order_id']) ?> • <?= esc((string) $poRequest['request_date']) ?></span>
                                     
                                     <?php $po = $poRequest['purchase_order'] ?? null; ?>
                                     <?php if (is_array($po)): ?>
-                                        <details style="margin-top: 6px; font-family: var(--font-sans); font-size: 0.75rem;">
-                                            <summary style="cursor: pointer; color: #1E40AF; font-weight: 800;">View PO Details</summary>
-                                            <div style="margin-top: 6px; line-height: 1.45; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; color: var(--v2-text-main);">
+                                        <details class="row-details">
+                                            <summary>View PO Details</summary>
+                                            <div class="row-details-body">
                                                 <div><strong>PO:</strong> <?= esc((string) ($po['po_number'] ?? '-')) ?></div>
                                                 <div><strong>Supplier:</strong> <?= esc((string) ($po['supplier_name'] ?? '-')) ?></div>
                                                 <div><strong>Total:</strong> ₱<?= number_format((float) ($po['total_amount'] ?? 0), 2) ?></div>
                                                 <?php $items = is_array($po['items'] ?? null) ? $po['items'] : []; ?>
                                                 <div style="margin-top: 4px;"><strong>Items (<?= esc((string) count($items)) ?>):</strong></div>
                                                 <?php if ($items !== []): ?>
-                                                    <ul style="margin: 6px 0 0 16px; padding: 0; color: var(--v2-text-muted);">
+                                                    <ul class="row-details-list">
                                                         <?php foreach (array_slice($items, 0, 4) as $item): ?>
                                                             <li>
                                                                 <?= esc((string) ($item['item_name'] ?? '')) ?>
@@ -167,17 +176,17 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                                         <?php endforeach ?>
                                                     </ul>
                                                     <?php if (count($items) > 4): ?>
-                                                        <div style="margin-top: 4px; font-style: italic; color: #94a3b8;">+<?= esc((string) (count($items) - 4)) ?> more items</div>
+                                                        <div class="row-details-more">+<?= esc((string) (count($items) - 4)) ?> more items</div>
                                                     <?php endif ?>
                                                 <?php endif ?>
                                             </div>
                                         </details>
                                     <?php endif ?>
                                 </td>
-                                <td style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--v2-text-muted);">PO-<?= esc((string) $poRequest['purchase_order_id']) ?></td>
-                                <td style="font-size: 0.85rem;"><?= esc((string) $poRequest['request_date']) ?></td>
+                                <td class="mono-cell col-po-id" data-label="PO ID" style="font-size: 0.85rem; color: var(--v2-text-muted);">PO-<?= esc((string) $poRequest['purchase_order_id']) ?></td>
+                                <td class="date-cell col-request-date" data-label="Request Date" style="font-size: 0.85rem;"><?= esc((string) $poRequest['request_date']) ?></td>
                                 
-                                <td>
+                                <td class="status-cell" data-label="Status">
                                     <?php if ((bool) ($poRequest['uses_special_status_badge'] ?? false)): ?>
                                         <span class="status-badge-special status-badge-special--indigo" title="<?= esc((string) ($poRequest['status_label'] ?? 'Converted to Receiving')) ?>"><?= esc((string) ($poRequest['status_label'] ?? 'Converted to Receiving')) ?></span>
                                     <?php else: ?>
@@ -188,24 +197,24 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                     <?php endif; ?>
                                 </td>
                                 
-                                <td style="font-size: 0.85rem; color: var(--v2-text-muted); font-weight: 500;">
+                                <td class="actor-cell col-action-by" data-label="Action By" style="font-size: 0.85rem; color: var(--v2-text-muted); font-weight: 500;">
                                     <?= esc((string) ($poRequest['action_by_label'] ?? '-')) ?>
                                 </td>
                                 
-                                <td>
+                                <td class="actions-cell" data-label="Actions">
                                     <?php if (($poRequest['status'] ?? '') === 'pending' && $canManagePoRequests): ?>
-                                        <div class="action-forms-container">
-                                            <form method="post" action="<?= site_url('procurement/po-requests/' . $poRequest['id'] . '/approve') ?>" style="margin: 0;">
+                                        <div class="action-forms-container action-forms-container--stacked">
+                                            <form method="post" action="<?= site_url('procurement/po-requests/' . $poRequest['id'] . '/approve') ?>" class="action-form">
                                                 <?= csrf_field() ?>
                                                 <button type="submit" class="btn-table btn-approve">Approve</button>
                                             </form>
-                                            <form method="post" action="<?= site_url('procurement/po-requests/' . $poRequest['id'] . '/reject') ?>" style="margin: 0;">
-                                                <?= csrf_field() ?>
-                                                <div class="approval-input-group">
-                                                    <input type="text" name="reason" class="reject-input" placeholder="Reason" required>
-                                                    <button type="submit" class="btn-table btn-reject">Reject</button>
-                                                </div>
-                                            </form>
+                                            <button
+                                                type="button"
+                                                class="btn-table btn-action-danger js-open-po-reject-modal"
+                                                data-action="<?= esc(site_url('procurement/po-requests/' . $poRequest['id'] . '/reject')) ?>"
+                                                data-reference="#<?= esc((string) $poRequest['id']) ?>"
+                                                data-source-id="<?= esc((string) $poRequest['id']) ?>"
+                                            >Reject</button>
                                         </div>
                                     <?php else: ?>
                                         <span class="muted" style="font-size: 0.85rem; font-weight: 600; padding: 4px 10px;">&mdash;</span>
@@ -228,6 +237,32 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
         </div>
     </div>
 </div>
+
+<div class="modal-overlay" id="poRejectModal" aria-hidden="true">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Reject PO Request</h3>
+            <button type="button" class="btn-close-modal" id="closePoRejectModal" aria-label="Close">&times;</button>
+        </div>
+        <form method="post" id="po-request-reject-form" action="<?= esc($rejectModalFormAction) ?>">
+            <?= csrf_field() ?>
+            <input type="hidden" name="source_po_request_id" id="po-reject-source-id" value="<?= esc($rejectModalSourceId > 0 ? (string) $rejectModalSourceId : '') ?>">
+            <div class="modal-body">
+                <p style="margin: 0 0 12px 0; color: var(--v2-text-muted); font-size: 0.85rem;">
+                    Provide a short reason for rejecting <strong id="po-reject-reference"><?= esc($rejectModalReference !== '' ? $rejectModalReference : 'this request') ?></strong>.
+                </p>
+                <label for="po-reject-reason">Reason</label>
+                <textarea id="po-reject-reason" name="reason" rows="4" required minlength="3" maxlength="2000"><?= esc((string) old('reason')) ?></textarea>
+                <p class="modal-field-hint">Minimum 3 characters. This will be saved in the request history.</p>
+                <p class="modal-error" id="po-reject-error" <?= $rejectModalReasonError === null ? 'hidden' : '' ?>><?= esc((string) $rejectModalReasonError) ?></p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" id="cancelPoRejectModal">Cancel</button>
+                <button type="submit" class="btn btn-danger">Reject Request</button>
+            </div>
+        </form>
+    </div>
+</div>
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
@@ -235,6 +270,10 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
 <script>
     (function () {
         const statusLabels = <?= json_encode($poRequestStatusOptions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
+        const rejectModalState = <?= json_encode([
+            'shouldReopen' => $shouldReopenRejectModal,
+            'reference'    => $rejectModalReference,
+        ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 
         window.InventoryV2ProcurementQueue.init({
             tableSelector: '#po-req-table',
@@ -292,6 +331,86 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                 document.getElementById('kpi-rejected').innerText = rejectedCount;
             }
         });
+
+        const rejectModal = document.getElementById('poRejectModal');
+        const rejectForm = document.getElementById('po-request-reject-form');
+        const rejectReasonInput = document.getElementById('po-reject-reason');
+        const rejectSourceInput = document.getElementById('po-reject-source-id');
+        const rejectReference = document.getElementById('po-reject-reference');
+        const rejectError = document.getElementById('po-reject-error');
+        const rejectTriggers = document.querySelectorAll('.js-open-po-reject-modal');
+
+        function openRejectModal(action, reference, sourceId, preserveReason) {
+            if (!rejectModal || !rejectForm || !rejectReasonInput || !rejectSourceInput || !rejectReference) {
+                return;
+            }
+
+            rejectForm.action = action;
+            rejectSourceInput.value = sourceId || '';
+            rejectReference.textContent = reference || 'this request';
+
+            if (!preserveReason) {
+                rejectReasonInput.value = '';
+            }
+
+            if (rejectError) {
+                rejectError.hidden = true;
+            }
+
+            rejectModal.classList.add('active');
+            rejectModal.setAttribute('aria-hidden', 'false');
+            window.setTimeout(function () {
+                rejectReasonInput.focus();
+            }, 0);
+        }
+
+        function closeRejectModal() {
+            if (!rejectModal) {
+                return;
+            }
+
+            rejectModal.classList.remove('active');
+            rejectModal.setAttribute('aria-hidden', 'true');
+        }
+
+        rejectTriggers.forEach(function (button) {
+            button.addEventListener('click', function () {
+                const action = button.getAttribute('data-action') || '';
+                const reference = button.getAttribute('data-reference') || 'this request';
+                const sourceId = button.getAttribute('data-source-id') || '';
+
+                openRejectModal(action, reference, sourceId, false);
+            });
+        });
+
+        ['closePoRejectModal', 'cancelPoRejectModal'].forEach(function (id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('click', closeRejectModal);
+            }
+        });
+
+        if (rejectModal) {
+            rejectModal.addEventListener('click', function (event) {
+                if (event.target === rejectModal) {
+                    closeRejectModal();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && rejectModal && rejectModal.classList.contains('active')) {
+                closeRejectModal();
+            }
+        });
+
+        if (rejectModalState.shouldReopen) {
+            openRejectModal(rejectForm.action, rejectModalState.reference, rejectSourceInput.value, true);
+
+            if (rejectError) {
+                rejectError.hidden = false;
+            }
+        }
     })();
 </script>
 <?= $this->endSection() ?>

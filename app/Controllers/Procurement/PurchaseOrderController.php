@@ -41,6 +41,49 @@ class PurchaseOrderController extends BaseController
         ]);
     }
 
+    public function show(int $id): string|RedirectResponse
+    {
+        $purchaseOrder = RepositoryServices::purchaseOrderService()->findWithItems($id);
+
+        if ($purchaseOrder === null) {
+            return redirect()->to('/procurement/purchase-orders')->with('error', 'Purchase order not found.');
+        }
+
+        $purchaseRequestId = (int) ($purchaseOrder['purchase_request_id'] ?? 0);
+        $purchaseRequest = $purchaseRequestId > 0
+            ? RepositoryServices::purchaseRequestRepository()->find($purchaseRequestId)
+            : null;
+
+        $poRequest = RepositoryServices::poRequestRepository()->findByPurchaseOrder($id);
+        $receiving = null;
+
+        if ($poRequest !== null) {
+            $poRequestId = (int) ($poRequest['id'] ?? 0);
+            if ($poRequestId > 0) {
+                $receiving = RepositoryServices::receivingRepository()->findByPoRequest($poRequestId);
+            }
+        }
+
+        RepositoryServices::analyticsService()->trackCurrentUser(
+            'procurement.po_details_viewed',
+            'procurement',
+            'purchase_order',
+            $id,
+            [
+                'purchase_request_id' => $purchaseRequestId,
+                'po_request_id'       => (int) ($poRequest['id'] ?? 0),
+                'receiving_id'        => (int) ($receiving['id'] ?? 0),
+            ],
+        );
+
+        return view('procurement/purchase_orders/show', [
+            'purchaseOrder'   => $purchaseOrder,
+            'purchaseRequest' => $purchaseRequest,
+            'poRequest'       => $poRequest,
+            'receiving'       => $receiving,
+        ]);
+    }
+
     public function createFromPr(int $prId): RedirectResponse
     {
         $user = auth()->user();

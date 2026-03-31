@@ -46,6 +46,7 @@ $routes->group('procurement', ['filter' => 'auth'], static function (RouteCollec
     $routes->post('approvals/(:num)/reject', 'Procurement\PurchaseApprovalController::reject/$1', ['filter' => 'ability:procurement.pr.approve']);
 
     $routes->get('purchase-orders', 'Procurement\PurchaseOrderController::index', ['filter' => 'ability:procurement.po.create,procurement.por.manage']);
+    $routes->get('purchase-orders/(:num)', 'Procurement\PurchaseOrderController::show/$1', ['filter' => 'ability:procurement.po.create,procurement.por.manage']);
     $routes->post('purchase-orders/from-pr/(:num)', 'Procurement\PurchaseOrderController::createFromPr/$1', ['filter' => 'ability:procurement.po.create']);
     $routes->post('purchase-orders/(:num)/issue', 'Procurement\PurchaseOrderController::issue/$1', ['filter' => 'ability:procurement.po.create']);
 

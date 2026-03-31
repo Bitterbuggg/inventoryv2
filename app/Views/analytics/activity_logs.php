@@ -2,12 +2,26 @@
 
 declare(strict_types=1);
 
-$title = 'Activity Logs - InventoryV2';
-$pageTitle = 'Activity Logs';
-$pageSubtitle = 'Unified analytics dashboard for overview, event logs, and metrics.';
+$legacySource = trim((string) ($legacy_source ?? ''));
+$defaultTab = match ($legacySource) {
+    'events' => 'events',
+    'metrics' => 'metrics',
+    default => 'overview',
+};
+$pageTitle = match ($defaultTab) {
+    'events' => 'Event Logs',
+    'metrics' => 'Metric Trends',
+    default => 'Analytics Dashboard',
+};
+$title = $pageTitle . ' - InventoryV2';
+$pageSubtitle = match ($defaultTab) {
+    'events' => 'Filtered operational event audit trail.',
+    'metrics' => 'Daily metric trends and persisted analytics snapshots.',
+    default => 'Unified analytics dashboard for overview, event logs, and metrics.',
+};
 $crumbs = [
     ['label' => 'Analytics'],
-    ['label' => 'Activity Logs'],
+    ['label' => $pageTitle],
 ];
 
 $overview = $summary ?? [];
@@ -26,6 +40,10 @@ $inventoryEvents = count(array_filter($eventRows, static fn (array $row): bool =
 $trendRows = $trends ?? [];
 $metricRows = $metrics ?? [];
 $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['total'] ?? 0), $trendRows));
+
+$overviewRoute = site_url('analytics/activity-logs');
+$eventsRoute = site_url('analytics/events');
+$metricsRoute = site_url('analytics/metrics');
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
@@ -194,10 +212,10 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
 <div class="export-menu" id="export-menu">
     <button class="btn btn-outline" type="button" onclick="document.getElementById('export-menu').classList.toggle('open')" style="font-weight: 800; font-size: 0.85rem;">Export Dataset &#9662;</button>
     <div class="export-menu-items">
-        <a href="<?= site_url('analytics/activity-logs') . '?' . $overviewExportQuery ?>">Export Overview Stats</a>
-        <a href="<?= site_url('analytics/activity-logs') . '?' . $eventsExportQuery ?>">Export Event Logs</a>
-        <a href="<?= site_url('analytics/activity-logs') . '?' . $metricsTrendsExportQuery ?>">Export Metric Trends</a>
-        <a href="<?= site_url('analytics/activity-logs') . '?' . $metricsDailyExportQuery ?>">Export Daily Snapshots</a>
+        <a href="<?= $overviewRoute . '?' . $overviewExportQuery ?>">Export Overview Stats</a>
+        <a href="<?= $eventsRoute . '?' . $eventsExportQuery ?>">Export Event Logs</a>
+        <a href="<?= $metricsRoute . '?' . $metricsTrendsExportQuery ?>">Export Metric Trends</a>
+        <a href="<?= $metricsRoute . '?' . $metricsDailyExportQuery ?>">Export Daily Snapshots</a>
     </div>
 </div>
 <?= $this->endSection() ?>
@@ -206,12 +224,12 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
 <div class="viewport-wrapper">
     
     <nav class="section-tabs" role="tablist">
-        <button class="section-tab active" data-tab="overview">Overview</button>
-        <button class="section-tab" data-tab="events">Event Audit Trail</button>
-        <button class="section-tab" data-tab="metrics">Metric Trends</button>
+        <button type="button" class="section-tab<?= $defaultTab === 'overview' ? ' active' : '' ?>" data-tab="overview">Overview</button>
+        <button type="button" class="section-tab<?= $defaultTab === 'events' ? ' active' : '' ?>" data-tab="events">Event Audit Trail</button>
+        <button type="button" class="section-tab<?= $defaultTab === 'metrics' ? ' active' : '' ?>" data-tab="metrics">Metric Trends</button>
     </nav>
 
-    <div class="tab-panel active" data-tab="overview">
+    <div class="tab-panel<?= $defaultTab === 'overview' ? ' active' : '' ?>" data-tab="overview">
         <div class="kpi-grid">
             <article class="kpi-card kpi-accent-slate">
                 <div class="kpi-icon-box icon-slate"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
@@ -246,7 +264,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
         <div class="table-card">
             <div class="table-toolbar">
                 <h3>Time Window Control</h3>
-                <form method="get" action="<?= site_url('analytics/activity-logs') ?>#overview" style="display: flex; gap: 8px; align-items: center;">
+                <form method="get" action="<?= $overviewRoute ?>#overview" style="display: flex; gap: 8px; align-items: center;">
                     <span style="font-size: 0.75rem; font-weight: 800; color: var(--v2-text-muted);">PERIOD (DAYS):</span>
                     <input type="number" name="overview_days" value="<?= esc((string) ($overview_days ?? 7)) ?>" class="input-v2" style="width: 70px; text-align: center;" min="1" max="30">
                     <button type="submit" class="btn btn-primary" style="height: 32px; font-weight: 800; font-size: 0.75rem; border: none; background: var(--v2-label); color: white; border-radius: 6px;">Apply</button>
@@ -314,7 +332,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
         </div>
     </div>
 
-    <div class="tab-panel" data-tab="events">
+    <div class="tab-panel<?= $defaultTab === 'events' ? ' active' : '' ?>" data-tab="events">
         <div class="kpi-grid">
             <article class="kpi-card kpi-accent-slate">
                 <div class="kpi-icon-box icon-slate"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="3.01" y2="6"></line></svg></div>
@@ -351,7 +369,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
                 <h3>Filter Audit Logs</h3>
             </div>
             
-            <form method="get" action="<?= site_url('analytics/activity-logs') ?>#events" style="padding: 16px 20px; border-bottom: 1px solid var(--v2-border);">
+            <form method="get" action="<?= $eventsRoute ?>#events" style="padding: 16px 20px; border-bottom: 1px solid var(--v2-border);">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px;">
                     <div class="field"><label>Event Name</label><input name="event_name" value="<?= esc((string) ($event_filters['event_name'] ?? '')) ?>" class="input-v2" placeholder="e.g. pr_submitted"></div>
                     <div class="field"><label>Module</label><input name="event_module" value="<?= esc((string) ($event_filters['module'] ?? '')) ?>" class="input-v2" placeholder="e.g. auth"></div>
@@ -363,7 +381,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
                 
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button type="submit" class="btn btn-primary" style="padding: 6px 20px; font-weight: 800; background: var(--v2-label); border: none; border-radius: 6px; color: white;">Apply Filters</button>
-                    <a href="<?= site_url('analytics/activity-logs') ?>#events" class="btn btn-outline" style="padding: 6px 20px; font-weight: 800; border-radius: 6px; text-decoration: none;">Reset</a>
+                    <a href="<?= $eventsRoute ?>#events" class="btn btn-outline" style="padding: 6px 20px; font-weight: 800; border-radius: 6px; text-decoration: none;">Reset</a>
                 </div>
             </form>
             
@@ -422,7 +440,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
         </div>
     </div>
 
-    <div class="tab-panel" data-tab="metrics">
+    <div class="tab-panel<?= $defaultTab === 'metrics' ? ' active' : '' ?>" data-tab="metrics">
         <div class="kpi-grid">
             <article class="kpi-card kpi-accent-slate">
                 <div class="kpi-icon-box icon-slate"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
@@ -459,7 +477,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
                 <h3>Filter Metrics</h3>
             </div>
             
-            <form method="get" action="<?= site_url('analytics/activity-logs') ?>#metrics" style="padding: 16px 20px; border-bottom: 1px solid var(--v2-border);">
+            <form method="get" action="<?= $metricsRoute ?>#metrics" style="padding: 16px 20px; border-bottom: 1px solid var(--v2-border);">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
                     <div class="field"><label>Date From</label><input type="date" name="metric_date_from" value="<?= esc((string) ($metric_date_from ?? '')) ?>" class="input-v2"></div>
                     <div class="field"><label>Date To</label><input type="date" name="metric_date_to" value="<?= esc((string) ($metric_date_to ?? '')) ?>" class="input-v2"></div>
@@ -468,7 +486,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
                 
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button type="submit" class="btn btn-primary" style="padding: 6px 20px; font-weight: 800; background: var(--v2-label); border: none; border-radius: 6px; color: white;">Apply Filters</button>
-                    <a href="<?= site_url('analytics/activity-logs') ?>#metrics" class="btn btn-outline" style="padding: 6px 20px; font-weight: 800; border-radius: 6px; text-decoration: none;">Reset</a>
+                    <a href="<?= $metricsRoute ?>#metrics" class="btn btn-outline" style="padding: 6px 20px; font-weight: 800; border-radius: 6px; text-decoration: none;">Reset</a>
                 </div>
             </form>
         </div>
@@ -530,6 +548,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const defaultTab = <?= json_encode($defaultTab, JSON_THROW_ON_ERROR) ?>;
     
     // ==========================================
     // MULTI-TABLE MANAGER (ISOLATED SCOPES)
@@ -648,6 +667,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const hash = window.location.hash.replace('#', '');
     if (['overview', 'events', 'metrics'].includes(hash)) {
         activateTab(hash);
+    } else {
+        activateTab(defaultTab);
     }
 
     // ==========================================

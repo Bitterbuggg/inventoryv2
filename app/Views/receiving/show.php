@@ -74,15 +74,18 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
         </div>
 
         <?php if (($receiving['status'] ?? '') === 'draft'): ?>
-            <div class="status-callout status-callout-warning" id="validation-callout">
-                <strong>Draft state:</strong> You must <b>Run Draft Validation</b> first before the Post button is unlocked.
+            <div class="status-callout status-callout-warning">
+                <strong>Draft state:</strong> Run validation before posting. Posting will repeat the same backend checks and stop if any line is invalid.
             </div>
             <div class="toolbar">
-                <button type="button" class="btn btn-outline" id="btn-run-validation" title="Check line consistency and stock constraints">Run Draft Validation</button>
-                
+                <form class="inline-form" method="post" action="<?= site_url('receiving/' . $receiving['id'] . '/validate') ?>">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn btn-outline" title="Run backend validation checks for this draft">Run Draft Validation</button>
+                </form>
+
                 <form class="inline-form" method="post" action="<?= site_url('receiving/' . $receiving['id'] . '/post') ?>" data-confirm="Post this receiving now? This will finalize stock updates." data-confirm-title="Post Receiving">
                     <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-primary" id="btn-post-receiving" disabled title="Validation required before posting">Post Receiving</button>
+                    <button type="submit" class="btn btn-primary" title="Finalize stock movement and post to inventory">Post Receiving</button>
                 </form>
 
                 <form class="inline-form" method="post" action="<?= site_url('receiving/' . $receiving['id'] . '/void') ?>" data-confirm="Void this draft receiving? This action cannot be undone." data-confirm-title="Void Draft Receiving">
@@ -91,98 +94,17 @@ $totalRejected = array_sum(array_map(static fn (array $row): float => (float) ($
                     <button type="submit" class="btn btn-danger" title="Discard this draft and restore the PO Request to approved state">Void Draft</button>
                 </form>
             </div>
-            <p class="muted" style="margin: 8px 0 0 0; font-size: 0.85rem;">Validation ensures items, quantities, and dates are solid before final posting.</p>
-
-            <script>
-                document.getElementById('btn-run-validation').addEventListener('click', function() {
-                    const btn = this;
-                    const postBtn = document.getElementById('btn-post-receiving');
-                    const callout = document.getElementById('validation-callout');
-                    
-                    btn.innerText = 'Validating';
-                    btn.disabled = true;
-
-                    // Small delay to simulate thorough checking
-                    setTimeout(() => {
-                        btn.innerText = 'Validation Successful ✓';
-                        btn.style.borderColor = 'var(--color-success)';
-                        btn.style.color = 'var(--color-success)';
-                        
-                        postBtn.disabled = false;
-                        postBtn.title = 'Finalize stock movement and post to inventory';
-                        
-                        callout.className = 'status-callout status-callout-success';
-                        callout.innerHTML = '<strong>Validation Passed:</strong> Data consistency verified. You can now safely post this receiving record.';
-                    }, 800);
-                });
-            </script>
+            <p class="muted" style="margin: 8px 0 0 0; font-size: 0.85rem;">Validation and posting now use the same server-side checks for quantities, dates, and PO receiving scope.</p>
         <?php endif ?>
 
         <?php if (($receiving['status'] ?? '') === 'posted'): ?>
             <div class="status-callout status-callout-info">
-                <strong>Posted:</strong> This receiving is finalized. You can trigger a Return to Supplier for items if needed.
+                <strong>Posted:</strong> This receiving is finalized. Review the resulting stock balances and movement history from the linked modules below.
             </div>
             <div class="toolbar">
-                <button type="button" class="btn btn-outline" onclick="openReturnModal()" title="Record a return of items to the supplier">Return to Supplier</button>
+                <a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>" title="Review updated stock balances">Review Stock Balances</a>
+                <a class="btn btn-outline" href="<?= site_url('reports/stock-movements') ?>" title="Review inbound movement history">View Stock Movements</a>
             </div>
-
-            <!-- RETURN MODAL -->
-            <div class="modal-overlay" id="returnModal">
-                <div class="modal-content" style="max-width: 600px;">
-                    <div class="modal-header">
-                        <h3>Return to Supplier</h3>
-                        <button type="button" class="btn-close-modal" onclick="closeReturnModal()">&times;</button>
-                    </div>
-                    <form action="<?= site_url('receiving/' . $receiving['id'] . '/return') ?>" method="post">
-                        <?= csrf_field() ?>
-                        <div class="modal-body">
-                            <p class="muted" style="margin-bottom:16px; font-size:0.85rem;">Select items and quantities to return from this receiving record.</p>
-                            
-                            <div class="table-wrap" style="max-height: 300px; overflow-y: auto;">
-                                <table class="table" style="min-width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th>Item</th>
-                                            <th>Accepted</th>
-                                            <th>Return Qty</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($itemRows as $idx => $item): ?>
-                                            <?php if ((float)$item['accepted_qty'] > 0): ?>
-                                                <tr>
-                                                    <td style="font-size:0.85rem;">
-                                                        <?= esc((string)$item['item_name']) ?>
-                                                        <input type="hidden" name="items[<?= $idx ?>][id]" value="<?= $item['id'] ?>">
-                                                    </td>
-                                                    <td style="font-size:0.85rem;"><?= esc(app_format_quantity($item['accepted_qty'] ?? 0)) ?></td>
-                                                    <td>
-                                                        <input type="number" name="items[<?= $idx ?>][qty]" step="1" min="0" max="<?= esc(app_format_quantity($item['accepted_qty'] ?? 0, '0', 3, false)) ?>" class="table-control" value="0">
-                                                    </td>
-                                                </tr>
-                                            <?php endif; ?>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="field" style="margin-top:16px;">
-                                <label for="return_reason">Reason for Return: <span style="color:var(--color-danger);">*</span></label>
-                                <input type="text" id="return_reason" name="reason" placeholder="e.g., Defective, Wrong item, Near expiry" required>
-                            </div>
-                        </div>
-                        <div class="modal-actions">
-                            <button type="button" class="btn btn-outline" onclick="closeReturnModal()">Cancel</button>
-                            <button type="submit" class="btn btn-danger">Confirm Return</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <script>
-                function openReturnModal() { document.getElementById('returnModal').classList.add('active'); }
-                function closeReturnModal() { document.getElementById('returnModal').classList.remove('active'); }
-            </script>
         <?php endif ?>
     </section>
 
