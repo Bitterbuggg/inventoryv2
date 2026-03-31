@@ -149,7 +149,7 @@ $rejectedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                                     <?php $po = $poRequest['purchase_order'] ?? null; ?>
                                     <?php if (is_array($po)): ?>
                                         <details style="margin-top: 6px; font-family: var(--font-sans); font-size: 0.75rem;">
-                                            <summary style="cursor: pointer; color: #7C3AED; font-weight: 800;">View PO Details</summary>
+                                            <summary style="cursor: pointer; color: #1E40AF; font-weight: 800;">View PO Details</summary>
                                             <div style="margin-top: 6px; line-height: 1.45; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; color: var(--v2-text-main);">
                                                 <div><strong>PO:</strong> <?= esc((string) ($po['po_number'] ?? '-')) ?></div>
                                                 <div><strong>Supplier:</strong> <?= esc((string) ($po['supplier_name'] ?? '-')) ?></div>

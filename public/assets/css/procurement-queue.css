@@ -52,8 +52,8 @@
 
 .procurement-queue .icon-draft--violet,
 .procurement-queue .icon-level {
-    background: #f5f3ff;
-    color: #8b5cf6;
+    background: #dbeafe;
+    color: #1e3a8a;
 }
 
 .procurement-queue .icon-draft--amber,
@@ -80,8 +80,8 @@
 }
 
 .procurement-queue .icon-pr {
-    background: #eff6ff;
-    color: #2563eb;
+    background: #dbeafe;
+    color: #1e3a8a;
 }
 
 .procurement-queue .kpi-details {
@@ -459,16 +459,16 @@
 
 .procurement-queue .btn-create-po,
 .procurement-queue .btn-action-indigo {
-    background: #7c3aed;
+    background: #1e40af;
     color: #ffffff;
-    border: 1px solid #7c3aed;
+    border: 1px solid #1e40af;
 }
 
 .procurement-queue .btn-create-po:hover,
 .procurement-queue .btn-action-indigo:hover {
-    background: #6d28d9;
-    border-color: #6d28d9;
-    box-shadow: 0 2px 4px rgba(109, 40, 217, 0.2);
+    background: #1e3a8a;
+    border-color: #1e3a8a;
+    box-shadow: 0 2px 4px rgba(30, 64, 175, 0.22);
 }
 
 .procurement-queue .po-nav-btn {
@@ -616,9 +616,9 @@
 }
 
 .procurement-queue .status-badge-special--indigo {
-    background: #e0e7ff;
-    color: #4338ca;
-    border: 1px solid #c7d2fe;
+    background: #dbeafe;
+    color: #1e3a8a;
+    border: 1px solid #93c5fd;
 }
 
 .procurement-queue .status-issued {

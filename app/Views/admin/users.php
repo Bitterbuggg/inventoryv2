@@ -84,8 +84,8 @@ foreach ($usersList as $userRow) {
     }
 
     .icon-total { background: #f1f5f9; color: #475569; }
-    .icon-admin { background: #f5f3ff; color: #8b5cf6; }
-    .icon-it { background: #eff6ff; color: #2563eb; }
+    .icon-admin { background: #dbeafe; color: #1e3a8a; }
+    .icon-it { background: #dbeafe; color: #1e3a8a; }
     .icon-employee { background: #ecfccb; color: #d97706; }
 
     .kpi-details {
@@ -301,8 +301,8 @@ foreach ($usersList as $userRow) {
         white-space: nowrap;
     }
 
-    .role-admin { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
-    .role-it { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .role-admin { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
+    .role-it { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
     .role-employee { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
 
     .mod-badges {

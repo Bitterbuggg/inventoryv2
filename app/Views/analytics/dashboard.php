@@ -65,7 +65,7 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
     .icon-total { background: #f1f5f9; color: #475569; }        
     .icon-today { background: #ecfccb; color: #16a34a; } 
     .icon-period { background: #e0f2fe; color: #0284c7; }   
-    .icon-modules { background: #f5f3ff; color: #8b5cf6; }   
+    .icon-modules { background: #dbeafe; color: #1e3a8a; }   
 
     .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }
     
@@ -190,7 +190,7 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
             <article class="kpi-card kpi-accent-violet">
                 <div class="kpi-icon-box icon-modules"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg></div>
                 <div class="kpi-details">
-                    <span class="kpi-value" style="color: #8b5cf6;"><?= esc((string) count($module_totals ?? [])) ?></span>
+                    <span class="kpi-value" style="color: #1E40AF;"><?= esc((string) count($module_totals ?? [])) ?></span>
                     <span class="kpi-label">Active Modules</span>
                 </div>
             </article>

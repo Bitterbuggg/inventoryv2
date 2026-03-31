@@ -64,7 +64,7 @@ $crumbs = [
     .icon-trends { background: #f1f5f9; color: #475569; }        
     .icon-events { background: #e0f2fe; color: #0284c7; } 
     .icon-persisted { background: #ecfccb; color: #16a34a; }   
-    .icon-module { background: #f5f3ff; color: #8b5cf6; }   
+    .icon-module { background: #dbeafe; color: #1e3a8a; }   
 
     .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }
     

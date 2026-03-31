@@ -47,7 +47,7 @@ $primaryLabel = $isLoggedIn ? 'Return to Home' : 'Go to Login';
             padding: 6px 12px;
             border-radius: 999px;
             background: #dbeafe;
-            color: #1d4ed8;
+            color: #1e3a8a;
             font-size: 0.85rem;
             font-weight: 800;
             letter-spacing: 0.08em;

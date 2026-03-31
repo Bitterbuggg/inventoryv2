@@ -260,7 +260,7 @@ $approvedRequests = count(array_filter($rows, static fn (array $row): bool => ($
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-outline" style="padding: 8px 16px; border-radius: 6px; font-weight: 800; font-size: 0.85rem;" onclick="closePoModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary" style="padding: 8px 16px; border-radius: 6px; font-weight: 800; font-size: 0.85rem; background: #7C3AED; color: #ffffff; border: none;">Confirm & Create</button>
+                        <button type="submit" class="btn btn-primary" style="padding: 8px 16px; border-radius: 6px; font-weight: 800; font-size: 0.85rem; background: #1E40AF; color: #ffffff; border: none;">Confirm & Create</button>
                     </div>
                 </form>
             </div>

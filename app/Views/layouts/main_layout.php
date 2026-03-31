@@ -176,6 +176,7 @@ if ($canViewReports || $canViewAudit) {
     <link rel="stylesheet" href="<?= base_url('assets/css/tokens.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/components.css') ?>">
     <?= $this->renderSection('head') ?>
+    <link rel="stylesheet" href="<?= base_url('assets/css/table-density.css') ?>">
 </head>
 <body>
     <div class="app-shell" id="appShell">

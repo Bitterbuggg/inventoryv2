@@ -63,8 +63,8 @@ $moduleStatus = [
     }
     
     .icon-auth { background: #f1f5f9; color: #475569; }        
-    .icon-procurement { background: #f5f3ff; color: #8b5cf6; } 
-    .icon-receiving { background: #eff6ff; color: #2563eb; }   
+    .icon-procurement { background: #dbeafe; color: #1e3a8a; } 
+    .icon-receiving { background: #dbeafe; color: #1e3a8a; }   
     .icon-inventory { background: #ecfccb; color: #d97706; }   
 
     .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }

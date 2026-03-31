@@ -62,7 +62,7 @@ $crumbs = [
     }
 
     .icon-found { background: #f1f5f9; color: #475569; }        
-    .icon-auth { background: #f5f3ff; color: #8b5cf6; } 
+    .icon-auth { background: #dbeafe; color: #1e3a8a; } 
     .icon-proc { background: #e0f2fe; color: #0284c7; }   
     .icon-inv { background: #ecfccb; color: #16a34a; }   
 

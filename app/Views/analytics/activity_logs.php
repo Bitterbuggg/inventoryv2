@@ -88,7 +88,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
     .icon-slate { background: #f1f5f9; color: #475569; }        
     .icon-teal { background: #f0fdfa; color: #0d9488; } 
     .icon-blue { background: #e0f2fe; color: #0284c7; }   
-    .icon-purple { background: #f5f3ff; color: #8b5cf6; }   
+    .icon-purple { background: #dbeafe; color: #1e3a8a; }   
     .icon-amber { background: #fffbeb; color: #d97706; }
 
     .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }

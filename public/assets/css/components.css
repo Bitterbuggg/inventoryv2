@@ -375,11 +375,11 @@
 }
 
 .kpi-card.kpi-accent-violet {
-    --kpi-accent: #8b5cf6;
+    --kpi-accent: #1e40af;
 }
 
 .kpi-card.kpi-accent-royal {
-    --kpi-accent: #2563eb;
+    --kpi-accent: #1e40af;
 }
 
 .kpi-card.kpi-accent-sky {
@@ -794,9 +794,9 @@ table.modern-table td.table-empty {
 }
 
 .status-converting {
-    background: #f5f3ff; /* Purple 50 */
-    color: #5b21b6;      /* Purple 800 */
-    border-color: #ddd6fe; /* Purple 200 */
+    background: #dbeafe;
+    color: #1e3a8a;
+    border-color: #93c5fd;
 }
 
 .status-converted-to-po {
@@ -806,9 +806,9 @@ table.modern-table td.table-empty {
 }
 
 .status-converted-to-receiving {
-    background: #eef2ff; /* Indigo 50 */
-    color: #3730a3;      /* Indigo 800 */
-    border-color: #c7d2fe; /* Indigo 200 */
+    background: #dbeafe;
+    color: #1e3a8a;
+    border-color: #93c5fd;
 }
 
 .status-rejected,
