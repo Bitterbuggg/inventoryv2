@@ -52,6 +52,8 @@ foreach ($usersList as $userRow) {
         display: flex;
         flex-direction: column;
         gap: 16px;
+        width: 100%;
+        min-width: 0;
         height: calc(100vh - 120px); 
         min-height: 640px;
         overflow: hidden;
@@ -60,7 +62,7 @@ foreach ($usersList as $userRow) {
     /* --- PASTEL KPI CARDS --- */
     .kpi-grid { 
         display: grid; 
-        grid-template-columns: repeat(4, 1fr); 
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 16px; 
         flex-shrink: 0; 
     }
@@ -74,6 +76,7 @@ foreach ($usersList as $userRow) {
         align-items: center; 
         gap: 14px; 
         box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+        min-width: 0;
     }
 
     .kpi-icon-box {
@@ -103,6 +106,8 @@ foreach ($usersList as $userRow) {
         flex-direction: column;
         flex: 1; 
         min-height: 0; 
+        min-width: 0;
+        width: 100%;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
         overflow: hidden;
     }
@@ -118,6 +123,8 @@ foreach ($usersList as $userRow) {
         flex-shrink: 0;
         flex-wrap: wrap; 
     }
+
+    .table-toolbar > div:first-child { min-width: 220px; }
     
     .table-toolbar h3 { margin: 0; font-size: 1.05rem; color: var(--v2-title); font-weight: 800; }
     
@@ -126,11 +133,13 @@ foreach ($usersList as $userRow) {
         display: flex; 
         gap: 12px; 
         align-items: center; 
-        flex: 1; 
+        flex: 1 1 380px;
         justify-content: flex-end; 
+        flex-wrap: wrap;
+        min-width: 0;
     }
     
-    .search-wrap { position: relative; width: 280px; flex-shrink: 0; }
+    .search-wrap { position: relative; flex: 1 1 260px; max-width: 420px; min-width: min(100%, 220px); }
     .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 14px; height: 14px; }
     .search-input { 
         width: 100%; 
@@ -150,11 +159,12 @@ foreach ($usersList as $userRow) {
     /* Scrollable Table Area */
     .table-scroll-container {
         flex: 1;
-        overflow-y: auto; 
+        min-width: 0;
+        overflow: auto;
         background: #ffffff;
     }
 
-    .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
     .modern-table th { 
         position: sticky; top: 0; z-index: 10;
         background: #ffffff !important; 
@@ -174,7 +184,9 @@ foreach ($usersList as $userRow) {
     /* --- SPECIFIC USER TABLE STYLES --- */
     .user-profile { display: flex; align-items: center; gap: 12px; min-width: 0; }
     .user-avatar { width: 36px; height: 36px; border-radius: 8px; background: #f0f9ff; color: var(--v2-label); border: 1px solid var(--v2-border); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1rem; flex-shrink: 0; }
-    .user-meta { display: flex; flex-direction: column; min-width: 0; }
+    .user-meta { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+    .user-name,
+    .user-email { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .user-name { font-weight: 800; font-size: 0.95rem; color: var(--v2-title); }
     .user-email { font-size: 0.75rem; font-weight: 600; color: var(--v2-text-muted); }
 
@@ -194,14 +206,14 @@ foreach ($usersList as $userRow) {
     .role-it { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
     .role-employee { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
 
-    .mod-badges { display: flex; flex-wrap: wrap; gap: 6px; }
-    .mod-badge { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; text-transform: uppercase; }
+    .mod-badges { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+    .mod-badge { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; text-transform: uppercase; white-space: normal; overflow-wrap: anywhere; }
     .mod-badge-full { background: #ecfccb; color: #16a34a; border: 1px solid #d9f99d; font-weight: 800; }
     .no-modules { font-size: 0.8rem; color: #94a3b8; font-style: italic; font-weight: 600; }
 
     /* Action Buttons */
-    .action-row { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
-    .btn-table-action { padding: 4px 10px; font-size: 0.7rem; font-weight: 800; border-radius: 4px; text-transform: uppercase; transition: all 0.2s ease; cursor: pointer; display: inline-flex; text-decoration: none; align-items: center; justify-content: center; background: transparent; border: none; }
+    .action-row { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+    .btn-table-action { padding: 4px 10px; font-size: 0.7rem; font-weight: 800; border-radius: 4px; text-transform: uppercase; transition: all 0.2s ease; cursor: pointer; display: inline-flex; text-decoration: none; align-items: center; justify-content: center; background: transparent; border: none; white-space: nowrap; }
     
     .btn-edit { color: var(--v2-label); }
     .btn-edit:hover { background: rgba(178, 224, 235, 0.3); color: var(--v2-title); }
@@ -215,8 +227,10 @@ foreach ($usersList as $userRow) {
     }
     @media (max-width: 768px) {
         .kpi-grid { grid-template-columns: 1fr; }
-        .toolbar-controls { width: 100%; justify-content: stretch; }
-        .search-wrap { width: 100%; flex: 1; }
+        .table-toolbar > div:first-child { width: 100%; min-width: 0; }
+        .toolbar-controls { width: 100%; flex: 1 1 100%; justify-content: stretch; }
+        .search-wrap { max-width: none; min-width: 0; }
+        .toolbar-controls .btn { flex: 1 1 auto; }
     }
 </style>
 <?= $this->endSection() ?>
@@ -281,12 +295,12 @@ foreach ($usersList as $userRow) {
         </div>
 
         <div class="table-scroll-container">
-            <table class="modern-table" id="users-table" style="table-layout: fixed; width: 100%; min-width: 900px;">
+            <table class="modern-table" id="users-table" style="table-layout: fixed; width: 100%; min-width: 760px;">
                 <colgroup>
-                    <col style="width: 250px;">
-                    <col style="width: 140px;">
+                    <col style="width: 28%;">
+                    <col style="width: 15%;">
                     <col style="width: auto;">
-                    <col style="width: 130px;">
+                    <col style="width: 140px;">
                 </colgroup>
                 <thead>
                     <tr>
