@@ -54,6 +54,7 @@ This section provides a high-level overview of the project's directory and file 
 │   └── assets/                     # CSS, JS, images
 │       ├── css/
 │       │   ├── procurement-queue.css           # Procurement workflow UI styling
+│       │   ├── table-density.css               # Shared dense-table widths and column sizing
 │       │   ├── purchase-request-form.css       # Purchase request form styling
 │       │   └── [other stylesheets]
 │       └── js/
@@ -139,7 +140,8 @@ Key Components:
 
 Frontend Assets:
 - **CSS**: 
-  - `procurement-queue.css` - Responsive procurement queue styling with KPI cards, status badges, modal dialogs
+  - `procurement-queue.css` - Responsive procurement queue styling with KPI cards, status badges, modal dialogs, and action-column alignment for purchase orders and PO requests
+  - `table-density.css` - Shared dense-table baseline loaded by the main layout, including procurement queue column widths
   - `purchase-request-form.css` - Form layout for multi-row request items with product lookup
 - **JavaScript**:
   - `procurement-queue.js` - Table pagination, sorting, filtering, KPI updates, modal management (257 lines, vanilla JS)
@@ -383,9 +385,9 @@ Repository URL: Local repository (`c:\xampp\htdocs\inventoryv2`)
 
 Primary Contact/Team: InventoryV2 Engineering Team
 
-Date of Last Update: 2026-03-30
+Date of Last Update: 2026-03-31
 
-### 10.1. Recent Changes (2026-03-30)
+### 10.1. Recent Changes (2026-03-31)
 
 Major Service Layer Expansions:
 - Added `UserManagementService` to centralize admin-side account, role, and permission changes
@@ -402,7 +404,8 @@ Frontend & UI Enhancements:
 - New admin catalog management views for products and suppliers
 - Comprehensive procurement queue UI with sorting, filtering, pagination, KPI cards, and modal dialogs
 - Dynamic purchase request form with product selection, unit sync, and CSV import
-- New CSS modules: `procurement-queue.css` (636 lines), `purchase-request-form.css` (99 lines)
+- Procurement queue tables now coordinate `table-density.css` and `procurement-queue.css` so purchase-order and PO-request action columns keep stable widths and avoid button wrapping
+- CSS assets now include `procurement-queue.css` for workflow-specific queue styling, `purchase-request-form.css` for request entry, and `table-density.css` for shared dense-table column sizing
 - New JavaScript modules: `procurement-queue.js` (257 lines), `purchase-request-form.js` (151 lines)
 
 Routing, Security, and Data Shape Changes:

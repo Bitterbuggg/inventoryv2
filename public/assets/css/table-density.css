@@ -241,6 +241,10 @@ table.modern-table th.sortable::after {
     min-width: 1020px !important;
 }
 
+#po-req-table col:nth-child(7) {
+    width: 144px !important;
+}
+
 #po-table {
     min-width: 980px !important;
 }
@@ -275,6 +279,10 @@ table.modern-table th.sortable::after {
 
 #po-table col:nth-child(7) {
     width: 128px !important;
+}
+
+#po-table col:nth-child(8) {
+    width: 156px !important;
 }
 
 #po-table td:nth-child(4),
