@@ -43,9 +43,8 @@ table.table td.is-actions {
 }
 
 .modern-table {
-    width: max-content !important;
+    width: 100% !important;
     max-width: none !important;
-    table-layout: auto !important;
 }
 
 .modern-table th,
