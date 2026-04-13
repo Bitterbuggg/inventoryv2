@@ -52,8 +52,8 @@
 
 .procurement-queue .icon-draft--violet,
 .procurement-queue .icon-level {
-    background: #dbeafe;
-    color: #1e3a8a;
+    background: #ede9fe;
+    color: #6d28d9;
 }
 
 .procurement-queue .icon-draft--amber,
@@ -81,7 +81,7 @@
 
 .procurement-queue .icon-pr {
     background: #dbeafe;
-    color: #1e3a8a;
+    color: #1d4ed8;
 }
 
 .procurement-queue .kpi-details {
@@ -643,16 +643,16 @@
 
 .procurement-queue .btn-create-po,
 .procurement-queue .btn-action-indigo {
-    background: #1e40af;
+    background: #4338ca;
     color: #ffffff;
-    border: 1px solid #1e40af;
+    border: 1px solid #4338ca;
 }
 
 .procurement-queue .btn-create-po:hover,
 .procurement-queue .btn-action-indigo:hover {
-    background: #1e3a8a;
-    border-color: #1e3a8a;
-    box-shadow: 0 2px 4px rgba(30, 64, 175, 0.22);
+    background: #3730a3;
+    border-color: #3730a3;
+    box-shadow: 0 2px 4px rgba(67, 56, 202, 0.22);
 }
 
 .procurement-queue .btn-action-danger {
@@ -811,9 +811,9 @@
 }
 
 .procurement-queue .status-badge-special--indigo {
-    background: #dbeafe;
-    color: #1e3a8a;
-    border: 1px solid #93c5fd;
+    background: #e0e7ff;
+    color: #3730a3;
+    border: 1px solid #a5b4fc;
 }
 
 .procurement-queue .status-issued {
