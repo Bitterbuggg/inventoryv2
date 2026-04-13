@@ -72,6 +72,13 @@ $isActivePath = static function (string $target) use ($currentPath): bool {
         return true;
     }
 
+    if (
+        $target === 'reports/stock-balance'
+        && in_array($cleanPath, ['reports/stock-balance', 'reports/stock-movements', 'reports/issuances', 'reports/low-stock', 'reports/fast-moving'], true)
+    ) {
+        return true;
+    }
+
     return $cleanPath === $target || str_starts_with($cleanPath, $target . '/');
 };
 
@@ -145,10 +152,6 @@ if ($canViewReports || $canViewAudit) {
     if ($canViewReports) {
         $reportItems = array_merge($reportItems, [
             ['path' => 'reports/stock-balance', 'label' => 'Stock Balance'],
-            ['path' => 'reports/stock-movements', 'label' => 'Stock Movements'],
-            ['path' => 'reports/issuances', 'label' => 'Issuances'],
-            ['path' => 'reports/low-stock', 'label' => 'Low Stock'],
-            ['path' => 'reports/fast-moving', 'label' => 'Fast Moving'],
         ]);
     }
 
