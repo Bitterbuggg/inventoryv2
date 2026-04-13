@@ -152,11 +152,15 @@ if ($canViewReports || $canViewAudit) {
     if ($canViewReports) {
         $reportItems = array_merge($reportItems, [
             ['path' => 'reports/stock-balance', 'label' => 'Stock Balance'],
+            ['path' => 'reports/stock-movements', 'label' => 'Stock Movements'],
+            ['path' => 'reports/issuances', 'label' => 'Issuance Report'],
+            ['path' => 'reports/low-stock', 'label' => 'Low Stock'],
+            ['path' => 'reports/fast-moving', 'label' => 'Fast Moving'],
         ]);
     }
 
     if ($canViewAudit) {
-        $reportItems[] = ['path' => 'analytics/activity-logs', 'label' => 'Analytics Dashboard'];
+        $reportItems[] = ['path' => 'analytics/activity-logs', 'label' => 'Activity Logs'];
         $reportItems[] = ['path' => 'analytics/system-architecture', 'label' => 'System Architecture'];
     }
 

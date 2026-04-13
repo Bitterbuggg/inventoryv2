@@ -11,13 +11,13 @@ $defaultTab = match ($legacySource) {
 $pageTitle = match ($defaultTab) {
     'events' => 'Event Logs',
     'metrics' => 'Metric Trends',
-    default => 'Analytics Dashboard',
+    default => 'Activity Logs',
 };
 $title = $pageTitle . ' - InventoryV2';
 $pageSubtitle = match ($defaultTab) {
     'events' => 'Filtered operational event audit trail.',
     'metrics' => 'Daily metric trends and persisted analytics snapshots.',
-    default => 'Unified analytics dashboard for overview, event logs, and metrics.',
+    default => 'Unified activity logs for overview, event logs, and metrics.',
 };
 $crumbs = [
     ['label' => 'Analytics'],

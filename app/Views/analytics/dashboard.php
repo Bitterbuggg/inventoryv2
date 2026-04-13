@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-$title = 'Analytics Dashboard - InventoryV2';
-$pageTitle = 'Analytics Dashboard';
+$title = 'Activity Logs - InventoryV2';
+$pageTitle = 'Activity Logs';
 $pageSubtitle = 'Operational telemetry summary for the selected period.';
 $crumbs = [
     ['label' => 'Analytics'],
-    ['label' => 'Dashboard'],
+    ['label' => 'Activity Logs'],
 ];
 $periodDays = (int) ($summary['period_days'] ?? 7);
 ?>
@@ -154,7 +154,7 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
 <div class="viewport-wrapper">
     
     <div style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
-        <h2 style="margin:0; font-size: 1.6rem; color: var(--v2-title); font-weight: 900; letter-spacing: -0.02em;">Analytics Dashboard</h2>
+        <h2 style="margin:0; font-size: 1.6rem; color: var(--v2-title); font-weight: 900; letter-spacing: -0.02em;">Activity Logs</h2>
         
         <form method="get" action="<?= site_url('analytics/dashboard') ?>" style="display: flex; gap: 8px; align-items: center; margin: 0;">
             <span style="font-size: 0.75rem; font-weight: 800; color: var(--v2-text-muted); text-transform: uppercase;">Window:</span>
