@@ -414,11 +414,11 @@
 }
 
 .kpi-card.kpi-accent-violet {
-    --kpi-accent: #1e40af;
+    --kpi-accent: #7c3aed;
 }
 
 .kpi-card.kpi-accent-royal {
-    --kpi-accent: #1e40af;
+    --kpi-accent: #2563eb;
 }
 
 .kpi-card.kpi-accent-sky {
@@ -874,9 +874,9 @@ table.modern-table td.table-empty {
 }
 
 .status-converted-to-receiving {
-    background: #dbeafe;
-    color: #1e3a8a;
-    border-color: #93c5fd;
+    background: #ccfbf1;
+    color: #0f766e;
+    border-color: #99f6e4;
 }
 
 .status-rejected,
@@ -889,7 +889,6 @@ table.modern-table td.table-empty {
     border-color: var(--color-danger-border);
 }
 
-.status-converted-to-po,
 .status-pending,
 .status-partial,
 .status-open {

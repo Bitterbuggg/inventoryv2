@@ -83,10 +83,10 @@ foreach ($usersList as $userRow) {
         flex-shrink: 0;
     }
 
-    .icon-total { background: #f1f5f9; color: #475569; }        
-    .icon-admin { background: #e0f2fe; color: #0284c7; } 
-    .icon-it { background: #f5f3ff; color: #8b5cf6; }   
-    .icon-employee { background: #fffbeb; color: #d97706; }   
+    .icon-total { background: #f1f5f9; color: #475569; }
+    .icon-admin { background: #dbeafe; color: #1e3a8a; }
+    .icon-it { background: #dbeafe; color: #1e3a8a; }
+    .icon-employee { background: #ecfccb; color: #d97706; }
 
     .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }
     
@@ -178,10 +178,21 @@ foreach ($usersList as $userRow) {
     .user-name { font-weight: 800; font-size: 0.95rem; color: var(--v2-title); }
     .user-email { font-size: 0.75rem; font-weight: 600; color: var(--v2-text-muted); }
 
-    .role-badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
-    .role-admin { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
-    .role-it { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
-    .role-employee { background: #fffbeb; color: #d97706; border: 1px solid #fef08a; }
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+    }
+
+    .role-admin { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
+    .role-it { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
+    .role-employee { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
 
     .mod-badges { display: flex; flex-wrap: wrap; gap: 6px; }
     .mod-badge { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; text-transform: uppercase; }

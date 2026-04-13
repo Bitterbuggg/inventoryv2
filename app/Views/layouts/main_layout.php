@@ -67,7 +67,14 @@ $isActivePath = static function (string $target) use ($currentPath): bool {
     $cleanPath = str_replace('index.php/', '', $currentPath);
     if (
         $target === 'analytics/activity-logs'
-        && in_array($cleanPath, ['analytics/activity-logs', 'analytics/dashboard'], true)
+        && in_array($cleanPath, ['analytics/activity-logs', 'analytics/dashboard', 'analytics/events', 'analytics/metrics'], true)
+    ) {
+        return true;
+    }
+
+    if (
+        $target === 'reports/stock-balance'
+        && in_array($cleanPath, ['reports/stock-balance', 'reports/stock-movements', 'reports/issuances', 'reports/low-stock', 'reports/fast-moving'], true)
     ) {
         return true;
     }
@@ -145,17 +152,11 @@ if ($canViewReports || $canViewAudit) {
     if ($canViewReports) {
         $reportItems = array_merge($reportItems, [
             ['path' => 'reports/stock-balance', 'label' => 'Stock Balance'],
-            ['path' => 'reports/stock-movements', 'label' => 'Stock Movements'],
-            ['path' => 'reports/issuances', 'label' => 'Issuances'],
-            ['path' => 'reports/low-stock', 'label' => 'Low Stock'],
-            ['path' => 'reports/fast-moving', 'label' => 'Fast Moving'],
         ]);
     }
 
     if ($canViewAudit) {
         $reportItems[] = ['path' => 'analytics/activity-logs', 'label' => 'Analytics Dashboard'];
-        $reportItems[] = ['path' => 'analytics/events', 'label' => 'Event Logs'];
-        $reportItems[] = ['path' => 'analytics/metrics', 'label' => 'Metric Trends'];
         $reportItems[] = ['path' => 'analytics/system-architecture', 'label' => 'System Architecture'];
     }
 
