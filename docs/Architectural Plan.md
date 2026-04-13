@@ -7,7 +7,7 @@
 - **Backend:** CodeIgniter 4 + Service & Repository Pattern
 - **Frontend:** Server-rendered CodeIgniter Views (HTML/CSS/JS)
 - **Database:** MySQL (InnoDB)
-- **Authentication:** Session-based login/signup with role-based access
+- **Authentication:** Session-based login with admin-managed user provisioning and role-based access
 - **Deployment:** XAMPP on-premise (LAN/Intranet access)
 
 **📋 Complete Database Schema:** [PHARMACY_DATABASE_SCHEMA.md](PHARMACY_DATABASE_SCHEMA.md) - foundational tables for procurement, receiving, inventory, and issuance with relationships and constraints
@@ -73,7 +73,7 @@ app/
 │
 ├── Controllers/
 │   ├── Admin/                     # Admin dashboard and management
-│   ├── Auth/                      # Login, signup, logout
+│   ├── Auth/                      # Login and logout
 │   ├── Procurement/               # PR, approvals, PO, PO request
 │   ├── Receiving/                 # Receiving conversion and intake
 │   └── Inventory/                 # Inventory quantity and issuance
@@ -125,8 +125,7 @@ app/
 ```text
 app/Views/
 ├── auth/
-│   ├── login.php
-│   └── signup.php
+│   └── login.php
 ├── admin/
 │   └── dashboard.php
 ├── procurement/
@@ -155,7 +154,7 @@ Each module has its own detailed architectural plan and implementation guide:
 **Status:** Implemented (Phase 1 complete)  
 **Timeline:** Completed in previous implementation cycle  
 **Core Features:**
-- Signup, login, logout, and secure session lifecycle
+- Login, logout, admin-managed user provisioning, and secure session lifecycle
 - Role assignment and role-protected route access
 - Admin bootstrap and dashboard skeleton
 - Validation and CSRF defaults enabled
@@ -280,7 +279,7 @@ Each module has its own detailed architectural plan and implementation guide:
 **Timeline:** Completed in previous implementation cycle  
 **Scope:** Core system
 - [x] Set up migrations and seeds for auth + baseline lookups
-- [x] Implement login/signup and session security controls
+- [x] Implement login, admin-managed user provisioning, and session security controls
 - [x] Configure role and permission middleware/filters
 - [x] Implement repository contracts and base service classes
 - [x] Create admin routes and dashboard skeleton

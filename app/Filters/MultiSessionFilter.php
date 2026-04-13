@@ -26,7 +26,7 @@ class MultiSessionFilter implements FilterInterface
     {
         // Skip validation for auth routes
         $currentPath = $request->getPath();
-        $publicRoutes = ['/login', '/signup', '/', '/logout', '/auth/'];
+        $publicRoutes = ['/login', '/', '/logout', '/auth/'];
 
         foreach ($publicRoutes as $route) {
             if (strpos($currentPath, $route) === 0) {

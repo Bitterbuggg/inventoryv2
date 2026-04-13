@@ -191,8 +191,8 @@ $moduleCards = [
     ],
     [
         'title' => 'Auth and RBAC',
-        'purpose' => 'Owns signup, login, logout, group assignment, and protected route entry.',
-        'controllers' => ['Auth\\LoginController', 'Auth\\SignupController', 'Auth\\LogoutController'],
+        'purpose' => 'Owns login, logout, admin-managed account creation, group assignment, and protected route entry.',
+        'controllers' => ['Auth\\LoginController', 'Auth\\LogoutController', 'Admin\\UserController'],
         'services' => ['AuthenticationService', 'AuthorizationService'],
         'repositories' => ['UserRepository'],
         'tables' => ['users', 'Shield auth tables'],
@@ -319,8 +319,8 @@ $moduleFlowcharts = [
         'A view or redirect response is returned to the user.',
     ],
     'Auth and RBAC' => [
-        'The user opens signup or login.',
-        'Credentials or registration input are validated.',
+        'The user opens login with an admin-provisioned account.',
+        'Credentials are validated.',
         'Shield authenticates the account and resolves the base group.',
         'Protected routes check role membership or ability permissions before module access is allowed.',
     ],

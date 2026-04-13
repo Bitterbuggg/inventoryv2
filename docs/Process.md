@@ -63,13 +63,13 @@ Dependency style:
 
 ## 4. Authentication and Access Control Flow
 
-### 4.1 Signup
+### 4.1 Admin-Managed User Provisioning
 
-1. `GET /signup` shows signup form.
-2. `POST /signup` validates username/email/password.
-3. `AuthenticationService::register()` checks uniqueness, creates user, assigns default `employee` group.
-4. User is auto-logged in and redirected.
-5. Analytics event `auth.signup_success` is recorded.
+1. Admin opens `/admin/users/create`.
+2. Submitted username/email/password, role, and permissions are validated.
+3. `UserManagementService::createUser()` calls `AuthenticationService::register()` to create the account.
+4. Role and module permissions are assigned by the admin workflow.
+5. Analytics event `admin.create_user` is recorded.
 
 ### 4.2 Login
 
@@ -435,8 +435,8 @@ approvals references purchase_request or issuance by (reference_type, reference_
 ### Authentication
 
 - `/login` -> `Auth\LoginController` -> `AuthenticationService` -> Shield user tables + analytics events
-- `/signup` -> `Auth\SignupController` -> `AuthenticationService` -> Shield user tables + analytics events
 - `/logout` -> `Auth\LogoutController` -> `AuthenticationService` -> session + analytics events
+- `/admin/users/create` -> `Admin\UserController` -> `UserManagementService` -> `AuthenticationService` -> Shield user tables + analytics events
 
 ### Procurement
 

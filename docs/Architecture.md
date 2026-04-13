@@ -10,7 +10,7 @@ This section provides a high-level overview of the project's directory and file 
 │   ├── Controllers/                # HTTP controllers (lean; delegates to services)
 │   │   ├── Admin/                  # Admin routes and dashboard controllers
 │   │   ├── Analytics/              # Activity logs, metrics aliases, architecture reference
-│   │   ├── Auth/                   # Login, signup, logout
+│   │   ├── Auth/                   # Login and logout
 │   │   ├── Inventory/              # Issuance, reporting, and stock visibility controllers
 │   │   ├── Procurement/            # Purchase request, approval, PO, and PO request controllers
 │   │   └── Receiving/              # Receiving conversion and inventory quantity controllers
@@ -27,7 +27,7 @@ This section provides a high-level overview of the project's directory and file 
 │   ├── Services/                   # Business logic layer
 │   │   ├── Admin/                  # User management and admin operations
 │   │   ├── Analytics/              # Event logging and analytics aggregation
-│   │   ├── Auth/                   # Authentication and user registration logic
+│   │   ├── Auth/                   # Authentication and account provisioning logic
 │   │   ├── Catalog/                # Product and supplier master data management
 │   │   ├── Inventory/              # Stock reporting and export services
 │   │   │   └── Reports/            # Read models for stock balance, movements, issuance, trends
@@ -38,7 +38,7 @@ This section provides a high-level overview of the project's directory and file 
 │   └── Views/                      # HTML/CSS views (server-rendered)
 │       ├── admin/                  # Dashboard, user management, product/supplier catalogs
 │       ├── analytics/              # Activity logs and system architecture reference
-│       ├── auth/                   # Login/signup pages
+│       ├── auth/                   # Login page
 │       ├── inventory/              # Stock reports, issuance, low stock alerts
 │       ├── procurement/            # Purchase requests, approval queues, purchase orders
 │       ├── receiving/              # Receiving conversion and stock intake views
@@ -157,10 +157,10 @@ Deployment: Apache via XAMPP (local development and staging)
 
 Name: Auth & RBAC Service
 
-Description: Handles signup, login, logout, session lifecycle, password hashing, role membership, granular ability checks, and tracked multi-session validation for `admin`, `employee`, and `it_staff`.
+Description: Handles login, logout, admin-managed account provisioning, session lifecycle, password hashing, role membership, granular ability checks, and tracked multi-session validation for `admin`, `employee`, and `it_staff`.
 
 Key Components:
-- `AuthenticationService`: Signup, login orchestration, and password handling
+- `AuthenticationService`: Login orchestration, account creation helper, and password handling
 - `AuthorizationService`: Permission-aware view helpers and authorization checks
 - `PermissionFilter`: Ability-based route gating for operational modules
 - `RoleFilter`: Admin-only route protection for dashboard and management areas

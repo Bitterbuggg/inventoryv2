@@ -8,8 +8,6 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::index');
 $routes->get('login', 'Auth\LoginController::index');
 $routes->post('login', 'Auth\LoginController::store');
-$routes->get('signup', 'Auth\SignupController::index');
-$routes->post('signup', 'Auth\SignupController::store');
 $routes->post('logout', 'Auth\LogoutController::destroy', ['filter' => 'auth']);
 
 $routes->group('admin', ['filter' => 'auth'], static function (RouteCollection $routes): void {
