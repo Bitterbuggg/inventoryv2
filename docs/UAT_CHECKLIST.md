@@ -4,7 +4,7 @@
 Validate end-to-end pharmacy workflow on the current baseline before deployment.
 
 ## Test Environment
-- URL: `http://localhost/inventoryv2/public/`
+- URL: `http://localhost/inventoryv2/`
 - DB: `inventoryv2`
 - Build: latest local branch
 - Date: `2026-02-20`

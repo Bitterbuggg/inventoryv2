@@ -1,10 +1,11 @@
 @echo off
 setlocal
 
-cd /d "C:\xampp\htdocs\inventoryv2"
+for %%I in ("%~dp0..\..") do set "PROJECT_ROOT=%%~fI"
+cd /d "%PROJECT_ROOT%"
 
-set "PHP_BIN=C:\xampp\php\php.exe"
-if not exist "%PHP_BIN%" set "PHP_BIN=php"
+set "PHP_BIN=php"
+if exist "%PROJECT_ROOT%\..\..\php\php.exe" set "PHP_BIN=%PROJECT_ROOT%\..\..\php\php.exe"
 set "LOG_FILE=writable\logs\analytics_prune_task.log"
 
 "%PHP_BIN%" spark analytics:prune >> "%LOG_FILE%" 2>&1

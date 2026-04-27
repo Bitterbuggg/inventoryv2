@@ -122,7 +122,7 @@ class ReportingExportPresenter
                 (string) $rank,
                 (string) ($row['item_name'] ?? ''),
                 (string) ($row['unit'] ?? ''),
-                app_format_quantity($row['total_qty_out'] ?? 0, '0', 3, false),
+                $this->csvQuantity($row['total_qty_out'] ?? 0),
             ];
             $rank++;
         }
@@ -152,5 +152,20 @@ class ReportingExportPresenter
             'issuance' => 'Issuance',
             'manual_adjustment' => 'Stock Disposal',
         ][$referenceType] ?? ucwords(str_replace('_', ' ', $referenceType));
+    }
+
+    private function csvQuantity(mixed $value): string
+    {
+        if ($value === null || ! is_numeric($value)) {
+            return app_format_quantity($value, '0', 3, false);
+        }
+
+        $number = (float) $value;
+
+        if (abs($number - round($number)) <= 0.00001) {
+            return number_format((float) round($number), 0, '.', '');
+        }
+
+        return number_format($number, 2, '.', '');
     }
 }
