@@ -52,8 +52,8 @@
 
 .procurement-queue .icon-draft--violet,
 .procurement-queue .icon-level {
-    background: #dbeafe;
-    color: #1e3a8a;
+    background: #ede9fe;
+    color: #6d28d9;
 }
 
 .procurement-queue .icon-draft--amber,
@@ -81,7 +81,7 @@
 
 .procurement-queue .icon-pr {
     background: #dbeafe;
-    color: #1e3a8a;
+    color: #1d4ed8;
 }
 
 .procurement-queue .kpi-details {
@@ -473,6 +473,67 @@
     min-width: 0;
 }
 
+.procurement-queue .modern-table--purchase-orders .actions-cell,
+.procurement-queue .modern-table--po-requests .actions-cell {
+    width: auto;
+}
+
+.procurement-queue .modern-table--purchase-orders .actions-cell {
+    min-width: 148px;
+}
+
+.procurement-queue .modern-table--po-requests .actions-cell {
+    min-width: 132px;
+}
+
+.procurement-queue .modern-table--purchase-orders .action-forms-container--stacked,
+.procurement-queue .modern-table--po-requests .action-forms-container--stacked {
+    display: inline-flex;
+    margin-left: auto;
+    align-items: flex-end;
+}
+
+.procurement-queue .modern-table--purchase-orders .action-forms-container--stacked {
+    min-width: 124px;
+}
+
+.procurement-queue .modern-table--po-requests .action-forms-container--stacked {
+    min-width: 96px;
+}
+
+.procurement-queue .modern-table--purchase-orders .action-form,
+.procurement-queue .modern-table--po-requests .action-form {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.procurement-queue .modern-table--purchase-orders .action-forms-container--stacked .btn-table,
+.procurement-queue .modern-table--purchase-orders .action-forms-container--stacked .btn-link-view,
+.procurement-queue .modern-table--purchase-orders .action-forms-container--stacked .action-badge-neutral,
+.procurement-queue .modern-table--purchase-orders .action-forms-container--stacked .action-badge-warning,
+.procurement-queue .modern-table--purchase-orders .action-forms-container--stacked .action-badge-success,
+.procurement-queue .modern-table--purchase-orders .action-forms-container--stacked .action-badge-waiting,
+.procurement-queue .modern-table--purchase-orders .action-forms-container--stacked .action-badge-done {
+    width: auto;
+    min-width: 124px;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.procurement-queue .modern-table--po-requests .action-forms-container--stacked .btn-table {
+    width: auto;
+    min-width: 96px;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.procurement-queue .modern-table--purchase-orders .action-forms-container--stacked .btn-link-view {
+    justify-content: flex-end;
+    padding-right: 0;
+}
+
 .procurement-queue .actions-cell .action-forms-container {
     justify-content: flex-end;
     align-items: stretch;
@@ -582,16 +643,16 @@
 
 .procurement-queue .btn-create-po,
 .procurement-queue .btn-action-indigo {
-    background: #1e40af;
+    background: #4338ca;
     color: #ffffff;
-    border: 1px solid #1e40af;
+    border: 1px solid #4338ca;
 }
 
 .procurement-queue .btn-create-po:hover,
 .procurement-queue .btn-action-indigo:hover {
-    background: #1e3a8a;
-    border-color: #1e3a8a;
-    box-shadow: 0 2px 4px rgba(30, 64, 175, 0.22);
+    background: #3730a3;
+    border-color: #3730a3;
+    box-shadow: 0 2px 4px rgba(67, 56, 202, 0.22);
 }
 
 .procurement-queue .btn-action-danger {
@@ -750,9 +811,9 @@
 }
 
 .procurement-queue .status-badge-special--indigo {
-    background: #dbeafe;
-    color: #1e3a8a;
-    border: 1px solid #93c5fd;
+    background: #e0e7ff;
+    color: #3730a3;
+    border: 1px solid #a5b4fc;
 }
 
 .procurement-queue .status-issued {

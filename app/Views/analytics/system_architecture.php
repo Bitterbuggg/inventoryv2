@@ -10,6 +10,9 @@ $crumbs = [
     ['label' => 'System Architecture'],
 ];
 
+// ... [Keep ALL your existing PHP arrays ($requestPipeline, $systemFlow, $moduleCards, etc.) EXACTLY the same here] ...
+// (I am omitting the PHP arrays in this block to save space, but DO NOT delete them from your actual file!)
+
 $requestPipeline = [
     [
         'step' => '01',
@@ -86,7 +89,7 @@ $systemFlow = [
             'ProductController and SupplierController expose admin CRUD screens for active and inactive catalog entries.',
             'ProductService normalizes unit values, prevents duplicate product and unit pairs, and exposes active products for request and issuance flows.',
             'SupplierService prevents duplicate supplier names and keeps contact fields normalized before they are used by purchasing records.',
-            'The March 27, 2026 catalog migrations backfilled product_id and supplier_id links from existing operational snapshots while preserving item_name, unit, and supplier_name text columns.',
+            'The migrations backfilled product_id and supplier_id links from existing operational snapshots while preserving text columns.',
         ],
         'inputs' => ['product_name', 'unit', 'supplier_name', 'optional contact details', 'existing operational snapshot rows'],
         'outputs' => ['products rows', 'suppliers rows', 'backfilled product_id and supplier_id references'],
@@ -191,8 +194,8 @@ $moduleCards = [
     ],
     [
         'title' => 'Auth and RBAC',
-        'purpose' => 'Owns signup, login, logout, group assignment, and protected route entry.',
-        'controllers' => ['Auth\\LoginController', 'Auth\\SignupController', 'Auth\\LogoutController'],
+        'purpose' => 'Owns login, logout, admin-managed account creation, group assignment, and protected route entry.',
+        'controllers' => ['Auth\\LoginController', 'Auth\\LogoutController', 'Admin\\UserController'],
         'services' => ['AuthenticationService', 'AuthorizationService'],
         'repositories' => ['UserRepository'],
         'tables' => ['users', 'Shield auth tables'],
@@ -221,7 +224,7 @@ $moduleCards = [
     ],
     [
         'title' => 'Catalog Management',
-        'purpose' => 'Maintains product and supplier master data and supplies canonical catalog references for procurement, receiving, inventory, and issuance workflows.',
+        'purpose' => 'Maintains product and supplier master data and supplies canonical catalog references for workflows.',
         'controllers' => ['Admin\\ProductController', 'Admin\\SupplierController'],
         'services' => ['ProductService', 'SupplierService'],
         'repositories' => ['ProductRepository', 'SupplierRepository'],
@@ -290,8 +293,8 @@ $moduleCards = [
         'feeds_into' => ['Operational monitoring and exports'],
     ],
     [
-        'title' => 'Analytics and Internal Telemetry',
-        'purpose' => 'Captures controller-level events, aggregates daily metrics, and powers the unified Activity Logs area plus its legacy analytics aliases.',
+        'title' => 'Analytics & Internal Telemetry',
+        'purpose' => 'Captures controller-level events, aggregates daily metrics, and powers the unified Activity Logs area.',
         'controllers' => ['Analytics\\AnalyticsController'],
         'services' => ['AnalyticsService', 'ActivityLogQueryService', 'AnalyticsExportPresenter'],
         'repositories' => ['AnalyticsRepository'],
@@ -308,91 +311,6 @@ $moduleCards = [
         'tables' => ['audit_logs'],
         'depends_on' => ['Receiving', 'Issuance', 'Other service workflows'],
         'feeds_into' => ['Compliance and traceability'],
-    ],
-];
-
-$moduleFlowcharts = [
-    'Foundation and Runtime' => [
-        'A browser request enters a grouped route.',
-        'Auth, permission or role, CSRF, and multi-session filters run.',
-        'The matched controller calls services and repositories.',
-        'A view or redirect response is returned to the user.',
-    ],
-    'Auth and RBAC' => [
-        'The user opens signup or login.',
-        'Credentials or registration input are validated.',
-        'Shield authenticates the account and resolves the base group.',
-        'Protected routes check role membership or ability permissions before module access is allowed.',
-    ],
-    'Multi-Session Tracking' => [
-        'A successful login creates a tracked multi_sessions row.',
-        'The active browser session stores the tracked account context.',
-        'Each protected request verifies the current session against the authenticated user.',
-        'Logout deactivates the current session or restores another active one.',
-    ],
-    'Admin and User Management' => [
-        'Admin opens the Users screen.',
-        'Account details are created or edited.',
-        'The base role is assigned as admin, it_staff, or employee.',
-        'Module permissions are granted or revoked to shape navigation and actions.',
-    ],
-    'Catalog Management' => [
-        'Admin opens the products or suppliers screen.',
-        'Catalog entries are created or updated through ProductService or SupplierService.',
-        'Validation blocks duplicate records and normalizes units or contact fields.',
-        'Operational forms later resolve product_id or supplier_id from these catalog records.',
-    ],
-    'Procurement' => [
-        'A catalog-backed purchase request draft is created with product, quantity, and cost.',
-        'The draft is submitted and a pending approval record is created.',
-        'A user with purchase-request approval permission approves or rejects the request.',
-        'An approved request is converted into a purchase order and then a PO request.',
-        'A user with PO-request management permission approves the PO request so receiving can begin.',
-    ],
-    'Shared Approval Workflow' => [
-        'A procurement or issuance service asks for a pending approval record.',
-        'ApprovalWorkflowService creates or reuses the pending approvals row.',
-        'An approver resolves the row as approved or rejected with comments.',
-        'The calling workflow service applies the resulting business status transition.',
-    ],
-    'Receiving' => [
-        'A user with receiving conversion permission opens an approved PO request.',
-        'The system builds a receiving draft from remaining purchase order balances.',
-        'Received, accepted, rejected, batch, lot, and expiry values are entered.',
-        'Validation checks quantity balance, expiry rules, and over-receipt.',
-        'The receiving is saved as draft, then posted or voided.',
-    ],
-    'Inventory Stock Ledger' => [
-        'Posting a receiving sends accepted quantities into inventory.',
-        'Stock rows are created or updated by item, unit, batch, lot, and expiry.',
-        'Average cost and stock balances are recalculated.',
-        'Movement rows record inbound stock and later adjustment-out activity.',
-        'Users review quantities, lot history, and movement details.',
-    ],
-    'Issuance' => [
-        'A draft issuance request is created from available item and unit pairs.',
-        'The request is submitted and queued for approval.',
-        'A user with issuance approval permission approves or rejects the issuance.',
-        'The system allocates stock from available lots using expiry-first ordering.',
-        'A user with issuance approval permission releases the issuance and outbound movement history is written.',
-    ],
-    'Reporting' => [
-        'A user with reports.view opens a report and applies filters.',
-        'ReportingService queries live stock, movement, and issuance tables.',
-        'The screen summarizes the current operational state.',
-        'CSV export is generated when the user needs an extract.',
-    ],
-    'Analytics and Internal Telemetry' => [
-        'A controller action emits an analytics event.',
-        'The event is stored in analytics_events.',
-        'Aggregation builds daily metrics from raw activity.',
-        'A user with audit.view reviews the unified Activity Logs screen, its legacy aliases, and this reference page.',
-    ],
-    'Audit Logging' => [
-        'A critical workflow transition occurs inside a service.',
-        'AuditService is called with the actor, action, and context.',
-        'An audit_logs row is persisted for traceability.',
-        'The team can inspect the resulting business trail later.',
     ],
 ];
 
@@ -455,735 +373,487 @@ $interconnections = [
 ];
 
 $implementationNotes = [
-    'The implemented application now includes product and supplier master catalogs that back new procurement and issuance records, while transactional tables still retain item_name, unit, and supplier_name snapshots for compatibility and reporting.',
-    'The March 27, 2026 migrations created products and suppliers, then backfilled product_id and supplier_id references across purchase_request_items, purchase_orders, purchase_order_items, receivings, receiving_items, inventory_stocks, stock_movements, issuance_items, and issuance_item_allocations.',
-    'RepositoryServices remains the central dependency registry, and admin user-management logic now runs through a dedicated UserManagementService instead of performing direct Shield model writes inside the controller.',
-    'Receiving and issuance now share the same inventory stock and stock movement repository implementations, which removes parallel data-access logic around inventory_stocks and stock_movements.',
-    'Receiving draft conversion, draft validation, and posting now reuse ReceivingWorkflowContextService, and the draft validation endpoint is handled inside ReceivingController so the receiving lifecycle is routed through one controller entry point.',
-    'ReportingService now composes focused report read models for stock balance, stock movements, issuances, low stock, and fast-moving analysis instead of delegating every report query to one monolithic reporting repository.',
-    'ReportingController now delegates CSV filename, header, row-shaping, and stock-movement label translation to ReportingExportPresenter instead of carrying report export schemas inline.',
-    'AnalyticsController now delegates activity-log dataset assembly to ActivityLogQueryService and CSV dataset shaping to AnalyticsExportPresenter instead of building overview, events, trends, and metrics payloads inline.',
-    'Purchase request and issuance submission and approval resolution now share ApprovalWorkflowService, so pending-approval creation, validation, and resolution no longer live in separate duplicated service paths.',
-    'StockMovementService now centralizes movement-number generation and write-shaping for receiving, manual stock disposal, and issuance release, so InventoryQuantityService and IssuanceReleaseService no longer build movement rows on their own.',
-    'Procurement and issuance controllers now obtain catalog-backed form options through their own workflow services instead of assembling those option lists from catalog services directly inside the controller layer.',
-    'PurchaseOrderService now owns the purchase-order index decoration for linked PO request status, so PurchaseOrderController no longer merges purchase order and po_request data itself.',
-    'PurchaseOrderController no longer pre-scans the order list to block duplicate PR conversion. Duplicate purchase-order prevention now stays inside PurchaseOrderService as the single source of truth, while the controller only remaps the domain error into a cleaner flash message.',
-    'Procurement controllers now delegate approval-list enrichment, procurement status-label presentation, and CSV payload shaping to ProcurementListPresenter and ProcurementExportPresenter instead of carrying those display maps and export schemas inline.',
-    'The Activity Logs page is the current unified analytics surface for overview, event logs, and metrics. The older dashboard, events, and metrics routes still map into that area.',
-    'Controller-level analytics and service-level audit logging are intentionally separate pipelines, so analytics_events captures page and action telemetry while audit_logs captures business-state transitions such as receiving posts, voids, approvals, rejections, and releases.',
-    'Presenter-based CSV shaping is adopted in procurement, reporting, and analytics, but admin user exports plus some receiving and issuance exports still generate CSV rows inline inside their controllers.',
-    'Admin user creation now uses only real base roles. Granular permission overrides are still available, but they no longer rely on a pseudo custom role.',
+    'The implemented application now includes product and supplier master catalogs that back new procurement and issuance records.',
+    'The migrations created products and suppliers, then backfilled product_id and supplier_id references across the DB.',
+    'RepositoryServices remains the central dependency registry, and admin user-management logic now runs through a dedicated UserManagementService.',
+    'Receiving and issuance now share the same inventory stock and stock movement repository implementations.',
+    'Receiving draft conversion, draft validation, and posting now reuse ReceivingWorkflowContextService.',
+    'ReportingService now composes focused report read models for stock balance, stock movements, issuances, low stock, and fast-moving analysis.',
+    'ReportingController now delegates CSV filename, header, row-shaping, and stock-movement label translation to ReportingExportPresenter.',
+    'AnalyticsController now delegates activity-log dataset assembly to ActivityLogQueryService and CSV dataset shaping to AnalyticsExportPresenter.',
+    'Purchase request and issuance submission and approval resolution now share ApprovalWorkflowService.',
+    'StockMovementService now centralizes movement-number generation and write-shaping for receiving, manual stock disposal, and issuance release.',
+    'Procurement and issuance controllers now obtain catalog-backed form options through their own workflow services.',
+    'PurchaseOrderService now owns the purchase-order index decoration for linked PO request status.',
+    'Duplicate purchase-order prevention now stays inside PurchaseOrderService as the single source of truth.',
+    'Procurement controllers now delegate approval-list enrichment, procurement status-label presentation, and CSV payload shaping to presenters.',
+    'Controller-level analytics and service-level audit logging are intentionally separate pipelines.',
+    'Admin user creation now uses only real base roles. Granular permission overrides are still available.'
 ];
 ?>
 <?= $this->extend('layouts/main_layout') ?>
 
 <?= $this->section('head') ?>
 <style>
-    .architecture-page {
+    /* --- V2 DESIGN SYSTEM VARIABLES --- */
+    :root {
+        --v2-border: #cbd5e1; 
+        --v2-title: #0f172a;  
+        --v2-label: #0284c7;  
+        --v2-active-bg: #0369a1; 
+        --v2-text-main: #334155; 
+        --v2-text-muted: #64748b;
+        --v2-bg-main: #f8fafc;
+    }
+
+    .viewport-wrapper {
         display: flex;
         flex-direction: column;
-        gap: var(--space-4);
-        width: 100%;
-        max-width: 1320px;
-        margin-inline: auto;
-        min-width: 0;
+        gap: 20px;
+        min-height: 800px;
+        padding-bottom: 40px;
     }
 
-    .architecture-page > .card,
-    .summary-card,
-    .pipeline-card,
-    .module-card,
-    .role-card,
-    .flow-stage,
-    .mini-card,
-    .module-block,
-    .flow-stage-body {
-        min-width: 0;
+    /* --- TABS --- */
+    .section-tabs { 
+        display: flex; gap: 8px; border-bottom: 1px solid var(--v2-border); background: transparent; padding: 0; flex-shrink: 0;
     }
-
-    .architecture-hero {
-        background:
-            radial-gradient(circle at top right, rgba(0, 180, 216, 0.18), transparent 32%),
-            linear-gradient(135deg, rgba(3, 4, 94, 0.06), rgba(0, 119, 182, 0.03));
+    .section-tab { 
+        padding: 12px 24px; font-size: 0.85rem; font-weight: 800; color: var(--v2-text-muted); background: #ffffff; border: 1px solid var(--v2-border); border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: -1px;
     }
+    .section-tab:hover { color: var(--v2-label); background: #f0f9ff; }
+    .section-tab.active { color: var(--v2-label); border-bottom: 2px solid var(--v2-label); background: #ffffff; z-index: 2; position: relative;}
+    
+    .tab-panel { display: none; flex-direction: column; gap: 20px; }
+    .tab-panel.active { display: flex; }
 
-    .card .page-subtitle,
-    .muted {
-        max-width: 78ch;
-        line-height: 1.6;
-        overflow-wrap: anywhere;
-    }
+    /* --- KPI CARDS --- */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; flex-shrink: 0; }
+    .kpi-card { background: #ffffff; border: 1px solid var(--v2-border); border-radius: 10px; padding: 16px; display: flex; align-items: center; gap: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .kpi-icon-box { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    
+    .icon-slate { background: #f1f5f9; color: #475569; }        
+    .icon-teal { background: #f0fdfa; color: #0d9488; } 
+    .icon-blue { background: #e0f2fe; color: #0284c7; }   
+    .icon-purple { background: #f5f3ff; color: #8b5cf6; }   
+    .icon-amber { background: #fffbeb; color: #d97706; }
 
-    .architecture-hero .page-subtitle {
-        max-width: none;
-        line-height: 1.6;
-        text-wrap: wrap;
-    }
+    .kpi-details { display: flex; flex-direction: column; justify-content: center; }
+    .kpi-value { font-size: 1.5rem; font-weight: 900; color: var(--v2-title); line-height: 1; margin: 0 0 4px 0; }
+    .kpi-label { font-size: 0.75rem; font-weight: 700; color: var(--v2-text-muted); margin: 0; text-transform: uppercase; letter-spacing: 0.05em; }
 
-    .architecture-page p,
-    .architecture-page li {
-        text-wrap: pretty;
-    }
-
-    .architecture-page code {
-        display: inline;
-        white-space: nowrap;
-        overflow-wrap: normal;
-        word-break: normal;
-    }
-
-    .architecture-callout-copy {
-        margin: 0;
-    }
-
-    .architecture-summary-grid,
-    .pipeline-grid,
-    .module-grid,
-    .flow-meta-grid,
-    .role-grid {
-        display: grid;
-        gap: var(--space-3);
-    }
-
-    .architecture-summary-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .summary-card,
-    .pipeline-card,
-    .module-card,
-    .role-card,
-    .flow-stage,
-    .mini-card {
-        background: var(--color-surface);
-        border: 1px solid var(--color-border-strong);
-        border-radius: var(--radius-md);
-    }
-
-    .summary-card,
-    .pipeline-card,
-    .module-card,
-    .role-card,
-    .mini-card {
-        padding: var(--space-3);
-    }
-
-    .summary-value {
-        font-size: clamp(1.2rem, 1.05rem + 0.6vw, 1.6rem);
-        font-weight: 800;
-        color: var(--color-brand-700);
-        line-height: 1.05;
-    }
-
-    .summary-label {
-        margin-top: 6px;
-        font-size: 0.76rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--color-text-muted);
-        font-weight: 700;
-    }
-
-    .pipeline-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .step-no {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 42px;
-        height: 42px;
-        border-radius: 999px;
-        background: var(--color-brand-100);
-        color: var(--color-brand-700);
-        font-weight: 800;
-        font-size: 0.9rem;
-        margin-bottom: 10px;
-    }
-
-    .chip-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: flex-start;
-    }
-
-    .chip {
-        display: inline-flex;
-        align-items: flex-start;
-        padding: 5px 10px;
-        border-radius: 999px;
-        background: var(--color-surface-alt);
-        border: 1px solid var(--color-border);
-        color: var(--color-brand-700);
-        font-size: 0.78rem;
-        font-weight: 700;
-        line-height: 1.35;
-        max-width: 100%;
-        white-space: normal;
-        overflow-wrap: anywhere;
-        word-break: break-word;
-    }
-
-    .flow-list {
+    /* --- V2 CARDS --- */
+    .data-card {
+        background: #ffffff; 
+        border: 1px solid var(--v2-border); 
+        border-radius: 10px; 
         display: flex;
         flex-direction: column;
-        gap: var(--space-3);
-    }
-
-    .flow-stage {
-        display: grid;
-        grid-template-columns: 84px minmax(0, 1fr);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
         overflow: hidden;
     }
 
-    .flow-stage-index {
-        background: linear-gradient(180deg, var(--color-brand-700), var(--color-brand-600));
-        color: #ffffff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.05rem;
-        font-weight: 800;
-        letter-spacing: 0.04em;
-    }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid var(--v2-border); background: #ffffff; display: flex; flex-direction: column; gap: 4px; }
+    .card-header h3 { margin: 0; font-size: 1.1rem; color: var(--v2-title); font-weight: 800; }
+    .card-header p { margin: 0; font-size: 0.85rem; color: var(--v2-text-muted); line-height: 1.5; max-width: 80ch; }
+    
+    .card-body { padding: 20px; }
 
-    .flow-stage-body {
-        padding: var(--space-4);
-        background: linear-gradient(180deg, #ffffff, #f9fdff);
+    /* --- CHIPS & BADGES --- */
+    .meta-chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .meta-chip { 
+        display: inline-flex; align-items: center; 
+        padding: 4px 8px; border-radius: 4px; 
+        background: #f1f5f9; color: var(--v2-text-main); 
+        border: 1px solid #e2e8f0; font-size: 0.75rem; 
+        font-weight: 700; font-family: var(--font-mono); 
     }
-
-    .flow-stage-body h3,
-    .module-card h3,
-    .pipeline-card h3,
-    .mini-card h3 {
-        margin: 0;
-        color: var(--color-brand-700);
-        font-size: 1rem;
-        line-height: 1.3;
-    }
-
-    .flow-columns,
-    .module-grid {
-        display: grid;
-        gap: var(--space-3);
-    }
-
-    .flow-columns {
-        grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
-        margin-top: var(--space-3);
-    }
-
-    .flow-meta-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .section-label {
-        font-size: 0.74rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--color-text-muted);
-        font-weight: 700;
-        margin-bottom: 8px;
-    }
-
-    .flow-bullets,
-    .note-list {
-        margin: 0;
-        padding-left: 18px;
-        color: var(--color-text);
-        line-height: 1.6;
-        overflow-wrap: anywhere;
-    }
-
-    .flow-bullets li + li,
-    .note-list li + li {
-        margin-top: 8px;
-    }
-
-    .module-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .module-card {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .role-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .role-card {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
+    
     .role-badge {
-        display: inline-flex;
-        align-items: center;
-        width: fit-content;
-        padding: 6px 12px;
-        border-radius: 999px;
-        background: var(--color-brand-100);
-        border: 1px solid var(--color-border);
-        color: var(--color-brand-700);
-        font-size: 0.78rem;
-        font-weight: 800;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
+        display: inline-flex; padding: 4px 10px; border-radius: 6px; 
+        background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd;
+        font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; width: fit-content;
     }
 
-    .module-meta {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 12px;
+    /* --- HIGH-SCANNABILITY LIST STYLING --- */
+    .v2-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; } /* Increased gap */
+    .v2-list li { 
+        position: relative; padding-left: 16px; font-size: 0.85rem; color: var(--v2-text-main); line-height: 1.6; /* Better line height */
+        max-width: 80ch; /* Prevents long lines of text */
+    }
+    .v2-list li::before {
+        content: '•'; position: absolute; left: 0; top: 0; color: var(--v2-label); font-weight: 900;
+    }
+    
+    .v2-list.numbered { counter-reset: custom-counter; }
+    .v2-list.numbered li { padding-left: 24px; }
+    .v2-list.numbered li::before {
+        counter-increment: custom-counter;
+        content: counter(custom-counter) ".";
+        color: var(--v2-label); font-weight: 900; font-size: 0.85rem;
     }
 
-    .module-block {
-        padding: 12px;
-        border-radius: var(--radius-sm);
-        background: var(--color-surface-alt);
-        border: 1px solid var(--color-border);
-        overflow: hidden;
-    }
+    /* Use bolding to extract keywords for easy scanning */
+    .scannable-keyword { color: var(--v2-title); font-weight: 800; margin-right: 4px;}
 
-    .module-block-title {
-        margin-bottom: 8px;
-        font-size: 0.74rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--color-text-muted);
-        font-weight: 700;
-    }
+    /* --- GRID LAYOUTS --- */
+    .pipeline-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+    .module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
+    .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
 
-    .module-list {
-        margin: 0;
-        padding-left: 16px;
-        color: var(--color-text);
-        font-size: 0.92rem;
-        line-height: 1.6;
-        overflow-wrap: anywhere;
-    }
-
-    .module-list li + li {
-        margin-top: 6px;
-    }
-
-    .mini-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: var(--space-3);
-    }
-
-    .process-flow {
-        list-style: none;
-        margin: 0;
-        padding: 0;
+    /* Widgets inside grids */
+    .widget-card {
+        background: #f8fafc; /* Subtle focus background */
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 20px;
         display: flex;
         flex-direction: column;
-        gap: 10px;
-    }
-
-    .process-step {
-        position: relative;
-        display: grid;
-        grid-template-columns: 40px minmax(0, 1fr);
         gap: 12px;
-        align-items: start;
     }
 
-    .process-step:not(:last-child) {
-        padding-bottom: 6px;
+    .step-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        background: #e0f2fe; color: #0284c7;
+        font-weight: 900; font-size: 0.85rem; 
+        width: 32px; height: 32px; border-radius: 8px;
+        margin-bottom: 4px;
     }
 
-    .process-step:not(:last-child)::before {
-        content: '';
-        position: absolute;
-        left: 19px;
-        top: 40px;
-        bottom: -6px;
-        width: 2px;
-        border-radius: 999px;
-        background: linear-gradient(180deg, rgba(0, 119, 182, 0.35), rgba(0, 119, 182, 0.1));
+    .widget-card h4 { margin: 0; font-size: 1rem; color: var(--v2-title); font-weight: 800; }
+    .widget-card p.muted { margin: 0; font-size: 0.85rem; color: var(--v2-text-muted); line-height: 1.5; }
+    .meta-title { font-size: 0.7rem; font-weight: 800; color: var(--v2-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+
+    /* --- DETAILED FLOW LAYOUT --- */
+    .flow-stage {
+        display: flex; gap: 20px; padding: 24px 20px; border-bottom: 1px solid var(--v2-border);
     }
+    .flow-stage:last-child { border-bottom: none; }
+    
+    .flow-number { width: 40px; flex-shrink: 0; }
+    .flow-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+    
+    .flow-meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
 
-    .process-step-no {
-        position: relative;
-        z-index: 1;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        min-width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        background: var(--color-brand-100);
-        border: 1px solid var(--color-border);
-        color: var(--color-brand-700);
-        font-size: 0.78rem;
-        font-weight: 800;
-    }
-
-    .process-step-copy {
-        min-width: 0;
-        padding: 10px 12px;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--color-border);
-        background: #fbfdff;
-        color: var(--color-text);
-        line-height: 1.55;
-    }
-
-    @media (max-width: 1100px) {
-        .flow-columns,
-        .module-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @media (max-width: 1200px) {
-        .architecture-summary-grid,
-        .pipeline-grid,
-        .mini-grid,
-        .role-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-    }
-
-    @media (max-width: 900px) {
-        .flow-columns,
-        .flow-meta-grid,
-        .module-meta {
-            grid-template-columns: 1fr;
-        }
-
-        .flow-stage {
-            grid-template-columns: 1fr;
-        }
-
-        .flow-stage-index {
-            min-height: 58px;
-        }
-    }
+    /* Callout */
+    .callout { background: #f0f9ff; border-left: 4px solid var(--v2-label); padding: 16px; border-radius: 0 8px 8px 0; margin-bottom: 20px;}
+    .callout p { margin: 0; font-size: 0.85rem; color: var(--v2-text-main); line-height: 1.5; }
 
     @media (max-width: 768px) {
-        .architecture-summary-grid,
-        .pipeline-grid,
-        .module-grid,
-        .mini-grid,
-        .role-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .architecture-page > .card,
-        .summary-card,
-        .pipeline-card,
-        .module-card,
-        .role-card,
-        .mini-card {
-            padding: var(--space-3);
-        }
-
-        .flow-stage-body {
-            padding: var(--space-3);
-        }
-
-        .chip {
-            width: 100%;
-            border-radius: var(--radius-sm);
-        }
+        .flow-stage { flex-direction: column; gap: 12px; padding: 16px; }
+        .flow-number { width: auto; }
+        .flow-meta-grid { grid-template-columns: 1fr; }
     }
 </style>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="architecture-page">
-    <section class="card architecture-hero stack-md">
-        <div class="stack-sm">
-            <p class="top-kicker">Internal Reference</p>
-            <h2>How the implemented system is wired today</h2>
-            <p class="page-subtitle">
-                This page describes the actual running architecture in the current repository: the module boundaries, the request-processing pipeline,
-                and the end-to-end flow from authentication through procurement, receiving, inventory, issuance, reporting, analytics, and audit logging.
-            </p>
-        </div>
+<div class="viewport-wrapper">
+    
+    <div style="flex-shrink: 0;">
+        <p style="margin: 0 0 4px 0; font-size: 0.75rem; font-weight: 800; color: var(--v2-label); text-transform: uppercase; letter-spacing: 0.05em;">Internal Reference</p>
+        <h2 style="margin:0; font-size: 1.6rem; color: var(--v2-title); font-weight: 900; letter-spacing: -0.02em;">System Architecture</h2>
+        <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: var(--v2-text-muted); max-width: 80ch; line-height: 1.5;">This page describes the running architecture in the current repository: module boundaries, the request pipeline, and the end-to-end flow from authentication through procurement, inventory, and analytics.</p>
+    </div>
 
-        <div class="architecture-summary-grid">
-            <article class="summary-card">
-                <div class="summary-value"><?= esc((string) count($moduleCards)) ?></div>
-                <div class="summary-label">Major Modules</div>
+    <section style="flex-shrink: 0;">
+        <div class="kpi-grid">
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value"><?= esc((string) count($moduleCards)) ?></p>
+                    <p class="kpi-label">Major Modules</p>
+                </div>
             </article>
-            <article class="summary-card">
-                <div class="summary-value"><?= esc((string) count($systemFlow)) ?></div>
-                <div class="summary-label">Flow Stages</div>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-stages"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value"><?= esc((string) count($systemFlow)) ?></p>
+                    <p class="kpi-label">Flow Stages</p>
+                </div>
             </article>
-            <article class="summary-card">
-                <div class="summary-value"><?= esc((string) count($requestPipeline)) ?></div>
-                <div class="summary-label">Runtime Layers</div>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-layers"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value"><?= esc((string) count($requestPipeline)) ?></p>
+                    <p class="kpi-label">Runtime Layers</p>
+                </div>
             </article>
-            <article class="summary-card">
-                <div class="summary-value">CI4 + Shield</div>
-                <div class="summary-label">Platform</div>
+            <article class="kpi-card">
+                <div class="kpi-icon-box icon-platform"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg></div>
+                <div class="kpi-details">
+                    <p class="kpi-value" style="font-size: 1rem;">CI4 + SHIELD</p>
+                    <p class="kpi-label">Platform</p>
+                </div>
             </article>
-        </div>
-
-        <div class="status-callout status-callout-info">
-            <p class="architecture-callout-copy">
-                <strong>Implementation note:</strong>
-                The current operational workflow now resolves new transactions through product and supplier catalogs.
-                Transactional tables still keep <code>item_name</code>, <code>unit</code>, and <code>supplier_name</code> snapshots for compatibility, display, and reporting.
-            </p>
         </div>
     </section>
 
-    <section class="card stack-md">
-        <div class="stack-sm">
-            <h2>Common Request Pipeline</h2>
-            <p class="page-subtitle">Every business module uses the same high-level path from browser request to database write.</p>
+    <nav class="section-tabs" role="tablist">
+        <button class="section-tab active" data-tab="pipeline">Core Pipeline</button>
+        <button class="section-tab" data-tab="modules">Module Map</button>
+        <button class="section-tab" data-tab="flow">End-to-End Flow</button>
+        <button class="section-tab" data-tab="roles">Roles & Notes</button>
+    </nav>
+
+    <div class="tab-panel active" data-tab="pipeline">
+        <div class="callout">
+            <p><strong>Implementation note:</strong> The current operational workflow resolves new transactions through product and supplier catalogs. Transactional tables still keep <code>item_name</code>, <code>unit</code>, and <code>supplier_name</code> snapshots for compatibility, display, and reporting.</p>
         </div>
 
-        <div class="pipeline-grid">
-            <?php foreach ($requestPipeline as $step): ?>
-                <article class="pipeline-card stack-sm">
-                    <span class="step-no"><?= esc($step['step']) ?></span>
-                    <h3><?= esc($step['title']) ?></h3>
-                    <p class="muted"><?= esc($step['summary']) ?></p>
-                    <ul class="module-list">
-                        <?php foreach ($step['points'] as $point): ?>
-                            <li><?= esc($point) ?></li>
-                        <?php endforeach ?>
-                    </ul>
-                </article>
-            <?php endforeach ?>
-        </div>
-    </section>
+        <section class="data-card">
+            <div class="card-header">
+                <h3>Common Request Pipeline</h3>
+                <p>Every business module uses the same high-level path from browser request to database write.</p>
+            </div>
+            <div class="card-body pipeline-grid">
+                <?php foreach ($requestPipeline as $step): ?>
+                    <div class="widget-card">
+                        <div class="step-badge"><?= esc($step['step']) ?></div>
+                        <h4><?= esc($step['title']) ?></h4>
+                        <p class="muted"><?= esc($step['summary']) ?></p>
+                        <ul class="v2-list" style="margin-top: 8px;">
+                            <?php foreach ($step['points'] as $point): ?>
+                                <li><?= esc($point) ?></li>
+                            <?php endforeach ?>
+                        </ul>
+                    </div>
+                <?php endforeach ?>
+            </div>
+        </section>
+    </div>
 
-    <section class="card stack-md">
-        <div class="stack-sm">
-            <h2>Detailed System Flow</h2>
-            <p class="page-subtitle">This is the main business path through the application, including the handoff points between modules.</p>
-        </div>
+    <div class="tab-panel" data-tab="modules">
+        <section class="data-card">
+            <div class="card-header">
+                <h3>Module Map</h3>
+                <p>Responsibility, main code areas, dependencies, and downstream handoff of a module.</p>
+            </div>
+            <div class="card-body module-grid">
+                <?php foreach ($moduleCards as $module): ?>
+                    <div class="widget-card">
+                        <h4><?= esc($module['title']) ?></h4>
+                        <p class="muted"><?= esc($module['purpose']) ?></p>
 
-        <div class="flow-list">
-            <?php foreach ($systemFlow as $stage): ?>
-                <article class="flow-stage">
-                    <div class="flow-stage-index"><?= esc($stage['step']) ?></div>
-                    <div class="flow-stage-body">
-                        <div class="stack-sm">
-                            <h3><?= esc($stage['title']) ?></h3>
-                            <p class="muted"><?= esc($stage['summary']) ?></p>
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 8px;">
+                            <div class="meta-title">Controllers</div>
+                            <div class="meta-chip-list" style="margin-bottom: 12px;">
+                                <?php foreach ($module['controllers'] as $item): ?>
+                                    <span class="meta-chip"><?= esc($item) ?></span>
+                                <?php endforeach ?>
+                            </div>
+
+                            <div class="meta-title">Services</div>
+                            <div class="meta-chip-list" style="margin-bottom: 12px;">
+                                <?php foreach ($module['services'] as $item): ?>
+                                    <span class="meta-chip"><?= esc($item) ?></span>
+                                <?php endforeach ?>
+                            </div>
+
+                            <div class="meta-title">Tables</div>
+                            <div class="meta-chip-list">
+                                <?php foreach ($module['tables'] as $item): ?>
+                                    <span class="meta-chip"><?= esc($item) ?></span>
+                                <?php endforeach ?>
+                            </div>
                         </div>
 
-                        <div class="flow-columns">
-                            <div class="stack-sm">
-                                <div class="section-label">What Happens</div>
-                                <ul class="flow-bullets">
-                                    <?php foreach ($stage['happens'] as $item): ?>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;">
+                            <div>
+                                <div class="meta-title">Depends On</div>
+                                <ul class="v2-list">
+                                    <?php foreach ($module['depends_on'] as $item): ?>
                                         <li><?= esc($item) ?></li>
                                     <?php endforeach ?>
                                 </ul>
                             </div>
+                            <div>
+                                <div class="meta-title">Feeds Into</div>
+                                <ul class="v2-list">
+                                    <?php foreach ($module['feeds_into'] as $item): ?>
+                                        <li><?= esc($item) ?></li>
+                                    <?php endforeach ?>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach ?>
+            </div>
+        </section>
+    </div>
 
-                            <div class="stack-sm">
-                                <div class="flow-meta-grid">
-                                    <div class="mini-card">
-                                        <div class="section-label">Inputs</div>
-                                        <div class="chip-list">
-                                            <?php foreach ($stage['inputs'] as $input): ?>
-                                                <span class="chip"><?= esc($input) ?></span>
-                                            <?php endforeach ?>
-                                        </div>
+    <div class="tab-panel" data-tab="flow">
+        <section class="data-card">
+            <div class="card-header">
+                <h3>Detailed System Flow</h3>
+                <p>This is the main business path through the application, including the handoff points between modules.</p>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <?php foreach ($systemFlow as $stage): ?>
+                    <div class="flow-stage">
+                        <div class="flow-number">
+                            <div class="step-badge" style="width: 40px; height: 40px; font-size: 1rem; border-radius: 8px;"><?= esc($stage['step']) ?></div>
+                        </div>
+                        <div class="flow-content">
+                            <div>
+                                <h4 style="margin: 0 0 6px 0; font-size: 1.15rem; color: var(--v2-title); font-weight: 800;"><?= esc($stage['title']) ?></h4>
+                                <p style="margin: 0; font-size: 0.85rem; color: var(--v2-text-main); line-height: 1.5; max-width: 80ch;"><?= esc($stage['summary']) ?></p>
+                            </div>
+                            
+                            <div>
+                                <div class="meta-title">What Happens</div>
+                                <ul class="v2-list numbered">
+                                    <?php foreach ($stage['happens'] as $item): ?>
+                                        <?php 
+                                            // Split the sentence by the first space to bold the subject (e.g., "LoginController")
+                                            $parts = explode(' ', $item, 2);
+                                            $subject = $parts[0] ?? '';
+                                            $rest = $parts[1] ?? '';
+                                        ?>
+                                        <li><span class="scannable-keyword"><?= esc($subject) ?></span> <?= esc($rest) ?></li>
+                                    <?php endforeach ?>
+                                </ul>
+                            </div>
+
+                            <div class="flow-meta-grid">
+                                <div>
+                                    <div class="meta-title">Inputs</div>
+                                    <div class="meta-chip-list">
+                                        <?php foreach ($stage['inputs'] as $input): ?>
+                                            <span class="meta-chip"><?= esc($input) ?></span>
+                                        <?php endforeach ?>
                                     </div>
-
-                                    <div class="mini-card">
-                                        <div class="section-label">Outputs</div>
-                                        <div class="chip-list">
-                                            <?php foreach ($stage['outputs'] as $output): ?>
-                                                <span class="chip"><?= esc($output) ?></span>
-                                            <?php endforeach ?>
-                                        </div>
+                                </div>
+                                <div>
+                                    <div class="meta-title">Outputs</div>
+                                    <div class="meta-chip-list">
+                                        <?php foreach ($stage['outputs'] as $output): ?>
+                                            <span class="meta-chip"><?= esc($output) ?></span>
+                                        <?php endforeach ?>
                                     </div>
-
-                                    <div class="mini-card">
-                                        <div class="section-label">Key Routes</div>
-                                        <div class="chip-list">
-                                            <?php foreach ($stage['routes'] as $route): ?>
-                                                <span class="chip"><?= esc($route) ?></span>
-                                            <?php endforeach ?>
-                                        </div>
+                                </div>
+                                <div>
+                                    <div class="meta-title">Key Routes</div>
+                                    <div class="meta-chip-list">
+                                        <?php foreach ($stage['routes'] as $route): ?>
+                                            <span class="meta-chip"><?= esc($route) ?></span>
+                                        <?php endforeach ?>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </article>
-            <?php endforeach ?>
-        </div>
-    </section>
+                <?php endforeach ?>
+            </div>
+        </section>
+    </div>
 
-    <section class="card stack-md">
-        <div class="stack-sm">
-            <h2>Module Map</h2>
-            <p class="page-subtitle">Each card shows the responsibility, main code areas, dependencies, and downstream handoff of a module.</p>
-        </div>
-
-        <div class="module-grid">
-            <?php foreach ($moduleCards as $module): ?>
-                <?php $sampleFlow = $moduleFlowcharts[$module['title']] ?? []; ?>
-                <article class="module-card">
-                    <div class="stack-sm">
-                        <h3><?= esc($module['title']) ?></h3>
-                        <p class="muted"><?= esc($module['purpose']) ?></p>
-                    </div>
-
-                    <div class="module-meta">
-                        <div class="module-block">
-                            <div class="module-block-title">Controllers</div>
-                            <div class="chip-list">
-                                <?php foreach ($module['controllers'] as $item): ?>
-                                    <span class="chip"><?= esc($item) ?></span>
-                                <?php endforeach ?>
-                            </div>
-                        </div>
-
-                        <div class="module-block">
-                            <div class="module-block-title">Services</div>
-                            <div class="chip-list">
-                                <?php foreach ($module['services'] as $item): ?>
-                                    <span class="chip"><?= esc($item) ?></span>
-                                <?php endforeach ?>
-                            </div>
-                        </div>
-
-                        <div class="module-block">
-                            <div class="module-block-title">Repositories</div>
-                            <div class="chip-list">
-                                <?php foreach ($module['repositories'] as $item): ?>
-                                    <span class="chip"><?= esc($item) ?></span>
-                                <?php endforeach ?>
-                            </div>
-                        </div>
-
-                        <div class="module-block">
-                            <div class="module-block-title">Main Tables</div>
-                            <div class="chip-list">
-                                <?php foreach ($module['tables'] as $item): ?>
-                                    <span class="chip"><?= esc($item) ?></span>
-                                <?php endforeach ?>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mini-grid">
-                        <div class="module-block">
-                            <div class="module-block-title">Depends On</div>
-                            <ul class="module-list">
-                                <?php foreach ($module['depends_on'] as $item): ?>
-                                    <li><?= esc($item) ?></li>
-                                <?php endforeach ?>
-                            </ul>
-                        </div>
-
-                        <div class="module-block">
-                            <div class="module-block-title">Feeds Into</div>
-                            <ul class="module-list">
-                                <?php foreach ($module['feeds_into'] as $item): ?>
-                                    <li><?= esc($item) ?></li>
-                                <?php endforeach ?>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <?php if ($sampleFlow !== []): ?>
-                        <div class="module-block">
-                            <div class="module-block-title">Sample Flowchart</div>
-                            <ol class="process-flow">
-                                <?php foreach ($sampleFlow as $index => $item): ?>
-                                    <li class="process-step">
-                                        <span class="process-step-no"><?= esc(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) ?></span>
-                                        <div class="process-step-copy"><?= esc($item) ?></div>
-                                    </li>
-                                <?php endforeach ?>
-                            </ol>
-                        </div>
-                    <?php endif ?>
-                </article>
-            <?php endforeach ?>
-        </div>
-    </section>
-
-    <section class="card stack-md">
-        <div class="stack-sm">
-            <h2>Role-Based Sample Flows</h2>
-            <p class="page-subtitle">These journeys reflect the actual route guards in the application plus the user-management controls exposed from Admin.</p>
-        </div>
-
-        <div class="role-grid">
-            <?php foreach ($roleJourneys as $role): ?>
-                <article class="role-card">
-                    <div class="stack-sm">
+    <div class="tab-panel" data-tab="roles">
+        <section class="data-card">
+            <div class="card-header">
+                <h3>Role-Based Sample Flows</h3>
+                <p>These journeys reflect the actual route guards in the application.</p>
+            </div>
+            <div class="card-body role-grid">
+                <?php foreach ($roleJourneys as $role): ?>
+                    <div class="widget-card">
                         <span class="role-badge"><?= esc($role['role']) ?></span>
-                        <p class="muted"><?= esc($role['summary']) ?></p>
-                    </div>
+                        <p class="muted" style="margin-top: 8px;"><?= esc($role['summary']) ?></p>
+                        
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 8px;">
+                            <div class="meta-title">Primary Access</div>
+                            <div class="meta-chip-list">
+                                <?php foreach ($role['access'] as $access): ?>
+                                    <span class="meta-chip"><?= esc($access) ?></span>
+                                <?php endforeach ?>
+                            </div>
+                        </div>
 
-                    <div class="module-block">
-                        <div class="module-block-title">Primary Access</div>
-                        <div class="chip-list">
-                            <?php foreach ($role['access'] as $access): ?>
-                                <span class="chip"><?= esc($access) ?></span>
-                            <?php endforeach ?>
+                        <div style="margin-top: 8px;">
+                            <div class="meta-title">Typical Flow</div>
+                            <ul class="v2-list numbered">
+                                <?php foreach ($role['flow'] as $step): ?>
+                                    <?php 
+                                        $parts = explode(' ', $step, 2);
+                                        $subject = $parts[0] ?? '';
+                                        $rest = $parts[1] ?? '';
+                                    ?>
+                                    <li><span class="scannable-keyword"><?= esc($subject) ?></span> <?= esc($rest) ?></li>
+                                <?php endforeach ?>
+                            </ul>
+                        </div>
+                        
+                        <div style="margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--v2-border);">
+                            <div class="meta-title">Key Boundary</div>
+                            <p style="margin:0; font-size:0.8rem; color: var(--v2-text-main); font-style: italic;"><?= esc($role['boundary']) ?></p>
                         </div>
                     </div>
+                <?php endforeach ?>
+            </div>
+        </section>
 
-                    <div class="module-block">
-                        <div class="module-block-title">Typical Step-By-Step Flow</div>
-                        <ol class="process-flow">
-                            <?php foreach ($role['flow'] as $index => $step): ?>
-                                <li class="process-step">
-                                    <span class="process-step-no"><?= esc(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) ?></span>
-                                    <div class="process-step-copy"><?= esc($step) ?></div>
-                                </li>
-                            <?php endforeach ?>
-                        </ol>
-                    </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+            <section class="data-card">
+                <div class="card-header">
+                    <h3>Critical Interconnections</h3>
+                </div>
+                <div class="card-body widget-card" style="margin: 20px; border: none;">
+                    <ul class="v2-list">
+                        <?php foreach ($interconnections as $item): ?>
+                            <li style="padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; margin-bottom: 8px;">
+                                <?php 
+                                    $parts = explode(' ', $item, 2);
+                                    $subject = $parts[0] ?? '';
+                                    $rest = $parts[1] ?? '';
+                                ?>
+                                <span class="scannable-keyword"><?= esc($subject) ?></span> <?= esc($rest) ?>
+                            </li>
+                        <?php endforeach ?>
+                    </ul>
+                </div>
+            </section>
 
-                    <div class="module-block">
-                        <div class="module-block-title">Key Boundary</div>
-                        <p class="muted architecture-callout-copy"><?= esc($role['boundary']) ?></p>
-                    </div>
-                </article>
-            <?php endforeach ?>
+            <section class="data-card">
+                <div class="card-header">
+                    <h3>Implementation Caveats</h3>
+                </div>
+                <div class="card-body widget-card" style="margin: 20px; border: none;">
+                    <ul class="v2-list">
+                        <?php foreach ($implementationNotes as $item): ?>
+                            <li style="padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; margin-bottom: 8px;">
+                                <?php 
+                                    $parts = explode(' ', $item, 2);
+                                    $subject = $parts[0] ?? '';
+                                    $rest = $parts[1] ?? '';
+                                ?>
+                                <span class="scannable-keyword"><?= esc($subject) ?></span> <?= esc($rest) ?>
+                            </li>
+                        <?php endforeach ?>
+                    </ul>
+                </div>
+            </section>
         </div>
-    </section>
+    </div>
 
-    <section class="card stack-md">
-        <div class="stack-sm">
-            <h2>Critical Interconnections</h2>
-            <p class="page-subtitle">These are the dependency edges that matter most when changing the system.</p>
-        </div>
-
-        <ul class="note-list">
-            <?php foreach ($interconnections as $item): ?>
-                <li><?= esc($item) ?></li>
-            <?php endforeach ?>
-        </ul>
-    </section>
-
-    <section class="card stack-md">
-        <div class="stack-sm">
-            <h2>Important Implementation Notes</h2>
-            <p class="page-subtitle">Practical caveats that explain how the current codebase differs from a more idealized architecture.</p>
-        </div>
-
-        <ul class="note-list">
-            <?php foreach ($implementationNotes as $item): ?>
-                <li><?= esc($item) ?></li>
-            <?php endforeach ?>
-        </ul>
-    </section>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.section-tab');
+    const panels = document.querySelectorAll('.tab-panel');
+    
+    function activateTab(name) {
+        tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+        panels.forEach(p => p.classList.toggle('active', p.dataset.tab === name));
+        history.replaceState(null, '', '#' + name);
+    }
+
+    tabs.forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab)));
+    
+    const hash = window.location.hash.replace('#', '');
+    if (['pipeline', 'modules', 'flow', 'roles'].includes(hash)) {
+        activateTab(hash);
+    }
+});
+</script>
 <?= $this->endSection() ?>

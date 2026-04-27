@@ -56,23 +56,37 @@ if ($isAdmin) {
 }
 
 $currentPath = trim(uri_string(), '/');
+$cleanCurrentPath = str_replace('index.php/', '', $currentPath);
 
-$isActivePath = static function (string $target) use ($currentPath): bool {
+$isActivePath = static function (string $target) use ($cleanCurrentPath): bool {
     $target = trim($target, '/');
 
     if ($target === '') {
-        return $currentPath === '';
+        return $cleanCurrentPath === '';
     }
 
-    $cleanPath = str_replace('index.php/', '', $currentPath);
-    if (
-        $target === 'analytics/activity-logs'
-        && in_array($cleanPath, ['analytics/activity-logs', 'analytics/dashboard'], true)
-    ) {
-        return true;
+    return $cleanCurrentPath === $target || str_starts_with($cleanCurrentPath, $target . '/');
+};
+
+$isActiveNavGroup = static function (array $items) use ($cleanCurrentPath, $isActivePath): bool {
+    foreach ($items as $item) {
+        if ($isActivePath((string) $item['path'])) {
+            return true;
+        }
     }
 
-    return $cleanPath === $target || str_starts_with($cleanPath, $target . '/');
+    if (! str_starts_with($cleanCurrentPath, 'reports/') && ! str_starts_with($cleanCurrentPath, 'analytics/')) {
+        return false;
+    }
+
+    foreach ($items as $item) {
+        $itemPath = (string) $item['path'];
+        if (str_starts_with($itemPath, 'reports/') || str_starts_with($itemPath, 'analytics/')) {
+            return true;
+        }
+    }
+
+    return false;
 };
 
 $navGroups = [];
@@ -146,16 +160,14 @@ if ($canViewReports || $canViewAudit) {
         $reportItems = array_merge($reportItems, [
             ['path' => 'reports/stock-balance', 'label' => 'Stock Balance'],
             ['path' => 'reports/stock-movements', 'label' => 'Stock Movements'],
-            ['path' => 'reports/issuances', 'label' => 'Issuances'],
+            ['path' => 'reports/issuances', 'label' => 'Issuance Report'],
             ['path' => 'reports/low-stock', 'label' => 'Low Stock'],
             ['path' => 'reports/fast-moving', 'label' => 'Fast Moving'],
         ]);
     }
 
     if ($canViewAudit) {
-        $reportItems[] = ['path' => 'analytics/activity-logs', 'label' => 'Analytics Dashboard'];
-        $reportItems[] = ['path' => 'analytics/events', 'label' => 'Event Logs'];
-        $reportItems[] = ['path' => 'analytics/metrics', 'label' => 'Metric Trends'];
+        $reportItems[] = ['path' => 'analytics/activity-logs', 'label' => 'Activity Logs'];
         $reportItems[] = ['path' => 'analytics/system-architecture', 'label' => 'System Architecture'];
     }
 
@@ -197,15 +209,8 @@ if ($canViewReports || $canViewAudit) {
             <nav class="side-nav" aria-label="Primary navigation">
                 <?php foreach ($navGroups as $group): ?>
                     <?php 
-                        // Check if any link in this group is currently active
-                        $isGroupActive = false;
+                        $isGroupActive = $isActiveNavGroup($group['items']);
                         $sectionId = 'nav-group-' . preg_replace('/[^a-z0-9]+/i', '-', strtolower((string) $group['title']));
-                        foreach ($group['items'] as $item) {
-                            if ($isActivePath((string) $item['path'])) {
-                                $isGroupActive = true;
-                                break;
-                            }
-                        }
                     ?>
                     <section class="side-section <?= $isGroupActive ? 'is-expanded' : '' ?>">
                         <button type="button" class="side-section-title toggle-section" aria-expanded="<?= $isGroupActive ? 'true' : 'false' ?>" aria-controls="<?= esc($sectionId) ?>">

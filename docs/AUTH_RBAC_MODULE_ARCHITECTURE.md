@@ -4,7 +4,7 @@
 The Foundation + Auth/RBAC Module is the first implementation block of the InventoryV2 Pharmacy System. It provides secure authentication, role-based authorization, protected routing, and admin bootstrap capabilities used by all downstream modules.
 
 ## Objectives
-- Implement secure login, signup, and logout flows
+- Implement secure login, logout, and admin-managed user provisioning
 - Enforce role-based access for `admin`, `employee`, and `IT dev/staff`
 - Keep controllers lean by delegating to services and repositories
 - Establish baseline middleware/filters and audit logging hooks
@@ -13,7 +13,7 @@ The Foundation + Auth/RBAC Module is the first implementation block of the Inven
 ## Scope
 
 ### Included
-- Account registration and login forms
+- Login form and admin-managed account creation
 - Password hashing and session management
 - Role assignment and permission mapping
 - Role-protected routes and controller guards
@@ -35,11 +35,11 @@ The Foundation + Auth/RBAC Module is the first implementation block of the Inven
 `RoleController/Admin Setup -> RoleService -> RoleRepository -> Role/Permission Models -> MySQL`
 
 ### Key Components
-- **Controllers**: `AuthController`, `SignupController`, `Admin/UserController`
+- **Controllers**: `LoginController`, `LogoutController`, `Admin/UserController`
 - **Services**: `AuthenticationService`, `AuthorizationService`
 - **Repositories**: `UserRepository`, `RoleRepository`, `PermissionRepository`
 - **Filters**: `AuthFilter`, `RoleFilter`
-- **Views**: `auth/login.php`, `auth/signup.php`, `admin/dashboard.php`
+- **Views**: `auth/login.php`, `admin/dashboard.php`
 
 ---
 
@@ -49,14 +49,12 @@ app/
 ├── Controllers/
 │   ├── Auth/
 │   │   ├── LoginController.php
-│   │   ├── SignupController.php
 │   │   └── LogoutController.php
 │   └── Admin/
 │       └── DashboardController.php
 ├── Services/
 │   └── Auth/
 │       ├── AuthenticationService.php
-│       ├── RegistrationService.php
 │       └── AuthorizationService.php
 ├── Repositories/
 │   ├── Contracts/Auth/
@@ -72,8 +70,7 @@ app/
 │   └── RoleFilter.php
 └── Views/
     ├── auth/
-    │   ├── login.php
-    │   └── signup.php
+    │   └── login.php
     └── admin/
         └── dashboard.php
 ```
@@ -133,12 +130,12 @@ graph TD
     I --> J[Protected Dashboard/Module]
 ```
 
-### Signup Workflow
-1. User submits signup form
-2. `RegistrationService` validates input and uniqueness checks
-3. Password is hashed with `password_hash()`
-4. User record is created with default role assignment
-5. Session is initialized, and user is redirected per policy
+### Admin User Provisioning Workflow
+1. Admin submits the user creation form
+2. `UserManagementService` validates role and permission selections
+3. `AuthenticationService` checks uniqueness and creates the user account
+4. Password is hashed by Shield user model handling
+5. Role and module permissions are assigned without auto-login
 
 ---
 
@@ -168,8 +165,6 @@ graph TD
 ### Public Routes
 - `GET /login`
 - `POST /login`
-- `GET /signup`
-- `POST /signup`
 
 ### Protected Routes
 - `POST /logout`
@@ -188,11 +183,11 @@ The same `AuthFilter` and `RoleFilter` structure is reused in:
 
 ## Validation Rules
 
-### Signup
+### Admin User Creation
 - `username`: required, alphanumeric, min/max length, unique
 - `email`: required, valid email, unique
 - `password`: required, min length, complexity rules
-- `display_name`: required
+- `role`: required, assignable role
 
 ### Login
 - `username_or_email`: required
@@ -230,13 +225,14 @@ The same `AuthFilter` and `RoleFilter` structure is reused in:
 
 ### Unit Tests
 - `AuthenticationService` credential and status checks
-- `RegistrationService` validation and uniqueness handling
+- `UserManagementService` account provisioning and permission handling
 - `AuthorizationService` permission resolution logic
 - Repository method contracts for users/roles/permissions
 
 ### Integration Tests
 - Login success and failure scenarios
-- Signup flow and default role assignment
+- Disabled public signup route behavior
+- Admin-managed user creation and role assignment
 - Protected route access by role
 - Unauthorized route denial and redirect behavior
 
@@ -256,7 +252,7 @@ The same `AuthFilter` and `RoleFilter` structure is reused in:
 
 ### Phase A2: Auth Flows
 - [x] Implement login controller/service/repository
-- [x] Implement signup controller/service/repository
+- [x] Implement admin-managed user creation service flow
 - [x] Implement logout and session invalidation
 
 ### Phase A3: RBAC
@@ -272,7 +268,7 @@ The same `AuthFilter` and `RoleFilter` structure is reused in:
 ---
 
 ## Definition of Done
-- Login/signup/logout work with secure session handling
+- Login/logout work with secure session handling
 - `admin`, `employee`, and `IT dev/staff` roles are seeded and assignable
 - Route-level role protection is active
 - Admin dashboard is reachable by authorized users only

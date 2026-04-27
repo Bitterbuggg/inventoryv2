@@ -43,9 +43,8 @@ table.table td.is-actions {
 }
 
 .modern-table {
-    width: max-content !important;
+    width: 100% !important;
     max-width: none !important;
-    table-layout: auto !important;
 }
 
 .modern-table th,
@@ -157,19 +156,53 @@ table.modern-table th.sortable::after {
 }
 
 #users-table {
+    width: 100% !important;
     min-width: 760px !important;
+    table-layout: fixed !important;
+    max-width: none !important;
+}
+
+#users-table col:nth-child(1) {
+    width: 28% !important;
+}
+
+#users-table col:nth-child(2) {
+    width: 15% !important;
+}
+
+#users-table col:nth-child(3) {
+    width: auto !important;
+}
+
+#users-table col:nth-child(4) {
+    width: 140px !important;
 }
 
 #users-table th:nth-child(1) {
-    width: 220px !important;
+    width: 28% !important;
 }
 
 #users-table th:nth-child(2) {
-    width: 132px !important;
+    width: 15% !important;
 }
 
 #users-table th:nth-child(4) {
     width: 140px !important;
+}
+
+#users-table th:nth-child(3),
+#users-table td:nth-child(3) {
+    white-space: normal !important;
+}
+
+#users-table td:nth-child(1),
+#users-table td:nth-child(3) {
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+}
+
+#users-table td:nth-child(4) {
+    white-space: nowrap !important;
 }
 
 #pr-table {
@@ -241,6 +274,10 @@ table.modern-table th.sortable::after {
     min-width: 1020px !important;
 }
 
+#po-req-table col:nth-child(7) {
+    width: 144px !important;
+}
+
 #po-table {
     min-width: 980px !important;
 }
@@ -275,6 +312,10 @@ table.modern-table th.sortable::after {
 
 #po-table col:nth-child(7) {
     width: 128px !important;
+}
+
+#po-table col:nth-child(8) {
+    width: 156px !important;
 }
 
 #po-table td:nth-child(4),

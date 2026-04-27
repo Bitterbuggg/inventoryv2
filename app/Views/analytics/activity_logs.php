@@ -11,13 +11,13 @@ $defaultTab = match ($legacySource) {
 $pageTitle = match ($defaultTab) {
     'events' => 'Event Logs',
     'metrics' => 'Metric Trends',
-    default => 'Analytics Dashboard',
+    default => 'Activity Logs',
 };
 $title = $pageTitle . ' - InventoryV2';
 $pageSubtitle = match ($defaultTab) {
     'events' => 'Filtered operational event audit trail.',
     'metrics' => 'Daily metric trends and persisted analytics snapshots.',
-    default => 'Unified analytics dashboard for overview, event logs, and metrics.',
+    default => 'Unified activity logs for overview, event logs, and metrics.',
 };
 $crumbs = [
     ['label' => 'Analytics'],
@@ -104,9 +104,9 @@ $metricsRoute = site_url('analytics/metrics');
     .kpi-icon-box { width: 46px; height: 46px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     
     .icon-slate { background: #f1f5f9; color: #475569; }        
-    .icon-teal { background: #f0fdfa; color: #0d9488; } 
+    .icon-teal { background: #f0fdfa; color: #0d9488; }
     .icon-blue { background: #e0f2fe; color: #0284c7; }   
-    .icon-purple { background: #dbeafe; color: #1e3a8a; }   
+    .icon-purple { background: #ede9fe; color: #6d28d9; }
     .icon-amber { background: #fffbeb; color: #d97706; }
 
     .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }
