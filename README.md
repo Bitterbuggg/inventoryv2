@@ -7,11 +7,22 @@ This guide is for non-IT users.
 Do these steps only:
 
 1. Open XAMPP and start:
-   - Apache
    - MySQL
-2. Open this link in your browser:
-   - http://localhost/inventoryv2/public/
-3. Sign in:
+2. Open project folder in PowerShell:
+
+```powershell
+cd C:\xampp\htdocs\inventoryv2
+```
+
+3. Run the app server:
+
+```powershell
+php spark serve --host 127.0.0.1 --port 8080
+```
+
+4. Open this link in your browser:
+   - http://127.0.0.1:8080/
+5. Sign in:
    - Email: admin@local.test
    - Password: Admin@1234
 
@@ -48,8 +59,8 @@ Open .env and make sure these lines exist:
 ```dotenv
 CI_ENVIRONMENT = development
 # Keep app.baseURL commented for portability.
-# The app now auto-detects the correct base URL on each machine/server mode.
-# app.baseURL = 'http://localhost/inventoryv2/public/'
+# The app auto-detects the correct base URL from the running server.
+# app.baseURL = 'http://127.0.0.1:8080/'
 
 database.default.hostname = 127.0.0.1
 database.default.database = inventoryv2
@@ -59,11 +70,9 @@ database.default.DBDriver = MySQLi
 database.default.port = 3306
 ```
 
-### 5. Start XAMPP
+### 5. Start MySQL service
 
-Start both:
-- Apache
-- MySQL
+Start MySQL in XAMPP Control Panel.
 
 ### 6. Create database and tables
 
@@ -80,10 +89,18 @@ php spark db:seed SampleCatalogSeeder
 php spark db:seed SampleWorkflowSeeder
 ```
 
-### 8. Open the system
+### 8. Start the app and open the system
 
-- Main page: http://localhost/inventoryv2/public/
-- Login page: http://localhost/inventoryv2/public/login
+Run the app server:
+
+```powershell
+php spark serve --host 127.0.0.1 --port 8080
+```
+
+Keep this terminal open while using the system.
+
+- Main page: http://127.0.0.1:8080/
+- Login page: http://127.0.0.1:8080/login
 
 Sample accounts:
 - Admin: admin@local.test / Admin@1234
@@ -148,13 +165,11 @@ If your hosts entries use `127.0.0.1`, make sure your dev server is also bound t
 127.0.0.1   itstaff.local.test
 ```
 
-2. Start the app on IPv4 (recommended for this setup):
+2. Start the app on IPv4 (required for this setup):
 
 ```powershell
-php -S 127.0.0.1:8080 -t public
+php spark serve --host 127.0.0.1 --port 8080
 ```
-
-If you accidentally open a legacy URL with `/inventoryv2/public`, it now auto-normalizes to the correct route while using the built-in server.
 
 3. Open these URLs in separate tabs:
 - http://admin.local.test:8080/
@@ -173,7 +188,7 @@ ping itstaff.local.test
 - Flush DNS cache: `ipconfig /flushdns`
 - Check port binding: `Get-NetTCPConnection -LocalPort 8080 -State Listen`
 - If listener is only `::1` (IPv6), either:
-   - keep using `php -S 127.0.0.1:8080 -t public`, or
+   - keep using `php spark serve --host 127.0.0.1 --port 8080`, or
    - add IPv6 hosts entries:
 
 ```text
