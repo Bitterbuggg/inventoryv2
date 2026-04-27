@@ -162,7 +162,7 @@ $crumbs = [
 
 <?= $this->section('page_actions') ?>
 <?php $eventsExportQuery = http_build_query(['export' => 'csv', 'event_name' => ($filters['event_name'] ?? ''), 'module' => ($filters['module'] ?? ''), 'actor_id' => ($filters['actor_id'] ?? ''), 'date_from' => ($filters['date_from'] ?? ''), 'date_to' => ($filters['date_to'] ?? ''), 'limit' => ($limit ?? 500)]); ?>
-<a class="btn btn-outline" href="<?= site_url('analytics/events') . '?' . $eventsExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('analytics/events') . '?' . $eventsExportQuery ?>" data-filtered-csv-export data-export-table="#events-table" data-export-row-selector=".event-row" data-export-filename="analytics_events.csv" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('analytics/dashboard') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Dashboard</a>
 <a class="btn btn-outline" href="<?= site_url('analytics/metrics') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Metrics</a>
 <?= $this->endSection() ?>
@@ -319,7 +319,8 @@ $inventoryEvents = count(array_filter($eventRows, static fn (array $row): bool =
         const tbody = document.querySelector('#events-table tbody');
         if (!tbody) return;
 
-        let rowsArray = Array.from(tbody.querySelectorAll('.event-row'));
+        const allRows = Array.from(tbody.querySelectorAll('.event-row'));
+        let rowsArray = [...allRows];
         const pagerContainer = document.getElementById('client-pager');
         const pageIndicator = document.getElementById('page-indicator');
         const totalRows = rowsArray.length;
@@ -333,6 +334,10 @@ $inventoryEvents = count(array_filter($eventRows, static fn (array $row): bool =
             currentPage = page;
             const startPoint = (page - 1) * rowsPerPage;
             const endPoint = startPoint + rowsPerPage;
+
+            if (window.InventoryV2Hci && typeof window.InventoryV2Hci.markFilteredRows === 'function') {
+                window.InventoryV2Hci.markFilteredRows(allRows, rowsArray);
+            }
 
             rowsArray.forEach((row, index) => {
                 row.style.display = (index >= startPoint && index < endPoint) ? '' : 'none';

@@ -68,6 +68,8 @@ foreach ($usersList as $userRow) {
     }
     
     .kpi-card { 
+        --kpi-accent: #475569;
+        --kpi-icon-bg: #f1f5f9;
         background: #ffffff; 
         border: 1px solid var(--v2-border); 
         border-radius: 12px; 
@@ -79,22 +81,24 @@ foreach ($usersList as $userRow) {
         min-width: 0;
     }
 
+    .kpi-card.kpi-accent-slate { --kpi-accent: #475569; --kpi-icon-bg: #f1f5f9; }
+    .kpi-card.kpi-accent-sky { --kpi-accent: #0284c7; --kpi-icon-bg: #e0f2fe; }
+    .kpi-card.kpi-accent-violet { --kpi-accent: #7c3aed; --kpi-icon-bg: #ede9fe; }
+    .kpi-card.kpi-accent-amber { --kpi-accent: #d97706; --kpi-icon-bg: #fef3c7; }
+
     .kpi-icon-box {
         width: 46px; height: 46px; 
         border-radius: 10px; 
         display: flex; align-items: center; justify-content: center; 
+        background: var(--kpi-icon-bg);
+        color: var(--kpi-accent);
         flex-shrink: 0;
     }
-
-    .icon-total { background: #f1f5f9; color: #475569; }
-    .icon-admin { background: #dbeafe; color: #1e3a8a; }
-    .icon-it { background: #dbeafe; color: #1e3a8a; }
-    .icon-employee { background: #ecfccb; color: #d97706; }
 
     .kpi-details { display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; }
     
     /* Using <p> tags for block stacking */
-    .kpi-value { font-size: 1.15rem; font-weight: 900; color: var(--v2-title); line-height: 1.2; margin: 0; }
+    .kpi-value { font-size: 1.15rem; font-weight: 900; color: var(--kpi-accent); line-height: 1.2; margin: 0; }
     .kpi-label { font-size: 0.75rem; font-weight: 600; color: var(--v2-text-muted); margin: 0; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
 
     /* --- V2 TABLE CARD & TOOLBAR --- */
@@ -244,31 +248,31 @@ foreach ($usersList as $userRow) {
 
     <section style="flex-shrink: 0;">
         <div class="kpi-grid">
-            <article class="kpi-card">
-                <div class="kpi-icon-box icon-total"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+            <article class="kpi-card kpi-accent-slate">
+                <div class="kpi-icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
                 <div class="kpi-details">
                     <p class="kpi-value"><?= esc((string) $totalUsers) ?></p>
                     <p class="kpi-label">Registered Users</p>
                 </div>
             </article>
-            <article class="kpi-card">
-                <div class="kpi-icon-box icon-admin"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+            <article class="kpi-card kpi-accent-sky">
+                <div class="kpi-icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
                 <div class="kpi-details">
-                    <p class="kpi-value" style="color: #0284c7;"><?= esc((string) $adminCount) ?></p>
+                    <p class="kpi-value"><?= esc((string) $adminCount) ?></p>
                     <p class="kpi-label">Administrators</p>
                 </div>
             </article>
-            <article class="kpi-card">
-                <div class="kpi-icon-box icon-it"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+            <article class="kpi-card kpi-accent-violet">
+                <div class="kpi-icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
                 <div class="kpi-details">
-                    <p class="kpi-value" style="color: #7c3aed;"><?= esc((string) $itStaffCount) ?></p>
+                    <p class="kpi-value"><?= esc((string) $itStaffCount) ?></p>
                     <p class="kpi-label">IT Staff</p>
                 </div>
             </article>
-            <article class="kpi-card">
-                <div class="kpi-icon-box icon-employee"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+            <article class="kpi-card kpi-accent-amber">
+                <div class="kpi-icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
                 <div class="kpi-details">
-                    <p class="kpi-value" style="color: #d97706;"><?= esc((string) $employeeCount) ?></p>
+                    <p class="kpi-value"><?= esc((string) $employeeCount) ?></p>
                     <p class="kpi-label">Employees</p>
                 </div>
             </article>

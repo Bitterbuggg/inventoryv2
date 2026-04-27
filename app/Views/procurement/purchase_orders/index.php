@@ -24,7 +24,7 @@ $purchaseOrderStatusOptions = $statusOptions ?? [];
 
 <?= $this->section('page_actions') ?>
 <?php $purchaseOrderExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') . '?' . $purchaseOrderExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/purchase-orders') . '?' . $purchaseOrderExportQuery ?>" data-filtered-csv-export data-export-table="#po-table" data-export-row-selector=".po-row" data-export-exclude-columns="7" data-export-filename="purchase_orders.csv" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <?php if ($canApprovePr): ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Pending Approvals</a>
 <?php endif ?>

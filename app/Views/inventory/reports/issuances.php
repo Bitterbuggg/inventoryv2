@@ -180,7 +180,7 @@ $crumbs = [
 
 <?= $this->section('page_actions') ?>
 <?php $issuancesExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? ''), 'date_from' => ($date_from ?? ''), 'date_to' => ($date_to ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('reports/issuances') . '?' . $issuancesExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('reports/issuances') . '?' . $issuancesExportQuery ?>" data-filtered-csv-export data-export-table="#issuances-table" data-export-row-selector=".issuance-row" data-export-filename="issuance_report.csv" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('reports/stock-balance') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Stock Balance</a>
 <a class="btn btn-outline" href="<?= site_url('reports/stock-movements') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Stock Movements</a>
 <a class="btn btn-outline" href="<?= site_url('reports/low-stock') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Low Stock</a>
@@ -376,6 +376,10 @@ $releasedCount = count(array_filter($issuanceRows, static fn (array $row): bool 
 
             const startPoint = (currentPage - 1) * rowsPerPage;
             const endPoint = startPoint + rowsPerPage;
+
+            if (window.InventoryV2Hci && typeof window.InventoryV2Hci.markFilteredRows === 'function') {
+                window.InventoryV2Hci.markFilteredRows(allRows, currentRows);
+            }
 
             allRows.forEach(row => row.style.display = 'none');
             currentRows.forEach((row, index) => {

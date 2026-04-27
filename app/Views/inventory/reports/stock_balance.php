@@ -184,7 +184,7 @@ $crumbs = [
 
 <?= $this->section('page_actions') ?>
 <?php $stockBalanceExportQuery = http_build_query(['export' => 'csv', 'q' => ($keyword ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('reports/stock-balance') . '?' . $stockBalanceExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('reports/stock-balance') . '?' . $stockBalanceExportQuery ?>" data-filtered-csv-export data-export-table="#balance-table" data-export-row-selector=".balance-row" data-export-filename="stock_balance.csv" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('reports/stock-movements') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Stock Movements</a>
 <a class="btn btn-outline" href="<?= site_url('reports/issuances') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Issuance Report</a>
 <a class="btn btn-outline" href="<?= site_url('reports/low-stock') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Low Stock</a>
@@ -473,6 +473,10 @@ $available = array_sum(array_map(static fn (array $row): float => (float) ($row[
             
             const startPoint = (currentPage - 1) * rowsPerPage;
             const endPoint = startPoint + rowsPerPage;
+
+            if (window.InventoryV2Hci && typeof window.InventoryV2Hci.markFilteredRows === 'function') {
+                window.InventoryV2Hci.markFilteredRows(allRows, currentRows);
+            }
 
             allRows.forEach(row => row.style.display = 'none');
 

@@ -28,7 +28,7 @@ $requestStatusOptions = $statusOptions ?? [];
     <a class="btn btn-primary" href="<?= site_url('procurement/purchase-requests/create') ?>" title="Create a new draft purchase request" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);">Create Request</a>
 <?php endif ?>
 <?php $purchaseRequestExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests') . '?' . $purchaseRequestExportQuery ?>" title="Download the current list of purchase requests as a CSV file" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/purchase-requests') . '?' . $purchaseRequestExportQuery ?>" data-filtered-csv-export data-export-table="#pr-table" data-export-row-selector=".pr-row" data-export-exclude-columns="6" data-export-filename="purchase_requests.csv" title="Download the current list of purchase requests as a CSV file" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <?php if ($canApprovePr): ?>
     <a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Pending Approvals</a>
 <?php endif ?>
