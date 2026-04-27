@@ -37,6 +37,23 @@ if (getcwd() . DIRECTORY_SEPARATOR !== FCPATH) {
     chdir(FCPATH);
 }
 
+// Support legacy URLs like /inventoryv2/public/* when running with `php spark serve`.
+if (PHP_SAPI === 'cli-server' && isset($_SERVER['REQUEST_URI']) && is_string($_SERVER['REQUEST_URI'])) {
+    $requestUri   = $_SERVER['REQUEST_URI'];
+    $requestPath  = parse_url($requestUri, PHP_URL_PATH);
+    $legacyPrefix = '/' . basename(dirname(__DIR__)) . '/public';
+
+    if (is_string($requestPath) && ($requestPath === $legacyPrefix || str_starts_with($requestPath, $legacyPrefix . '/'))) {
+        $query       = parse_url($requestUri, PHP_URL_QUERY);
+        $trimmedPath = substr($requestPath, strlen($legacyPrefix));
+        $trimmedPath = $trimmedPath === '' ? '/' : $trimmedPath;
+
+        $_SERVER['REQUEST_URI'] = is_string($query) && $query !== ''
+            ? $trimmedPath . '?' . $query
+            : $trimmedPath;
+    }
+}
+
 /*
  *---------------------------------------------------------------
  * BOOTSTRAP THE APPLICATION

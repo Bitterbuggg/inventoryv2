@@ -10,10 +10,70 @@ class App extends BaseConfig
     {
         parent::__construct();
 
+        $this->baseURL = $this->determineBaseURL();
+
         $systemTimezone = $this->detectSystemTimezone();
         if ($systemTimezone !== null) {
             $this->appTimezone = $systemTimezone;
         }
+    }
+
+    private function determineBaseURL(): string
+    {
+        $runtimeBaseURL = $this->detectRuntimeBaseURL();
+
+        if ($runtimeBaseURL !== null) {
+            return $runtimeBaseURL;
+        }
+
+        return $this->normalizeBaseURL($this->baseURL);
+    }
+
+    private function detectRuntimeBaseURL(): ?string
+    {
+        if (PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg') {
+            return null;
+        }
+
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? null;
+        if (! is_string($scriptName) || $scriptName === '') {
+            return null;
+        }
+
+        $host = $_SERVER['HTTP_HOST'] ?? ($_SERVER['SERVER_NAME'] ?? 'localhost');
+        if (! is_string($host) || $host === '') {
+            $host = 'localhost';
+        }
+
+        $scheme = 'http';
+        $forwardedProto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
+        if (is_string($forwardedProto) && $forwardedProto !== '') {
+            $scheme = strtolower(trim(explode(',', $forwardedProto)[0])) === 'https' ? 'https' : 'http';
+        } elseif (! empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') {
+            $scheme = 'https';
+        } elseif ((string) ($_SERVER['SERVER_PORT'] ?? '') === '443') {
+            $scheme = 'https';
+        }
+
+        $scriptDirectory = str_replace('\\', '/', dirname($scriptName));
+        if ($scriptDirectory === '.' || $scriptDirectory === '/') {
+            $scriptDirectory = '';
+        } else {
+            $scriptDirectory = '/' . trim($scriptDirectory, '/');
+        }
+
+        return $this->normalizeBaseURL($scheme . '://' . $host . $scriptDirectory . '/');
+    }
+
+    private function normalizeBaseURL(string $baseURL): string
+    {
+        $baseURL = trim($baseURL);
+
+        if ($baseURL === '') {
+            return 'http://localhost/';
+        }
+
+        return rtrim($baseURL, '/ ') . '/';
     }
 
     private function detectSystemTimezone(): ?string

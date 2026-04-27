@@ -47,7 +47,9 @@ Open .env and make sure these lines exist:
 
 ```dotenv
 CI_ENVIRONMENT = development
-app.baseURL = 'http://localhost/inventoryv2/public/'
+# Keep app.baseURL commented for portability.
+# The app now auto-detects the correct base URL on each machine/server mode.
+# app.baseURL = 'http://localhost/inventoryv2/public/'
 
 database.default.hostname = 127.0.0.1
 database.default.database = inventoryv2
@@ -151,6 +153,8 @@ If your hosts entries use `127.0.0.1`, make sure your dev server is also bound t
 ```powershell
 php -S 127.0.0.1:8080 -t public
 ```
+
+If you accidentally open a legacy URL with `/inventoryv2/public`, it now auto-normalizes to the correct route while using the built-in server.
 
 3. Open these URLs in separate tabs:
 - http://admin.local.test:8080/
