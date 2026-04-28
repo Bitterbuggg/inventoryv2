@@ -6,17 +6,26 @@ This guide is for non-IT users.
 
 Do these steps only:
 
-1. Open XAMPP and start:
-   - Apache
-   - MySQL
-2. Open this link in your browser:
-   - http://localhost/inventoryv2/public/
-3. Sign in:
+1. Open XAMPP and start MySQL.
+2. Open PowerShell in the project folder:
+
+```powershell
+cd C:\xampp\htdocs\inventoryv2
+```
+
+3. Run the app server:
+
+```powershell
+php spark serve --host 127.0.0.1 --port 8080
+```
+
+Keep this terminal open while using the system.
+
+4. Open this link in your browser:
+   - http://127.0.0.1:8080/
+5. Sign in:
    - Email: admin@local.test
    - Password: Admin@1234
-
-If you renamed the folder, use:
-- `http://localhost/<your-folder-name>/`
 
 ## B. First-Time Setup
 
@@ -97,8 +106,8 @@ php spark db:seed SampleWorkflowSeeder
 
 ### 8. Open the system
 
-- Main page: http://localhost/inventoryv2/public/
-- Login page: http://localhost/inventoryv2/public/login
+- Main page: http://127.0.0.1:8080/
+- Login page: http://127.0.0.1:8080/login
 
 Sample accounts:
 - Admin: `admin@local.test` / `Admin@1234`
@@ -148,10 +157,8 @@ If your hosts entries use `127.0.0.1`, make sure your dev server is also bound t
 2. Start the app on IPv4 (recommended for this setup):
 
 ```powershell
-php -S 127.0.0.1:8080 -t public
+php spark serve --host 127.0.0.1 --port 8080
 ```
-
-If you accidentally open a legacy URL with `/inventoryv2/public`, it now auto-normalizes to the correct route while using the built-in server.
 
 3. Open these URLs in separate tabs:
 - http://admin.local.test:8080/
@@ -170,7 +177,7 @@ ping itstaff.local.test
 - Flush DNS cache: `ipconfig /flushdns`
 - Check port binding: `Get-NetTCPConnection -LocalPort 8080 -State Listen`
 - If listener is only `::1` (IPv6), either:
-   - keep using `php -S 127.0.0.1:8080 -t public`, or
+   - keep using `php spark serve --host 127.0.0.1 --port 8080`, or
    - add IPv6 hosts entries:
 
 ```text
