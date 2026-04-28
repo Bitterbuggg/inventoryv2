@@ -195,7 +195,7 @@ $referenceTypeLabels = [
 
 <?= $this->section('page_actions') ?>
 <?php $stockMovementsExportQuery = http_build_query(['export' => 'csv', 'date_from' => ($date_from ?? ''), 'date_to' => ($date_to ?? ''), 'movement_type' => ($movement_type ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('reports/stock-movements') . '?' . $stockMovementsExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('reports/stock-movements') . '?' . $stockMovementsExportQuery ?>" data-filtered-csv-export data-export-table="#movements-table" data-export-row-selector=".movement-row" data-export-filename="stock_movements.csv" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('reports/stock-balance') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Stock Balance</a>
 <a class="btn btn-outline" href="<?= site_url('reports/issuances') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Issuance Report</a>
 <a class="btn btn-outline" href="<?= site_url('reports/low-stock') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Low Stock</a>
@@ -409,6 +409,10 @@ $distinctItems = count(array_unique(array_map(static fn (array $row): string => 
 
             const startPoint = (currentPage - 1) * rowsPerPage;
             const endPoint = startPoint + rowsPerPage;
+
+            if (window.InventoryV2Hci && typeof window.InventoryV2Hci.markFilteredRows === 'function') {
+                window.InventoryV2Hci.markFilteredRows(allRows, currentRows);
+            }
 
             allRows.forEach(row => row.style.display = 'none');
             currentRows.forEach((row, index) => {

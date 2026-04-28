@@ -1,0 +1,26 @@
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block direct access to non-public application paths and sensitive files.
+    RewriteRule (^|/)\. - [F,L,NC]
+    RewriteRule ^(?:app|build|docs|scripts|tests|vendor|writable)(?:/|$) - [F,L,NC]
+    RewriteRule ^(?:\.env(?:\..*)?|env|composer\.(?:json|lock)|phpunit\.xml\.dist|preload\.php|spark|builds|inventoryv2|LICENSE|README\.md)$ - [F,L,NC]
+
+    # Expose only the web assets that physically live under public/.
+    RewriteRule ^(assets/.*|favicon\.ico|robots\.txt)$ public/$1 [L,NC]
+
+    # Let existing root files/directories through.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route all application requests through the root front controller.
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    ErrorDocument 404 /index.php
+</IfModule>

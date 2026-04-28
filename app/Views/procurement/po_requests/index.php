@@ -32,7 +32,7 @@ $shouldReopenRejectModal = $rejectModalSourceId > 0 && $rejectModalReasonError !
 
 <?= $this->section('page_actions') ?>
 <?php $poRequestExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('procurement/po-requests') . '?' . $poRequestExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('procurement/po-requests') . '?' . $poRequestExportQuery ?>" data-filtered-csv-export data-export-table="#po-req-table" data-export-row-selector=".po-req-row" data-export-exclude-columns="6" data-export-filename="po_requests.csv" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <?php if ($canApprovePr): ?>
 <a class="btn btn-outline" href="<?= site_url('procurement/approvals/pending') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Pending Approvals</a>
 <?php endif ?>

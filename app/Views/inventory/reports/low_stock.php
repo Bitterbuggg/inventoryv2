@@ -182,7 +182,7 @@ $crumbs = [
 
 <?= $this->section('page_actions') ?>
 <?php $lowStockExportQuery = http_build_query(['export' => 'csv', 'threshold' => ($threshold ?? 10)]); ?>
-<a class="btn btn-outline" href="<?= site_url('reports/low-stock') . '?' . $lowStockExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('reports/low-stock') . '?' . $lowStockExportQuery ?>" data-filtered-csv-export data-export-table="#low-table" data-export-row-selector=".low-row" data-export-filename="low_stock.csv" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('reports/stock-balance') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Stock Balance</a>
 <a class="btn btn-outline" href="<?= site_url('reports/stock-movements') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Stock Movements</a>
 <a class="btn btn-outline" href="<?= site_url('reports/issuances') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Issuance Report</a>
@@ -459,6 +459,10 @@ $nearExpiryRows = count(array_filter(
             if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
             const startPoint = (currentPage - 1) * rowsPerPage;
             const endPoint = startPoint + rowsPerPage;
+
+            if (window.InventoryV2Hci && typeof window.InventoryV2Hci.markFilteredRows === 'function') {
+                window.InventoryV2Hci.markFilteredRows(allRows, currentRows);
+            }
 
             allRows.forEach(row => row.style.display = 'none');
             currentRows.forEach((row, index) => {

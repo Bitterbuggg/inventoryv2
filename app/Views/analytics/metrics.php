@@ -138,8 +138,8 @@ $crumbs = [
 <?= $this->section('page_actions') ?>
 <?php $metricsTrendsExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'trends', 'date_from' => ($date_from ?? ''), 'date_to' => ($date_to ?? ''), 'module' => ($module ?? '')]); ?>
 <?php $metricsDailyExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'metrics', 'date_from' => ($date_from ?? ''), 'date_to' => ($date_to ?? ''), 'module' => ($module ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('analytics/metrics') . '?' . $metricsTrendsExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export Trends CSV</a>
-<a class="btn btn-outline" href="<?= site_url('analytics/metrics') . '?' . $metricsDailyExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export Daily CSV</a>
+<a class="btn btn-outline" href="<?= site_url('analytics/metrics') . '?' . $metricsTrendsExportQuery ?>" data-filtered-csv-export data-export-table="#trends-table" data-export-row-selector=".trend-row" data-export-filename="analytics_trends.csv" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export Trends CSV</a>
+<a class="btn btn-outline" href="<?= site_url('analytics/metrics') . '?' . $metricsDailyExportQuery ?>" data-filtered-csv-export data-export-table="#metrics-table" data-export-row-selector=".metric-row" data-export-filename="analytics_daily_metrics.csv" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export Daily CSV</a>
 <a class="btn btn-outline" href="<?= site_url('analytics/dashboard') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Dashboard</a>
 <a class="btn btn-outline" href="<?= site_url('analytics/events') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Events</a>
 <?= $this->endSection() ?>
@@ -208,7 +208,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
             <h3>Event Trends by Date</h3>
         </div>
         <div class="table-scroll-container">
-            <table class="modern-table">
+            <table class="modern-table" id="trends-table">
                 <thead>
                     <tr>
                         <th>Date</th>
@@ -221,7 +221,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
                         <tr><td colspan="3" style="text-align: center; padding: 40px; color: var(--v2-text-muted);">No trend data available.</td></tr>
                     <?php else: ?>
                         <?php foreach ($trends as $row): ?>
-                            <tr>
+                            <tr class="trend-row">
                                 <td style="font-weight: 700;"><?= esc((string) ($row['metric_date'] ?? '')) ?></td>
                                 <td style="font-weight: 600; color: var(--v2-label);"><?= esc((string) ($row['module'] ?? '')) ?></td>
                                 <td style="text-align: right; font-weight: 800; color: var(--v2-title);"><?= esc((string) ($row['total'] ?? 0)) ?></td>
@@ -238,7 +238,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
             <h3>Persisted Daily Metrics</h3>
         </div>
         <div class="table-scroll-container">
-            <table class="modern-table">
+            <table class="modern-table" id="metrics-table">
                 <thead>
                     <tr>
                         <th>Date</th>
@@ -254,7 +254,7 @@ $trendTotal = array_sum(array_map(static fn (array $row): int => (int) ($row['to
                         <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--v2-text-muted);">No persisted metrics yet.</td></tr>
                     <?php else: ?>
                         <?php foreach ($metrics as $row): ?>
-                            <tr>
+                            <tr class="metric-row">
                                 <td style="font-weight: 700; white-space: nowrap;"><?= esc((string) ($row['metric_date'] ?? '')) ?></td>
                                 <td><code><?= esc((string) ($row['metric_key'] ?? '')) ?></code></td>
                                 <td style="font-weight: 600; color: var(--v2-label);"><?= esc((string) ($row['module'] ?? '')) ?></td>

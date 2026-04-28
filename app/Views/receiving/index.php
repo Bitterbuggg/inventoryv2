@@ -207,7 +207,7 @@ $canViewInventory = $user !== null && method_exists($user, 'can') && $user->can(
 
 <?= $this->section('page_actions') ?>
 <?php $receivingExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('receiving') . '?' . $receivingExportQuery ?>" title="Download the current list of receiving records as a CSV file" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('receiving') . '?' . $receivingExportQuery ?>" data-filtered-csv-export data-export-table="#receivings-table" data-export-row-selector=".rec-row" data-export-exclude-columns="6" data-export-filename="receivings.csv" title="Download the current list of receiving records as a CSV file" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <?php if ($canManagePoRequests): ?>
     <a class="btn btn-outline" href="<?= site_url('procurement/po-requests') ?>" title="View approved purchase requests ready for receiving" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">PO Requests</a>
 <?php endif ?>
@@ -593,6 +593,10 @@ $convertibleCount = count($convertiblePoRequests ?? []);
 
                 const startPoint = (currentPage - 1) * rowsPerPage;
                 const endPoint = startPoint + rowsPerPage;
+
+                if (window.InventoryV2Hci && typeof window.InventoryV2Hci.markFilteredRows === 'function') {
+                    window.InventoryV2Hci.markFilteredRows(allRows, currentRows);
+                }
 
                 allRows.forEach(row => row.style.display = 'none');
                 currentRows.forEach((row, index) => {

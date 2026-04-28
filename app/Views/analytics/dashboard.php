@@ -145,7 +145,7 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
 
 <?= $this->section('page_actions') ?>
 <?php $dashboardExportQuery = http_build_query(['export' => 'csv', 'days' => ($days ?? 7)]); ?>
-<a class="btn btn-outline" href="<?= site_url('analytics/dashboard') . '?' . $dashboardExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('analytics/dashboard') . '?' . $dashboardExportQuery ?>" data-filtered-csv-export data-export-table="#recent-events-table" data-export-row-selector=".event-row" data-export-filename="analytics_dashboard_recent_events.csv" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('analytics/events') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Event Logs</a>
 <a class="btn btn-outline" href="<?= site_url('analytics/metrics') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Metrics</a>
 <?= $this->endSection() ?>
@@ -337,7 +337,8 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
         const tbody = document.querySelector('#recent-events-table tbody');
         if (!tbody) return;
 
-        let rowsArray = Array.from(tbody.querySelectorAll('.event-row'));
+        const allRows = Array.from(tbody.querySelectorAll('.event-row'));
+        let rowsArray = [...allRows];
         const pagerContainer = document.getElementById('client-pager');
         const pageIndicator = document.getElementById('page-indicator');
         const totalRows = rowsArray.length;
@@ -351,6 +352,10 @@ $periodDays = (int) ($summary['period_days'] ?? 7);
             currentPage = page;
             const startPoint = (page - 1) * rowsPerPage;
             const endPoint = startPoint + rowsPerPage;
+
+            if (window.InventoryV2Hci && typeof window.InventoryV2Hci.markFilteredRows === 'function') {
+                window.InventoryV2Hci.markFilteredRows(allRows, rowsArray);
+            }
 
             rowsArray.forEach((row, index) => {
                 row.style.display = (index >= startPoint && index < endPoint) ? '' : 'none';

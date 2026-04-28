@@ -250,7 +250,7 @@ if ($canViewReports || $canViewAudit) {
 
         <div class="main-panel">
             <header class="app-header">
-                <div class="container header-inner" style="display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 20px;">
+                <div class="container header-inner" style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto); align-items: start; gap: 20px;">
                     
                     <div class="header-main stack-sm">
                         <button type="button" class="side-toggle" id="sideToggle" aria-controls="sidePanel" aria-expanded="false">Menu</button>

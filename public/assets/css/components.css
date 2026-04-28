@@ -145,6 +145,10 @@
     font-family: inherit;
 }
 
+.side-section-title span {
+    min-width: 0;
+}
+
 .side-section-title:hover {
     background: rgba(255, 255, 255, 0.08); /* Brighter hover */
     color: #ffffff;
@@ -244,6 +248,8 @@
 
 .side-link-label {
     font-weight: 600;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .main-panel {
@@ -264,10 +270,17 @@
     gap: var(--space-3);
     padding: var(--space-4) 0;
     flex-wrap: wrap;
+    min-width: 0;
 }
 
 .header-main {
     min-width: 0;
+}
+
+.header-main h1,
+.page-subtitle,
+.top-kicker {
+    overflow-wrap: anywhere;
 }
 
 .side-toggle {
@@ -299,6 +312,13 @@
     flex-wrap: wrap;
     color: var(--color-text-muted);
     font-size: 0.9rem;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.user-strip > * {
+    min-width: 0;
+    max-width: 100%;
 }
 
 .brand {
@@ -319,6 +339,18 @@
 
 .content-wrap {
     padding: var(--space-5) 0 var(--space-6);
+    min-width: 0;
+}
+
+.content-wrap img,
+.content-wrap svg,
+.content-wrap canvas {
+    max-width: 100%;
+}
+
+.content-wrap img,
+.content-wrap svg {
+    height: auto;
 }
 
 .page-header {
@@ -339,6 +371,8 @@
     display: flex;
     gap: var(--space-2);
     flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .required-note {
@@ -349,7 +383,9 @@
 
 .page-actions .btn,
 .toolbar .btn {
-    white-space: nowrap;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .card {
@@ -359,6 +395,7 @@
     padding: var(--space-4);
     box-shadow: var(--shadow-sm);
     transition: box-shadow 160ms ease, transform 160ms ease, border-color 160ms ease;
+    min-width: 0;
 }
 
 .card:hover {
@@ -385,6 +422,7 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     padding: var(--space-3);
+    min-width: 0;
 }
 
 .kpi-card::before {
@@ -447,6 +485,7 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     font-weight: 700;
+    overflow-wrap: anywhere;
 }
 
 .kpi-value {
@@ -466,6 +505,12 @@
 
 .stack-sm > * + * {
     margin-top: var(--space-2);
+}
+
+.stack-sm,
+.stack-md,
+.stack-lg {
+    min-width: 0;
 }
 
 .stack-md > * + * {
@@ -1023,6 +1068,17 @@ table.modern-table td.table-empty {
 
     .header-inner {
         align-items: flex-start;
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .user-strip {
+        align-items: flex-start !important;
+        justify-self: stretch;
+        text-align: left !important;
+    }
+
+    .page-actions {
+        justify-content: flex-start !important;
     }
 }
 

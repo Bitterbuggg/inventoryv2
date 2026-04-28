@@ -233,7 +233,7 @@ $crumbs = [
 
 <?= $this->section('page_actions') ?>
 <?php $inventoryQuantityExportQuery = http_build_query(['export' => 'csv', 'q' => ($keyword ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('inventory/quantities') . '?' . $inventoryQuantityExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('inventory/quantities') . '?' . $inventoryQuantityExportQuery ?>" data-filtered-csv-export data-export-table="#inventory-table" data-export-row-selector=".inventory-row" data-export-exclude-columns="10" data-export-filename="inventory_quantities.csv" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('receiving') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Receiving</a>
 <?= $this->endSection() ?>
 
@@ -584,6 +584,10 @@ $zeroAvailable = count(array_filter($rows, static fn (array $row): bool => (floa
             
             const startPoint = (currentPage - 1) * rowsPerPage;
             const endPoint = startPoint + rowsPerPage;
+
+            if (window.InventoryV2Hci && typeof window.InventoryV2Hci.markFilteredRows === 'function') {
+                window.InventoryV2Hci.markFilteredRows(allRows, currentRows);
+            }
 
             allRows.forEach(row => row.style.display = 'none');
 

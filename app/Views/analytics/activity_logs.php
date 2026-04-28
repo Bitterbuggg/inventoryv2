@@ -205,17 +205,38 @@ $metricsRoute = site_url('analytics/metrics');
 <?= $this->section('page_actions') ?>
 <?php 
     $overviewExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'overview', 'overview_days' => ($overview_days ?? 7)]); 
-    $eventsExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'events', 'event_limit' => ($event_limit ?? 500)]); 
-    $metricsTrendsExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'trends']); 
-    $metricsDailyExportQuery = http_build_query(['export' => 'csv', 'dataset' => 'metrics']); 
+    $eventsExportQuery = http_build_query([
+        'export' => 'csv',
+        'dataset' => 'events',
+        'event_name' => ($event_filters['event_name'] ?? ''),
+        'event_module' => ($event_filters['module'] ?? ''),
+        'event_actor_id' => ($event_filters['actor_id'] ?? ''),
+        'event_date_from' => ($event_filters['date_from'] ?? ''),
+        'event_date_to' => ($event_filters['date_to'] ?? ''),
+        'event_limit' => ($event_limit ?? 500),
+    ]);
+    $metricsTrendsExportQuery = http_build_query([
+        'export' => 'csv',
+        'dataset' => 'trends',
+        'metric_date_from' => ($metric_date_from ?? ''),
+        'metric_date_to' => ($metric_date_to ?? ''),
+        'metric_module' => ($metric_module ?? ''),
+    ]);
+    $metricsDailyExportQuery = http_build_query([
+        'export' => 'csv',
+        'dataset' => 'metrics',
+        'metric_date_from' => ($metric_date_from ?? ''),
+        'metric_date_to' => ($metric_date_to ?? ''),
+        'metric_module' => ($metric_module ?? ''),
+    ]);
 ?>
 <div class="export-menu" id="export-menu">
     <button class="btn btn-outline" type="button" onclick="document.getElementById('export-menu').classList.toggle('open')" style="font-weight: 800; font-size: 0.85rem;">Export Dataset &#9662;</button>
     <div class="export-menu-items">
         <a href="<?= $overviewRoute . '?' . $overviewExportQuery ?>">Export Overview Stats</a>
-        <a href="<?= $eventsRoute . '?' . $eventsExportQuery ?>">Export Event Logs</a>
-        <a href="<?= $metricsRoute . '?' . $metricsTrendsExportQuery ?>">Export Metric Trends</a>
-        <a href="<?= $metricsRoute . '?' . $metricsDailyExportQuery ?>">Export Daily Snapshots</a>
+        <a href="<?= $eventsRoute . '?' . $eventsExportQuery ?>" data-filtered-csv-export data-export-table="#events-table" data-export-row-selector=".event-row" data-export-filename="activity_events.csv">Export Event Logs</a>
+        <a href="<?= $metricsRoute . '?' . $metricsTrendsExportQuery ?>" data-filtered-csv-export data-export-table="#trends-table" data-export-row-selector=".trend-row" data-export-filename="metric_trends.csv">Export Metric Trends</a>
+        <a href="<?= $metricsRoute . '?' . $metricsDailyExportQuery ?>" data-filtered-csv-export data-export-table="#metrics-table" data-export-row-selector=".metric-row" data-export-filename="daily_metrics.csv">Export Daily Snapshots</a>
     </div>
 </div>
 <?= $this->endSection() ?>
@@ -573,6 +594,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const startPoint = (currentPage - 1) * perPage;
             const endPoint = startPoint + perPage;
+
+            if (window.InventoryV2Hci && typeof window.InventoryV2Hci.markFilteredRows === 'function') {
+                window.InventoryV2Hci.markFilteredRows(allRows, currentRows);
+            }
 
             allRows.forEach(r => r.style.display = 'none');
             currentRows.forEach((r, i) => {

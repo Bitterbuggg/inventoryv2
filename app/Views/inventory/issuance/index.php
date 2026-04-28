@@ -197,7 +197,7 @@ $canViewReports = $user !== null && method_exists($user, 'can') && $user->can('r
     <a class="btn btn-primary" href="<?= site_url('inventory/issuance/create') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Create Issuance</a>
 <?php endif ?>
 <?php $issuanceListExportQuery = http_build_query(['export' => 'csv', 'status' => ($status ?? '')]); ?>
-<a class="btn btn-outline" href="<?= site_url('inventory/issuance') . '?' . $issuanceListExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('inventory/issuance') . '?' . $issuanceListExportQuery ?>" data-filtered-csv-export data-export-table="#issuance-table" data-export-row-selector=".issuance-row" data-export-exclude-columns="6" data-export-filename="issuances.csv" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <?php if ($canViewInventory): ?>
     <a class="btn btn-outline" href="<?= site_url('inventory/quantities') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Inventory Quantities</a>
 <?php endif ?>
@@ -365,13 +365,56 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
 
             const searchInput = document.getElementById('instant-search-input');
             const clearBtn = document.getElementById('btn-clear-search');
+            const statusSelect = document.getElementById('status');
+            const serverFilterForm = document.getElementById('server-filter-form');
 
             const statusCycle = ['All', 'draft', 'submitted', 'approved', 'rejected', 'released', 'cancelled'];
-            let cycleIndex = 0;
-            let currentStatusFilter = 'All';
+            let cycleIndex = Math.max(0, statusCycle.indexOf(statusSelect && statusSelect.value ? statusSelect.value : 'All'));
+            let currentStatusFilter = statusCycle[cycleIndex] || 'All';
 
             function toTitleCase(str) {
                 return str.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            }
+
+            function renderStatusHeader() {
+                if (!statusHeader) return;
+
+                if (currentStatusFilter === 'All') {
+                    statusHeader.innerHTML = `Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>`;
+                } else {
+                    statusHeader.innerHTML = `Status <br><span class="filter-active-text">${toTitleCase(currentStatusFilter)}</span>`;
+                }
+            }
+
+            function setStatusFilter(value) {
+                const normalized = value || 'All';
+                currentStatusFilter = statusCycle.includes(normalized) ? normalized : 'All';
+                cycleIndex = statusCycle.indexOf(currentStatusFilter);
+
+                if (statusSelect) {
+                    statusSelect.value = currentStatusFilter === 'All' ? '' : currentStatusFilter;
+                }
+
+                renderStatusHeader();
+            }
+
+            function hasServerStatusFilter() {
+                if (!window.URLSearchParams) return false;
+
+                const params = new URLSearchParams(window.location.search);
+                return params.has('status') && params.get('status') !== '';
+            }
+
+            function resetFilters() {
+                searchInput.value = '';
+                setStatusFilter('All');
+
+                if (hasServerStatusFilter() && serverFilterForm && serverFilterForm.action) {
+                    window.location.href = serverFilterForm.action;
+                    return;
+                }
+
+                applyFilters();
             }
 
             function applyFilters() {
@@ -414,7 +457,17 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
             if(searchInput) searchInput.addEventListener('input', applyFilters);
             if(clearBtn) {
                 clearBtn.addEventListener('click', () => {
-                    searchInput.value = '';
+                    resetFilters();
+                });
+            }
+
+            if(statusSelect) {
+                statusSelect.addEventListener('change', () => {
+                    if (hasServerStatusFilter()) {
+                        return;
+                    }
+
+                    setStatusFilter(statusSelect.value);
                     applyFilters();
                 });
             }
@@ -422,16 +475,9 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
             if(statusHeader) {
                 statusHeader.addEventListener('click', (e) => {
                     e.stopPropagation(); 
-                    
-                    cycleIndex = (cycleIndex + 1) % statusCycle.length;
-                    currentStatusFilter = statusCycle[cycleIndex];
 
-                    if (currentStatusFilter === 'All') {
-                        statusHeader.innerHTML = `Status <span class="filter-active-text" style="font-weight: normal; opacity: 0.7;">(All)</span>`;
-                    } else {
-                        statusHeader.innerHTML = `Status <br><span class="filter-active-text">${toTitleCase(currentStatusFilter)}</span>`;
-                    }
-                    
+                    const nextIndex = (cycleIndex + 1) % statusCycle.length;
+                    setStatusFilter(statusCycle[nextIndex]);
                     applyFilters();
                 });
             }
@@ -483,6 +529,10 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
                 const startPoint = (currentPage - 1) * rowsPerPage;
                 const endPoint = startPoint + rowsPerPage;
 
+                if (window.InventoryV2Hci && typeof window.InventoryV2Hci.markFilteredRows === 'function') {
+                    window.InventoryV2Hci.markFilteredRows(allRows, currentRows);
+                }
+
                 allRows.forEach(row => row.style.display = 'none');
                 currentRows.forEach((row, index) => {
                     if (index >= startPoint && index < endPoint) row.style.display = '';
@@ -517,6 +567,7 @@ $releasedIssuances = count(array_filter($rows, static fn (array $row): bool => (
                 });
             }
 
+            renderStatusHeader();
             showPage(1);
         }
     });

@@ -4,8 +4,7 @@
 Validate end-to-end pharmacy workflow on the current baseline before deployment.
 
 ## Test Environment
-- URL: `http://127.0.0.1:8080/`
-- App Server: `php spark serve --host 127.0.0.1 --port 8080`
+- URL: `http://localhost/inventoryv2/public/`
 - DB: `inventoryv2`
 - Build: latest local branch
 - Date: `2026-02-20`

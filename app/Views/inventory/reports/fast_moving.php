@@ -174,7 +174,7 @@ $crumbs = [
 
 <?= $this->section('page_actions') ?>
 <?php $fastMovingExportQuery = http_build_query(['export' => 'csv', 'date_from' => ($date_from ?? ''), 'date_to' => ($date_to ?? ''), 'limit' => ($limit ?? 20)]); ?>
-<a class="btn btn-outline" href="<?= site_url('reports/fast-moving') . '?' . $fastMovingExportQuery ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
+<a class="btn btn-outline" href="<?= site_url('reports/fast-moving') . '?' . $fastMovingExportQuery ?>" data-filtered-csv-export data-export-table="#fast-table" data-export-row-selector=".fast-row" data-export-filename="fast_moving.csv" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Export CSV</a>
 <a class="btn btn-outline" href="<?= site_url('reports/stock-balance') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Stock Balance</a>
 <a class="btn btn-outline" href="<?= site_url('reports/stock-movements') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Stock Movements</a>
 <a class="btn btn-outline" href="<?= site_url('reports/issuances') ?>" style="padding: 8px 16px; font-weight: 800; font-size: 0.85rem;">Issuance Report</a>
@@ -372,6 +372,11 @@ $maxQty = $topItemQty > 0 ? $topItemQty : 1;
             if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
             const startPoint = (currentPage - 1) * rowsPerPage;
             const endPoint = startPoint + rowsPerPage;
+
+            if (window.InventoryV2Hci && typeof window.InventoryV2Hci.markFilteredRows === 'function') {
+                window.InventoryV2Hci.markFilteredRows(allRows, currentRows);
+            }
+
             allRows.forEach(row => row.style.display = 'none');
             currentRows.forEach((row, index) => { if (index >= startPoint && index < endPoint) row.style.display = ''; });
             const actualEnd = Math.min(endPoint, totalRows);
