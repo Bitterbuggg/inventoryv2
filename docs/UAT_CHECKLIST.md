@@ -4,15 +4,15 @@
 Validate end-to-end pharmacy workflow on the current baseline before deployment.
 
 ## Test Environment
-- URL: `http://localhost/inventoryv2/public/`
+- URL: `http://127.0.0.1:8080/`
 - DB: `inventoryv2`
 - Build: latest local branch
 - Date: `2026-02-20`
 
 ## Test Accounts
-- Admin: `admin@local.test` / seeded default password
-- Employee: `employee@local.test` / seeded default password
-- IT Staff: `itstaff@local.test` / seeded default password
+- Admin: `admin@local.test` / `Admin@1234`
+- Employee: `employee@local.test` / `Employee@1234`
+- IT Staff: `itstaff@local.test` / `Itstaff@1234`
 
 Security note:
 - Rotate all seeded/default passwords immediately after first successful login.

@@ -36,8 +36,9 @@ Requirements:
 
 ### Fastest setup
 
-1. Open PowerShell in the project folder.
-2. Run:
+1. Open XAMPP and start MySQL.
+2. Open PowerShell in the project folder.
+3. Run:
 
 ```powershell
 .\scripts\setup-local.bat
@@ -50,6 +51,8 @@ That script will:
 - create the database if possible
 - run migrations
 - seed the demo accounts and sample data
+
+After it finishes, continue with the Daily Use steps above: start `php spark serve --host 127.0.0.1 --port 8080` and open `http://127.0.0.1:8080/`.
 
 ### Manual setup
 
@@ -73,7 +76,7 @@ Default local database values are already included in `env`:
 CI_ENVIRONMENT = development
 # Keep app.baseURL commented for portability.
 # The app now auto-detects the correct base URL on each machine/server mode.
-# app.baseURL = 'http://localhost/inventoryv2/public/'
+# app.baseURL = ''
 
 database.default.hostname = 127.0.0.1
 database.default.database = inventoryv2
@@ -120,7 +123,7 @@ Change these passwords before real use.
 
 Link not working on another PC:
 - Make sure the project is inside `xampp\htdocs`.
-- Open `http://localhost/<project-folder>/`, not the old `/public/` URL.
+- Open `http://127.0.0.1:8080/` when using `php spark serve`, or `http://localhost/<project-folder>/` when using Apache/XAMPP.
 - Make sure `.env` does not hardcode `app.baseURL`.
 - If a clean URL like `/login` fails, use the main page first or enable Apache `mod_rewrite`.
 

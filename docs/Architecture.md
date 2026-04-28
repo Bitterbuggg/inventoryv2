@@ -332,7 +332,7 @@ Key Security Tools/Practices: CSRF protection, strict input validation, output e
 
 ## 8. Development & Testing Environment
 
-Local Setup Instructions: Install XAMPP + Composer, configure `.env`, run migrations with `php spark migrate`, seed auth and baseline permissions with `php spark db:seed AuthRbacSeeder`, optionally load sample catalog or workflow data with the sample seeders, then start Apache/MySQL and access via `http://localhost/inventoryv2/public/` (active CI4 entrypoint).
+Local Setup Instructions: Install XAMPP + Composer, configure `.env`, run migrations with `php spark migrate`, seed auth and baseline permissions with `php spark db:seed AuthRbacSeeder`, optionally load sample catalog or workflow data with the sample seeders, then start MySQL and the built-in server with `php spark serve --host 127.0.0.1 --port 8080` and access via `http://127.0.0.1:8080/`.
 
 ### 8.1. Testing Framework
 

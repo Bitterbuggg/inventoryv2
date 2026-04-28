@@ -125,4 +125,6 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host ''
 Write-Host 'Setup complete.'
-Write-Host "Open: http://localhost/$projectName/"
+Write-Host 'Start the app server with:'
+Write-Host 'php spark serve --host 127.0.0.1 --port 8080'
+Write-Host 'Open: http://127.0.0.1:8080/'
